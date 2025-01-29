@@ -42,7 +42,7 @@ public class PlayerManager {
             }
             loadDatabase();
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to initialize database", e);
+            plugin.getLogger().log(Level.SEVERE, "[VitalStrike] Failed to initialize database", e);
             // Create empty configuration if loading fails
             database = new YamlConfiguration();
         }
@@ -64,8 +64,8 @@ public class PlayerManager {
         try {
             database.save(databaseFile);
         } catch (IOException e) {
-            plugin.getLogger().log(Level.WARNING, "Could not save player data", e);
-            throw new RuntimeException("Failed to save player data", e);
+            plugin.getLogger().log(Level.WARNING, "[VitalStrike] Could not save player data", e);
+            throw new RuntimeException("[VitalStrike] Failed to save player data", e);
         }
     }
 

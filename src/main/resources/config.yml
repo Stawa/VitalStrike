@@ -1,5 +1,9 @@
 # VitalStrike Configuration
 
+# Update Checker
+update-checker:
+  enabled: true
+
 # General Settings
 enabled: true
 
@@ -48,14 +52,14 @@ database:
 
 # Damage Indicator Settings
 damage-formats:
-  default: "<red>-%.1f ⚔" # Normal damage (red)
-  critical: "<dark_red><bold>-%.1f ⚡</bold>" # Critical hits (bold dark red)
-  poison: "<dark_green>-%.1f ☠" # Poison damage (dark green)
-  fire: "<gold>-%.1f 🔥" # Fire/burn damage (gold)
-  magic: "<dark_purple>-%.1f ✨" # Magic/potion damage (purple)
-  fall: "<gray>-%.1f 💨" # Fall damage (gray)
-  drown: "<blue>-%.1f 💧" # Drowning damage (blue)
-  explosion: "<red>-%.1f 💥" # Explosion damage (red)
+  default: "<gradient:#FF6B6B:#FF8787>-%.1f ⚔</gradient>" # Normal damage with gradient
+  critical: "<bold><gradient:#FF0000:#8B0000>-%.1f ⚡</gradient></bold>" # Critical hits with deep red gradient
+  poison: "<gradient:#50C878:#228B22>-%.1f ☠</gradient>" # Poison damage with forest green gradient
+  fire: "<gradient:#FFD700:#FF4500>-%.1f 🔥</gradient>" # Fire damage with gold-orange gradient
+  magic: "<gradient:#9400D3:#800080>-%.1f ✨</gradient>" # Magic damage with purple gradient
+  fall: "<gradient:#A9A9A9:#696969>-%.1f 💨</gradient>" # Fall damage with gray gradient
+  drown: "<gradient:#1E90FF:#0000CD>-%.1f 💧</gradient>" # Drowning with blue gradient
+  explosion: "<gradient:#FF4500:#8B0000>-%.1f 💥</gradient>" # Explosion with red gradient
   heal: "<green>+%.1f ❤" # Healing amount (green)
   contact: "<green>-%.1f 🌵" # Cactus and sweet berry bush damage
   cramming: "<gray>-%.1f 📦" # Entity cramming damage
@@ -76,6 +80,72 @@ damage-formats:
   void: "<dark_gray>-%.1f ⬇" # Void damage
   wither: "<dark_gray>-%.1f 💀" # Wither effect damage
   border: "<red>-%.1f 🌐" # World border damage
+
+# Combo System Configuration
+combo:
+  enabled: true
+  reset-time: 3 # Time in seconds before combo resets
+  
+  # Combo Decay Settings
+  decay:
+    enabled: false
+    time: 10 # Time in seconds before combo starts decaying
+    rate: 1 # How many combo points lost per decay interval
+    interval: 1 # How often (in seconds) to decay combo
+    minimum: 0 # Minimum combo value after decay
+  
+  # Damage Multiplier Settings
+  multiplier:
+    enabled: false
+    base: 1.0 # Base damage multiplier (1.0 = normal damage)
+    per-combo: 0.1 # Additional multiplier per combo (0.1 = +10% per combo)
+    max: 3.0 # Maximum damage multiplier (3.0 = 300% damage)
+    ranks: # Specific multipliers for each rank
+      D: 1.0
+      C: 1.2
+      B: 1.5
+      A: 1.8
+      S: 2.2
+      SS: 2.6
+      SSS: 3.0
+  
+  display:
+    format: "<bold><gradient:#FF0000:#FFD700>✦ %dx COMBO ✦</gradient></bold>"
+    multiplier-format: " <gray>(<gradient:#FFD700:#FFA500>%.1fx</gradient>)</gray>"
+    decay-warning: "<italic><gray>(Decaying in %.1fs)</gray></italic>"
+    rank:
+      enabled: true
+      format: " <bold><gradient:#00FF00:#00FFFF>[%s]</gradient></bold>"
+      thresholds:
+        D: 0
+        C: 5
+        B: 10
+        A: 15
+        S: 25
+        SS: 40
+        SSS: 60
+      colors:
+        D: "<gradient:#808080:#A0A0A0>" # Gray gradient
+        C: "<gradient:#00FF00:#90EE90>" # Green gradient
+        B: "<gradient:#00FFFF:#87CEEB>" # Cyan gradient
+        A: "<gradient:#FFD700:#FFA500>" # Gold gradient
+        S: "<gradient:#FF69B4:#FF1493>" # Pink gradient
+        SS: "<gradient:#9400D3:#8A2BE2>" # Purple gradient
+        SSS: "<gradient:#FF0000:#FF4500>" # Red-orange gradient
+
+  # Visual Effects
+  effects:
+    enabled: true
+    sound:
+      enabled: true
+      combo-up: "ENTITY_EXPERIENCE_ORB_PICKUP" # Sound when combo increases
+      combo-milestone: "ENTITY_PLAYER_LEVELUP" # Sound when reaching new rank
+      volume: 1.0
+      pitch: 1.0
+    particles:
+      enabled: true
+      type: "CRIT" # Particle effect type
+      count: 10 # Number of particles
 
 # Display Settings
 display:
