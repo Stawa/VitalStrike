@@ -1,0 +1,26 @@
+name: VitalStrike
+version: "${project.version}"
+main: stawa.vitalstrike.VitalStrike
+api-version: "1.20"
+author: stawa
+description: A plugin that displays damage indicators when entities or players take damage
+
+commands:
+  vitalstrike:
+    description: Main command for VitalStrike
+    usage: |
+      §6VitalStrike Commands:
+      §e/vs help §7- Show this help menu
+      §e/vs toggle §7- Toggle damage indicators on/off
+      §e/vs reload §7- Reload the plugin configuration
+    aliases: [vs]
+    permission: vitalstrike.use
+    permission-message: §cYou don't have permission to use VitalStrike commands!
+
+permissions:
+  vitalstrike.use:
+    description: Allows using basic VitalStrike features (toggle and style)
+    default: true
+  vitalstrike.reload:
+    description: Allows reloading the plugin configuration
+    default: op

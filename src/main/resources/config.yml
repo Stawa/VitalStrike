@@ -1,0 +1,90 @@
+# VitalStrike Configuration
+
+# General Settings
+enabled: true
+
+# Database Settings
+database:
+  enabled: true
+  file: "playerdata.yml"
+
+# Damage Indicator Settings
+damage-formats:
+  default: "<red>-%.1f ⚔" # Normal damage (red)
+  critical: "<dark_red><bold>-%.1f ⚡</bold>" # Critical hits (bold dark red)
+  poison: "<dark_green>-%.1f ☠" # Poison damage (dark green)
+  fire: "<gold>-%.1f 🔥" # Fire/burn damage (gold)
+  magic: "<dark_purple>-%.1f ✨" # Magic/potion damage (purple)
+  fall: "<gray>-%.1f 💨" # Fall damage (gray)
+  drown: "<blue>-%.1f 💧" # Drowning damage (blue)
+  explosion: "<red>-%.1f 💥" # Explosion damage (red)
+  heal: "<green>+%.1f ❤" # Healing amount (green)
+  contact: "<green>-%.1f 🌵" # Cactus and sweet berry bush damage
+  cramming: "<gray>-%.1f 📦" # Entity cramming damage
+  dragon: "<dark_purple>-%.1f 🐉" # Dragon breath damage
+  dryout: "<yellow>-%.1f 🌊" # Dolphin/fish drying out
+  sweep: "<red>-%.1f ⚔" # Sword sweep attack
+  falling_block: "<gray>-%.1f 🧱" # Anvil or falling block damage
+  wall: "<gray>-%.1f 💫" # Elytra crash damage
+  freeze: "<aqua>-%.1f ❄" # Powder snow freeze damage
+  hot_floor: "<gold>-%.1f 🔥" # Magma block damage
+  lava: "<dark_red>-%.1f 🌋" # Lava damage
+  lightning: "<yellow>-%.1f ⚡" # Lightning strike damage
+  projectile: "<gray>-%.1f 🏹" # Arrow and other projectile damage
+  sonic_boom: "<dark_aqua>-%.1f 📢" # Warden sonic boom damage
+  starvation: "<gold>-%.1f 🍖" # Hunger damage
+  suffocation: "<gray>-%.1f ⬛" # Block suffocation damage
+  thorns: "<green>-%.1f 🌹" # Thorns enchantment damage
+  void: "<dark_gray>-%.1f ⬇" # Void damage
+  wither: "<dark_gray>-%.1f 💀" # Wither effect damage
+  border: "<red>-%.1f 🌐" # World border damage
+
+# Display Settings
+display:
+  duration: 1.5 # How long damage/heal numbers stay visible (in seconds)
+  position:
+    y: -0.2 # Vertical offset (negative = lower, positive = higher)
+    x: -0.5 # Horizontal offset (negative = left, positive = right)
+    random-offset: -1 # Random variation (-1 = disabled, 0 or higher = amount of randomness)
+    direction: "down" # Direction for indicators to move (down, up, left, right)
+  animation:
+    fade-in: 0.25 # Fade in duration in seconds
+    fade-out: 0.25 # Fade out duration in seconds
+    float-speed: 0.03 # Floating speed (blocks per tick)
+    float-curve: 0.02 # Curve intensity for floating motion
+
+# Messages
+messages:
+  no-permission: "<red>You don't have permission to use this command!"
+  enabled-personal: "<green>VitalStrike damage indicators enabled for you!"
+  disabled-personal: "<red>VitalStrike damage indicators disabled for you!"
+  already-enabled: "<yellow>VitalStrike damage indicators are already enabled for you!"
+  already-disabled: "<yellow>VitalStrike damage indicators are already disabled for you!"
+  config-reloaded: "<green>Configuration reloaded successfully!"
+  style-updated: "<green>Your damage indicator style has been updated!"
+
+# Help Menu Settings
+help-menu:
+  header: "<dark_gray><strikethrough>                    </strikethrough>"
+  title: "<gold><bold>VitalStrike Commands</bold></gold>"
+  commands:
+    toggle:
+      command: "/vs toggle"
+      description: "<white>Toggle damage indicators on/off"
+    reload:
+      command: "/vs reload"
+      description: "<white>Reload the plugin configuration"
+    help:
+      command: "/vs help"
+      description: "<white>Show this help menu"
+  footer: "<dark_gray><strikethrough>                    </strikethrough>"
+# Color code reference:
+# <red> - Red
+# <dark_red> - Dark Red
+# <dark_green> - Dark Green
+# <gold> - Gold
+# <dark_purple> - Purple
+# <gray> - Gray
+# <blue> - Blue
+# <green> - Green
+# Add <bold> for bold text
