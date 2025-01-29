@@ -8,6 +8,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.Particle;
@@ -65,6 +66,8 @@ public class VitalStrike extends JavaPlugin implements Listener {
     private Map<String, Integer> rankThresholds = new HashMap<>();
     private Map<String, String> rankColors = new HashMap<>();
     private PlayerManager playerManager;
+    private PlayerStats playerStats;
+    private Map<String, Sound> damageTypeSounds;
     private double displayDuration = 1.5;
     private double displayY = -0.2;
     private double displayX = -0.5;
@@ -128,6 +131,8 @@ public class VitalStrike extends JavaPlugin implements Listener {
         }
 
         playerManager = new PlayerManager(this);
+        playerStats = new PlayerStats(this);
+        loadDamageTypeSounds();
         getLogger().info("[VitalStrike] VitalStrike has been enabled!");
     }
 
@@ -136,7 +141,29 @@ public class VitalStrike extends JavaPlugin implements Listener {
         if (playerManager != null) {
             playerManager.saveDatabase();
         }
+        if (playerStats != null) {
+            playerStats.saveAllStats();
+        }
         getLogger().info("[VitalStrike] VitalStrike has been disabled!");
+    }
+
+    private void loadDamageTypeSounds() {
+        damageTypeSounds = new HashMap<>();
+        FileConfiguration config = getConfig();
+        ConfigurationSection soundSection = config.getConfigurationSection("damage-type-sounds");
+        if (soundSection != null) {
+            for (String damageType : soundSection.getKeys(false)) {
+                try {
+                    String soundName = soundSection.getString(damageType);
+                    if (soundName != null) {
+                        Sound sound = Sound.valueOf(soundName.toUpperCase());
+                        damageTypeSounds.put(damageType, sound);
+                    }
+                } catch (IllegalArgumentException e) {
+                    getLogger().warning("[VitalStrike] Invalid sound name for damage type " + damageType);
+                }
+            }
+        }
     }
 
     private void loadConfig() {
@@ -394,6 +421,9 @@ public class VitalStrike extends JavaPlugin implements Listener {
                     }
                 }
 
+                // Update player statistics
+                playerStats.updateStats(player, event.getFinalDamage(), playerCombos.get(playerId));
+
                 // Display combo HUD
                 displayComboHUD(player);
             }
@@ -410,127 +440,115 @@ public class VitalStrike extends JavaPlugin implements Listener {
         double damage = event.getFinalDamage();
         Location loc = entity.getLocation().add(0, entity.getHeight() + 0.5, 0);
 
-        // Determine damage type and format
-        String damageType = getConfig().getString("damage-formats.default", "<red>-%.1f ❤");
-        if (event instanceof org.bukkit.event.entity.EntityDamageByEntityEvent) {
-            org.bukkit.event.entity.EntityDamageByEntityEvent eEvent = (org.bukkit.event.entity.EntityDamageByEntityEvent) event;
-            // Check for critical hits (1.5x normal damage is usually considered critical)
-            if (eEvent.getDamager() instanceof Player && ((Player) eEvent.getDamager()).isSprinting()) {
-                damageType = getConfig().getString("damage-formats.critical", "<dark_red><bold>-%.1f ⚡</bold>");
-            }
-        }
+        // Initialize damage type without setting a default
+        String damageFormat = null;
 
         // Check various damage causes
         switch (event.getCause()) {
             case ENTITY_ATTACK:
                 if (Math.random() < 0.2) { // 20% chance for critical hit
-                    damageType = getConfig().getString("damage-formats.critical", "<dark_red><bold>-%.1f ⚡</bold>");
+                    damageFormat = getConfig().getString("damage-formats.critical", "<dark_red><bold>-%.1f ⚡</bold>");
                 } else {
-                    damageType = getConfig().getString("damage-formats.default", "<red>-%.1f ❤");
+                    damageFormat = getConfig().getString("damage-formats.default", "<red>-%.1f ❤");
                 }
                 break;
             case POISON:
-                damageType = getConfig().getString("damage-formats.poison", "<dark_green>-%.1f ☠");
+                damageFormat = getConfig().getString("damage-formats.poison", "<dark_green>-%.1f ☠");
                 break;
             case FIRE:
             case FIRE_TICK:
-                damageType = getConfig().getString("damage-formats.fire", "<gold>-%.1f 🔥");
+                damageFormat = getConfig().getString("damage-formats.fire", "<gold>-%.1f 🔥");
                 break;
             case KILL:
-                damageType = getConfig().getString("damage-formats.kill", "<dark_red>-%.1f ☠");
+                damageFormat = getConfig().getString("damage-formats.kill", "<dark_red>-%.1f ☠");
                 break;
             case MAGIC:
-                damageType = getConfig().getString("damage-formats.magic", "<dark_purple>-%.1f ✨");
+                damageFormat = getConfig().getString("damage-formats.magic", "<dark_purple>-%.1f ✨");
                 break;
             case FALL:
-                damageType = getConfig().getString("damage-formats.fall", "<gray>-%.1f 💨");
+                damageFormat = getConfig().getString("damage-formats.fall", "<gray>-%.1f 💨");
                 break;
             case DROWNING:
-                damageType = getConfig().getString("damage-formats.drown", "<blue>-%.1f 💧");
+                damageFormat = getConfig().getString("damage-formats.drown", "<blue>-%.1f 💧");
                 break;
             case BLOCK_EXPLOSION:
             case ENTITY_EXPLOSION:
-                damageType = getConfig().getString("damage-formats.explosion", "<red>-%.1f 💥");
+                damageFormat = getConfig().getString("damage-formats.explosion", "<red>-%.1f 💥");
                 break;
             case CONTACT:
-                damageType = getConfig().getString("damage-formats.contact", "<green>-%.1f 🌵");
+                damageFormat = getConfig().getString("damage-formats.contact", "<green>-%.1f 🌵");
                 break;
             case CRAMMING:
-                damageType = getConfig().getString("damage-formats.cramming", "<gray>-%.1f 📦");
+                damageFormat = getConfig().getString("damage-formats.cramming", "<gray>-%.1f 📦");
                 break;
             case DRAGON_BREATH:
-                damageType = getConfig().getString("damage-formats.dragon", "<dark_purple>-%.1f 🐉");
+                damageFormat = getConfig().getString("damage-formats.dragon", "<light_purple>-%.1f 🐉");
                 break;
             case DRYOUT:
-                damageType = getConfig().getString("damage-formats.dryout", "<yellow>-%.1f 🌊");
+                damageFormat = getConfig().getString("damage-formats.dryout", "<yellow>-%.1f 🌊");
                 break;
             case ENTITY_SWEEP_ATTACK:
-                damageType = getConfig().getString("damage-formats.sweep", "<red>-%.1f ⚔");
+                damageFormat = getConfig().getString("damage-formats.sweep", "<red>-%.1f ⚔");
                 break;
             case FALLING_BLOCK:
-                damageType = getConfig().getString("damage-formats.falling_block", "<gray>-%.1f 🧱");
+                damageFormat = getConfig().getString("damage-formats.falling_block", "<gray>-%.1f 🧱");
                 break;
             case FLY_INTO_WALL:
-                damageType = getConfig().getString("damage-formats.wall", "<gray>-%.1f 💫");
+                damageFormat = getConfig().getString("damage-formats.wall", "<gray>-%.1f 💫");
                 break;
             case FREEZE:
-                damageType = getConfig().getString("damage-formats.freeze", "<aqua>-%.1f ❄");
+                damageFormat = getConfig().getString("damage-formats.freeze", "<aqua>-%.1f ❄");
                 break;
             case HOT_FLOOR:
-                damageType = getConfig().getString("damage-formats.hot_floor", "<gold>-%.1f 🔥");
+                damageFormat = getConfig().getString("damage-formats.hot_floor", "<gold>-%.1f 🔥");
                 break;
             case LAVA:
-                damageType = getConfig().getString("damage-formats.lava", "<dark_red>-%.1f 🌋");
+                damageFormat = getConfig().getString("damage-formats.lava", "<dark_red>-%.1f 🌋");
                 break;
             case LIGHTNING:
-                damageType = getConfig().getString("damage-formats.lightning", "<yellow>-%.1f ⚡");
+                damageFormat = getConfig().getString("damage-formats.lightning", "<yellow>-%.1f ⚡");
                 break;
             case PROJECTILE:
-                damageType = getConfig().getString("damage-formats.projectile", "<gray>-%.1f 🏹");
+                damageFormat = getConfig().getString("damage-formats.projectile", "<gray>-%.1f 🏹");
                 break;
             case SONIC_BOOM:
-                damageType = getConfig().getString("damage-formats.sonic_boom", "<dark_aqua>-%.1f 📢");
+                damageFormat = getConfig().getString("damage-formats.sonic_boom", "<dark_aqua>-%.1f 📢");
                 break;
             case STARVATION:
-                damageType = getConfig().getString("damage-formats.starvation", "<gold>-%.1f 🍖");
+                damageFormat = getConfig().getString("damage-formats.starvation", "<gold>-%.1f 🍖");
                 break;
             case SUFFOCATION:
-                damageType = getConfig().getString("damage-formats.suffocation", "<gray>-%.1f ⬛");
+                damageFormat = getConfig().getString("damage-formats.suffocation", "<gray>-%.1f ⬛");
                 break;
             case THORNS:
-                damageType = getConfig().getString("damage-formats.thorns", "<green>-%.1f 🌹");
+                damageFormat = getConfig().getString("damage-formats.thorns", "<green>-%.1f 🌹");
                 break;
             case VOID:
-                damageType = getConfig().getString("damage-formats.void", "<dark_gray>-%.1f ⬇");
+                damageFormat = getConfig().getString("damage-formats.void", "<dark_gray>-%.1f ⬇");
                 break;
             case WITHER:
-                damageType = getConfig().getString("damage-formats.wither", "<dark_gray>-%.1f 💀");
+                damageFormat = getConfig().getString("damage-formats.wither", "<dark_gray>-%.1f 💀");
                 break;
             case WORLD_BORDER:
-                damageType = getConfig().getString("damage-formats.border", "<red>-%.1f 🌐");
+                damageFormat = getConfig().getString("damage-formats.border", "<red>-%.1f 🌐");
                 break;
             default:
+                damageFormat = getConfig().getString("damage-formats.default", "<red>-%.1f ❤");
                 break;
         }
 
-        final String finalDamageType = damageType;
+        final String finalDamageFormat = damageFormat;
         // Show damage indicator to each nearby player based on their settings
         entity.getWorld().getNearbyEntities(loc, 20, 20, 20).stream()
                 .filter(e -> e instanceof Player)
                 .map(e -> (Player) e)
                 .filter(player -> playerManager.isEnabled(player))
                 .forEach(player -> {
-                    // Get damage format from config and replace legacy color codes
-                    String format = getConfig().getString("damage-formats." + finalDamageType);
-                    if (format == null) {
-                        format = getConfig().getString("damage-formats.default", "&c-%.1f ❤");
-                    }
-
                     // Format the damage string first
-                    String rawText = String.format(format, damage);
+                    String rawText = String.format(finalDamageFormat, damage);
 
                     // Then convert color codes
-                    String damageFormat = rawText
+                    String displayFormat = rawText
                             .replace("&c", "<red>")
                             .replace("&4", "<dark_red>")
                             .replace("&2", "<dark_green>")
@@ -549,11 +567,11 @@ public class VitalStrike extends JavaPlugin implements Listener {
                             .replace("§l", "<bold>");
 
                     // Add closing tags if needed
-                    if (damageFormat.contains("<bold>") && !damageFormat.contains("</bold>")) {
-                        damageFormat += "</bold>";
+                    if (displayFormat.contains("<bold>") && !displayFormat.contains("</bold>")) {
+                        displayFormat += "</bold>";
                     }
 
-                    Component damageText = MiniMessage.miniMessage().deserialize(damageFormat);
+                    Component damageText = MiniMessage.miniMessage().deserialize(displayFormat);
 
                     // Create text display entity
                     TextDisplay textDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
@@ -578,13 +596,6 @@ public class VitalStrike extends JavaPlugin implements Listener {
                     // Apply configured offsets
                     displayLoc.add(displayX, displayY, 0);
                     textDisplay.teleport(displayLoc);
-
-                    // Initial setup
-                    textDisplay.setTransformation(new Transformation(
-                            new Vector3f(0, 0, 0),
-                            new AxisAngle4f(0, 0, 0, 0),
-                            new Vector3f(0, 0, 0), // Start invisible
-                            new AxisAngle4f(0, 0, 0, 0)));
 
                     // Calculate animation timings
                     int fadeInTicks = (int) (fadeInDuration * 20);
@@ -631,11 +642,13 @@ public class VitalStrike extends JavaPlugin implements Listener {
                             textDisplay.teleport(newLoc);
 
                             // Update transformation for scaling
-                            textDisplay.setTransformation(new Transformation(
-                                    new Vector3f(0, 0, 0),
-                                    new AxisAngle4f(0, 0, 0, 0),
-                                    new Vector3f(scale, scale, scale),
-                                    new AxisAngle4f(0, 0, 0, 0)));
+                            textDisplay.setTransformation(
+                                    new Transformation(
+                                            new Vector3f(), // no translation
+                                            new AxisAngle4f(), // no left rotation
+                                            new Vector3f(scale, scale, scale), // scale uniformly
+                                            new AxisAngle4f() // no right rotation
+                            ));
                         }, tick);
                     }
 
@@ -646,6 +659,14 @@ public class VitalStrike extends JavaPlugin implements Listener {
                         }
                     }, totalTicks);
                 });
+
+        // Play custom damage type sound
+        String damageTypeKey = event.getCause().name().toLowerCase();
+        Sound customSound = damageTypeSounds.get(damageTypeKey);
+        if (customSound != null && entity.getWorld().getNearbyEntities(loc, 20, 20, 20).stream()
+                .anyMatch(e -> e instanceof Player)) {
+            entity.getWorld().playSound(loc, customSound, 1.0f, 1.0f);
+        }
     }
 
     private String getComboRank(int combo) {
@@ -786,30 +807,118 @@ public class VitalStrike extends JavaPlugin implements Listener {
                                 "<green>Configuration reloaded successfully!")));
                 return true;
 
-            case "style":
+            case "stats":
                 if (!(sender instanceof Player)) {
                     sender.sendMessage(
                             MiniMessage.miniMessage().deserialize("<red>This command can only be used by players!"));
                     return true;
                 }
-                if (!sender.hasPermission("vitalstrike.use")) {
+                if (!sender.hasPermission("vitalstrike.stats")) {
                     sender.sendMessage(MiniMessage.miniMessage().deserialize(
                             getConfig().getString("messages.no-permission",
                                     "<red>You don't have permission to use this command!")));
                     return true;
                 }
-                if (args.length < 2) {
-                    sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>Usage: /vs style <format>"));
+                Player statsPlayer = (Player) sender;
+                PlayerStats.PlayerStatistics stats = playerStats.getPlayerStats(statsPlayer.getUniqueId());
+
+                // Send statistics message
+                sender.sendMessage(MiniMessage.miniMessage().deserialize(
+                        "<dark_gray><strikethrough>                    </strikethrough>\n" +
+                                "<gold><bold>Your Combat Statistics</bold></gold>\n" +
+                                "<yellow>Highest Combo: <white>" + stats.getHighestCombo() + "\n" +
+                                "<yellow>Total Damage Dealt: <white>"
+                                + String.format("%.1f", stats.getTotalDamageDealt()) + "\n" +
+                                "<yellow>Average Damage/Hit: <white>"
+                                + String.format("%.1f", stats.getAverageDamagePerHit()) + "\n" +
+                                "<yellow>Total Hits: <white>" + stats.getTotalHits() + "\n" +
+                                "<dark_gray><strikethrough>                    </strikethrough>"));
+                return true;
+
+            case "leaderboard":
+            case "lb":
+                if (!sender.hasPermission("vitalstrike.leaderboard")) {
+                    sender.sendMessage(MiniMessage.miniMessage().deserialize(
+                            getConfig().getString("messages.no-permission",
+                                    "<red>You don't have permission to use this command!")));
                     return true;
                 }
-                String style = String.join(" ", args).substring(6);
-                playerManager.setStyle((Player) sender, style);
-                sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                        getConfig().getString("messages.style-updated")));
-                return true;
-        }
 
-        return false;
+                // Get leaderboard type from args
+                String type = args.length > 1 ? args[1].toLowerCase()
+                        : getConfig().getString("leaderboard.default-type", "damage");
+                List<Map.Entry<UUID, PlayerStats.PlayerStatistics>> leaderboard;
+                String title;
+                int limit = getConfig().getInt("leaderboard.display-limit", 10);
+
+                switch (type) {
+                    case "damage":
+                    case "dmg":
+                        leaderboard = playerStats.getTopPlayers(limit,
+                                (playerStats) -> playerStats.getTotalDamageDealt());
+                        title = getConfig().getString("leaderboard.display.title-formats.damage",
+                                "<gold><bold>Top %d Damage Dealers</bold></gold>");
+                        break;
+                    case "combo":
+                    case "combos":
+                        leaderboard = playerStats.getTopPlayers(limit,
+                                (playerStats) -> (double) playerStats.getHighestCombo());
+                        title = getConfig().getString("leaderboard.display.title-formats.combo",
+                                "<gold><bold>Top %d Highest Combos</bold></gold>");
+                        break;
+                    case "average":
+                    case "avg":
+                        leaderboard = playerStats.getTopPlayers(limit,
+                                (playerStats) -> playerStats.getAverageDamagePerHit());
+                        title = getConfig().getString("leaderboard.display.title-formats.average",
+                                "<gold><bold>Top %d Average Damage</bold></gold>");
+                        break;
+                    default:
+                        sender.sendMessage(MiniMessage.miniMessage().deserialize(
+                                "<red>Invalid leaderboard type! Use: damage, combo, or average"));
+                        return true;
+                }
+
+                StringBuilder message = new StringBuilder();
+                String header = getConfig().getString("leaderboard.display.header",
+                        "<dark_gray><strikethrough>                    </strikethrough>");
+                String footer = getConfig().getString("leaderboard.display.footer",
+                        "<dark_gray><strikethrough>                    </strikethrough>");
+                String entryFormat = getConfig().getString("leaderboard.display.entry-format",
+                        "<yellow>#%d <white>%s: <gold>%s");
+
+                message.append(header).append("\n")
+                        .append(String.format(title, limit)).append("\n");
+
+                int rank = 1;
+                for (Map.Entry<UUID, PlayerStats.PlayerStatistics> entry : leaderboard) {
+                    String playerName = Bukkit.getOfflinePlayer(entry.getKey()).getName();
+                    if (playerName == null)
+                        continue;
+
+                    String value;
+                    String numberFormat;
+                    if (type.equals("damage") || type.equals("dmg")) {
+                        numberFormat = getConfig().getString("leaderboard.number-format.damage", "%.1f");
+                        value = String.format(numberFormat, entry.getValue().getTotalDamageDealt());
+                    } else if (type.equals("combo") || type.equals("combos")) {
+                        numberFormat = getConfig().getString("leaderboard.number-format.combo", "%d");
+                        value = String.format(numberFormat, entry.getValue().getHighestCombo());
+                    } else {
+                        numberFormat = getConfig().getString("leaderboard.number-format.average", "%.1f");
+                        value = String.format(numberFormat, entry.getValue().getAverageDamagePerHit());
+                    }
+
+                    message.append(String.format(entryFormat, rank++, playerName, value)).append("\n");
+                }
+
+                message.append(footer);
+                sender.sendMessage(MiniMessage.miniMessage().deserialize(message.toString()));
+                return true;
+
+            default:
+                return false;
+        }
     }
 
     @Override
@@ -823,11 +932,18 @@ public class VitalStrike extends JavaPlugin implements Listener {
                     completions.add("reload");
                 if (sender.hasPermission("vitalstrike.help"))
                     completions.add("help");
+                if (sender.hasPermission("vitalstrike.stats"))
+                    completions.add("stats");
+                if (sender.hasPermission("vitalstrike.leaderboard"))
+                    completions.add("leaderboard");
                 return completions.stream()
                         .filter(s -> s.toLowerCase().startsWith(args[0].toLowerCase()))
                         .collect(Collectors.toList());
             } else if (args.length == 2 && args[0].equalsIgnoreCase("toggle")) {
                 return Arrays.asList("on", "off");
+            } else if (args.length == 2
+                    && (args[0].equalsIgnoreCase("leaderboard") || args[0].equalsIgnoreCase("lb"))) {
+                return Arrays.asList("damage", "combo", "average");
             }
         }
         return Collections.emptyList();

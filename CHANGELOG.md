@@ -2,6 +2,23 @@
 
 All notable changes to VitalStrike will be documented in this file.
 
+## [1.1] - 2025-01-30
+
+### Added
+- Added PlayerStats class for managing player statistics
+- Implemented player stats tracking system
+- Added configuration options for stats tracking
+- Added custom damage sounds for different damage types
+- Implemented statistics tracking and leaderboard system
+
+### Changed
+- Refactored main plugin class for better organization
+- Updated configuration structure to support stats tracking
+
+### Fixed
+- Fixed damage indicator display issues
+- Fixed various bugs related to damage calculation and display
+
 ## [1.1-SNAPSHOT] - 2025-01-29
 
 ### Added

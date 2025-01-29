@@ -11,16 +11,24 @@ commands:
     usage: |
       §6VitalStrike Commands:
       §e/vs help §7- Show this help menu
-      §e/vs toggle §7- Toggle damage indicators on/off
+      §e/vs toggle [on|off] §7- Toggle damage indicators on/off
       §e/vs reload §7- Reload the plugin configuration
+      §e/vs stats §7- View your combat statistics
+      §e/vs leaderboard [damage|combo|average] §7- View top players leaderboard
     aliases: [vs]
     permission: vitalstrike.use
     permission-message: §cYou don't have permission to use VitalStrike commands!
 
 permissions:
   vitalstrike.use:
-    description: Allows using basic VitalStrike features (toggle and style)
+    description: Allows using VitalStrike commands
     default: true
   vitalstrike.reload:
     description: Allows reloading the plugin configuration
     default: op
+  vitalstrike.stats:
+    description: Allows viewing combat statistics
+    default: true
+  vitalstrike.leaderboard:
+    description: Allows viewing the leaderboard
+    default: true

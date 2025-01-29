@@ -52,7 +52,7 @@ database:
 
 # Damage Indicator Settings
 damage-formats:
-  default: "<gradient:#FF6B6B:#FF8787>-%.1f ⚔</gradient>" # Normal damage with gradient
+  default: "<gradient:#FF6B6B:#FF8787>-%.1f ❤</gradient>" # Normal damage with gradient
   critical: "<bold><gradient:#FF0000:#8B0000>-%.1f ⚡</gradient></bold>" # Critical hits with deep red gradient
   poison: "<gradient:#50C878:#228B22>-%.1f ☠</gradient>" # Poison damage with forest green gradient
   fire: "<gradient:#FFD700:#FF4500>-%.1f 🔥</gradient>" # Fire damage with gold-orange gradient
@@ -81,11 +81,42 @@ damage-formats:
   wither: "<dark_gray>-%.1f 💀" # Wither effect damage
   border: "<red>-%.1f 🌐" # World border damage
 
+# Custom damage type sounds
+damage-type-sounds:
+  entity_attack: ENTITY_PLAYER_ATTACK_STRONG
+  critical: ENTITY_PLAYER_ATTACK_CRIT
+  poison: ENTITY_SPIDER_AMBIENT
+  fire: BLOCK_FIRE_AMBIENT
+  fire_tick: BLOCK_FIRE_AMBIENT
+  kill: ENTITY_PLAYER_DEATH
+  magic: ENTITY_ILLUSIONER_CAST_SPELL
+  fall: ENTITY_PLAYER_SMALL_FALL
+  drowning: BLOCK_WATER_AMBIENT
+  block_explosion: ENTITY_GENERIC_EXPLODE
+  entity_explosion: ENTITY_GENERIC_EXPLODE
+  contact: BLOCK_GRASS_BREAK
+  cramming: ENTITY_PLAYER_HURT
+  dragon_breath: ENTITY_ENDER_DRAGON_GROWL
+  dryout: BLOCK_WATER_AMBIENT
+  entity_sweep_attack: ENTITY_PLAYER_ATTACK_SWEEP
+  falling_block: BLOCK_STONE_BREAK
+  fly_into_wall: ENTITY_PLAYER_HURT
+  freeze: BLOCK_GLASS_BREAK
+  hot_floor: BLOCK_FIRE_AMBIENT
+  lava: BLOCK_LAVA_AMBIENT
+  lightning: ENTITY_LIGHTNING_BOLT_THUNDER
+  projectile: ENTITY_ARROW_HIT
+  sonic_boom: ENTITY_WARDEN_SONIC_BOOM
+  thorns: BLOCK_SWEET_BERRY_BUSH_HURT
+  void: ENTITY_PLAYER_HURT
+  wither: ENTITY_WITHER_AMBIENT
+  world_border: ENTITY_ELDER_GUARDIAN_CURSE
+
 # Combo System Configuration
 combo:
   enabled: true
   reset-time: 3 # Time in seconds before combo resets
-  
+
   # Combo Decay Settings
   decay:
     enabled: false
@@ -93,7 +124,7 @@ combo:
     rate: 1 # How many combo points lost per decay interval
     interval: 1 # How often (in seconds) to decay combo
     minimum: 0 # Minimum combo value after decay
-  
+
   # Damage Multiplier Settings
   multiplier:
     enabled: false
@@ -108,7 +139,7 @@ combo:
       S: 2.2
       SS: 2.6
       SSS: 3.0
-  
+
   display:
     format: "<bold><gradient:#FF0000:#FFD700>✦ %dx COMBO ✦</gradient></bold>"
     multiplier-format: " <gray>(<gradient:#FFD700:#FFA500>%.1fx</gradient>)</gray>"
@@ -169,7 +200,23 @@ messages:
   already-enabled: "<yellow>VitalStrike damage indicators are already enabled for you!"
   already-disabled: "<yellow>VitalStrike damage indicators are already disabled for you!"
   config-reloaded: "<green>Configuration reloaded successfully!"
-  style-updated: "<green>Your damage indicator style has been updated!"
+
+# Leaderboard Settings
+leaderboard:
+  display:
+    title-formats:
+      damage: "<gold><bold>Top %d Damage Dealers</bold></gold>"
+      combo: "<gold><bold>Top %d Highest Combos</bold></gold>"
+      average: "<gold><bold>Top %d Average Damage</bold></gold>"
+    entry-format: "<yellow>#%d <white>%s: <gold>%s"
+    header: "<dark_gray><strikethrough>                    </strikethrough>"
+    footer: "<dark_gray><strikethrough>                    </strikethrough>"
+  default-type: "damage"
+  display-limit: 10
+  number-format:
+    damage: "%.1f"
+    average: "%.1f"
+    combo: "%d"
 
 # Help Menu Settings
 help-menu:
@@ -177,14 +224,20 @@ help-menu:
   title: "<gold><bold>VitalStrike Commands</bold></gold>"
   commands:
     toggle:
-      command: "/vs toggle"
-      description: "<white>Toggle damage indicators on/off"
+      command: "/vs toggle [on|off]"
+      description: "Toggle damage indicators"
     reload:
       command: "/vs reload"
-      description: "<white>Reload the plugin configuration"
+      description: "Reload the configuration"
     help:
       command: "/vs help"
-      description: "<white>Show this help menu"
+      description: "Show this help menu"
+    stats:
+      command: "/vs stats"
+      description: "View your combat statistics"
+    leaderboard:
+      command: "/vs leaderboard [damage|combo|average]"
+      description: "View top players leaderboard"
   footer: "<dark_gray><strikethrough>                    </strikethrough>"
 # Color code reference:
 # <red> - Red
