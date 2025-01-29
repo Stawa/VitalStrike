@@ -13,7 +13,7 @@
     <description>VitalStrike is a customizable Minecraft plugin that provides dynamic damage indications, allowing you to adjust combat feedback to match your server's style</description>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
