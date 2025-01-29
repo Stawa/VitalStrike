@@ -1,8 +1,6 @@
 # VitalStrike
 
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.20+-brightgreen.svg)](https://www.minecraft.net/)
-[![Paper](https://img.shields.io/badge/Paper-Latest-blue.svg)](https://papermc.io/)
-[![License](https://img.shields.io/badge/License-GNU%20GPL%20v3-yellow.svg)](LICENSE)
 [![Build](https://github.com/Stawa/VitalStrike/actions/workflows/build.yml/badge.svg)](https://github.com/Stawa/VitalStrike/actions/workflows/build.yml)
 [![Release](https://img.shields.io/github/v-release/Stawa/VitalStrike?include_prereleases&style=flat)](https://github.com/Stawa/VitalStrike/releases)
 

@@ -8,6 +8,44 @@ database:
   enabled: true
   file: "playerdata.yml"
 
+# Color Formats
+# You can use either:
+# 1. MiniMessage format: <color>text</color>
+#    Available colors:
+#    - <red>, <dark_red>
+#    - <blue>, <dark_blue>
+#    - <green>, <dark_green>
+#    - <aqua>, <dark_aqua>
+#    - <purple>, <dark_purple>
+#    - <yellow>, <gold>
+#    - <gray>, <dark_gray>
+#    - <black>, <white>
+#    Formatting:
+#    - <bold>, <italic>, <underlined>
+#    - <strikethrough>, <obfuscated>
+#    Gradients:
+#    - <gradient:color1:color2>text</gradient>
+#
+# 2. Minecraft color codes:
+#    &0: Black         &1: Dark Blue
+#    &2: Dark Green    &3: Dark Aqua
+#    &4: Dark Red      &5: Dark Purple
+#    &6: Gold          &7: Gray
+#    &8: Dark Gray     &9: Blue
+#    &a: Green         &b: Aqua
+#    &c: Red           &d: Light Purple
+#    &e: Yellow        &f: White
+#    Formatting:
+#    &l: Bold          &o: Italic
+#    &n: Underline     &m: Strikethrough
+#    &k: Obfuscated    &r: Reset
+
+# Example formats:
+# "<red>-%.1f ❤"                          # Simple red text
+# "<gradient:red:gold>-%.1f ⚔</gradient>" # Gradient from red to gold
+# "&c-%.1f ⚔"                            # Classic Minecraft style
+# "<bold><red>-%.1f</red></bold>"        # Bold red text
+
 # Damage Indicator Settings
 damage-formats:
   default: "<red>-%.1f ⚔" # Normal damage (red)
