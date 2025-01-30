@@ -50,3 +50,7 @@ Thumbs.db
 # Plugin-specific
 *.db
 database.yml
+
+# Docs
+docs/node_modules/*
+docs/build/*

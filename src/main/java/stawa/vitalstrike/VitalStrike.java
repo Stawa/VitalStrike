@@ -37,6 +37,22 @@ import org.joml.Vector3f;
 import org.joml.AxisAngle4f;
 import org.bukkit.util.Transformation;
 
+/**
+ * VitalStrike is a dynamic damage indication plugin for Minecraft servers.
+ * <p>
+ * This plugin provides customizable damage indicators with various features including:
+ * <ul>
+ *   <li>Dynamic damage indicators with customizable styles</li>
+ *   <li>Combo system with multipliers and ranks</li>
+ *   <li>Player statistics tracking</li>
+ *   <li>Per-player preferences</li>
+ * </ul>
+ * </p>
+ * 
+ * @author Stawa
+ * @version 1.1
+ * @see <a href="https://github.com/Stawa/VitalStrike">GitHub Repository</a>
+ */
 public class VitalStrike extends JavaPlugin implements Listener {
     private boolean enabled = true;
     private boolean updateCheckerEnabled;
@@ -79,6 +95,9 @@ public class VitalStrike extends JavaPlugin implements Listener {
     private String moveDirection = "down";
     private String decayWarningFormat = "<italic><gray>(Decaying in %.1fs)</gray></italic>";
 
+    /**
+     * Enum representing the direction of movement for the damage indicators.
+     */
     private enum Direction {
         UP(0, 1, 0),
         DOWN(0, -1, 0),
@@ -105,6 +124,12 @@ public class VitalStrike extends JavaPlugin implements Listener {
             return z;
         }
 
+        /**
+         * Returns the direction from a string representation.
+         * 
+         * @param dir the string representation of the direction
+         * @return the direction enum
+         */
         public static Direction fromString(String dir) {
             try {
                 return valueOf(dir.toUpperCase());
@@ -114,6 +139,9 @@ public class VitalStrike extends JavaPlugin implements Listener {
         }
     }
 
+    /**
+     * Called when the plugin is enabled.
+     */
     @Override
     public void onEnable() {
         // Save default config if it doesn't exist
@@ -136,6 +164,9 @@ public class VitalStrike extends JavaPlugin implements Listener {
         getLogger().info("[VitalStrike] VitalStrike has been enabled!");
     }
 
+    /**
+     * Called when the plugin is disabled.
+     */
     @Override
     public void onDisable() {
         if (playerManager != null) {
@@ -147,6 +178,9 @@ public class VitalStrike extends JavaPlugin implements Listener {
         getLogger().info("[VitalStrike] VitalStrike has been disabled!");
     }
 
+    /**
+     * Loads the damage type sounds from the configuration.
+     */
     private void loadDamageTypeSounds() {
         damageTypeSounds = new HashMap<>();
         FileConfiguration config = getConfig();
@@ -166,6 +200,9 @@ public class VitalStrike extends JavaPlugin implements Listener {
         }
     }
 
+    /**
+     * Loads the configuration from the config.yml file.
+     */
     private void loadConfig() {
         FileConfiguration config = getConfig();
         enabled = config.getBoolean("enabled", true);
@@ -240,6 +277,9 @@ public class VitalStrike extends JavaPlugin implements Listener {
         updateCheckerEnabled = config.getBoolean("update-checker.enabled", true);
     }
 
+    /**
+     * Checks for updates on the GitHub repository.
+     */
     private void checkForUpdates() {
         getServer().getScheduler().runTaskAsynchronously(this, () -> {
             try {
@@ -280,16 +320,31 @@ public class VitalStrike extends JavaPlugin implements Listener {
         });
     }
 
+    /**
+     * Handles the player join event.
+     * 
+     * @param event the player join event
+     */
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         playerManager.loadPlayer(event.getPlayer());
     }
 
+    /**
+     * Handles the player quit event.
+     * 
+     * @param event the player quit event
+     */
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         playerManager.unloadPlayer(event.getPlayer());
     }
 
+    /**
+     * Handles the entity damage event.
+     * 
+     * @param event the entity damage event
+     */
     @EventHandler
     public void onEntityDamage(EntityDamageEvent event) {
         if (!enabled)
@@ -669,6 +724,12 @@ public class VitalStrike extends JavaPlugin implements Listener {
         }
     }
 
+    /**
+     * Returns the rank for the given combo.
+     * 
+     * @param combo the combo
+     * @return the rank
+     */
     private String getComboRank(int combo) {
         String currentRank = "D";
         int highestThreshold = -1;
@@ -684,6 +745,11 @@ public class VitalStrike extends JavaPlugin implements Listener {
         return String.format(rankFormat, rankColor + currentRank);
     }
 
+    /**
+     * Displays the combo HUD for the given player.
+     * 
+     * @param player the player
+     */
     private void displayComboHUD(Player player) {
         if (!comboEnabled)
             return;
@@ -734,6 +800,15 @@ public class VitalStrike extends JavaPlugin implements Listener {
         }
     }
 
+    /**
+     * Handles the command.
+     * 
+     * @param sender the command sender
+     * @param command the command
+     * @param label the label
+     * @param args the arguments
+     * @return true if the command was handled, false otherwise
+     */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!command.getName().equalsIgnoreCase("vitalstrike"))
@@ -782,7 +857,8 @@ public class VitalStrike extends JavaPlugin implements Listener {
                         }
                         playerManager.setEnabled(player, false);
                         sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                                getConfig().getString("messages.disabled-personal")));
+                                getConfig()
+                                        .getString("messages." + (!currentState ? "enabled-personal" : "disabled-personal"))));
                         return true;
                     }
                 }
@@ -921,6 +997,15 @@ public class VitalStrike extends JavaPlugin implements Listener {
         }
     }
 
+    /**
+     * Handles the tab completion.
+     * 
+     * @param sender the command sender
+     * @param command the command
+     * @param alias the alias
+     * @param args the arguments
+     * @return the list of completions
+     */
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (command.getName().equalsIgnoreCase("vitalstrike")) {
@@ -949,6 +1034,11 @@ public class VitalStrike extends JavaPlugin implements Listener {
         return Collections.emptyList();
     }
 
+    /**
+     * Sends the help menu to the sender.
+     * 
+     * @param sender the sender
+     */
     private void sendHelpMenu(CommandSender sender) {
         FileConfiguration config = getConfig();
 

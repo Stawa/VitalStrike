@@ -17,6 +17,8 @@ VitalStrike is a customizable Minecraft plugin that provides dynamic damage indi
 
 - Customizable damage indicators with different styles and colors
 - Smooth animations with configurable directions
+- Dynamic combo system with multipliers and ranks
+- Player combat statistics tracking
 - Per-player settings and preferences
 - Easy to configure and use
 - Support for all damage types
@@ -104,6 +106,15 @@ boolean isEnabled = plugin.getPlayerManager().isEnabled(player);
 
 // Set custom style for a player
 plugin.getPlayerManager().setStyle(player, "<red>-%.1f ⚔");
+
+// Access player statistics
+PlayerStats playerStats = plugin.getPlayerStats();
+PlayerStats.PlayerStatistics stats = playerStats.getPlayerStatistics(player.getUniqueId());
+
+// Get player combat stats
+int highestCombo = stats.getHighestCombo();
+double totalDamage = stats.getTotalDamageDealt();
+double avgDamage = stats.getAverageDamagePerHit();
 ```
 
 ## 📄 License
