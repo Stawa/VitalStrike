@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useTheme } from "~/hooks/useThemes";
 
 export function Navigation() {
-  const { toggleTheme, theme, isDarkMode } = useTheme();
+  const { toggleTheme, isDarkMode } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
