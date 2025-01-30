@@ -14,6 +14,7 @@ export default defineConfig({
   base: "/VitalStrike/",
   plugins: [
     remix({
+      ssr: false,
       buildDirectory: "dist",
       basename: "/VitalStrike/",
       future: {
