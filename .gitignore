@@ -54,3 +54,4 @@ database.yml
 # Docs
 docs/node_modules/*
 docs/build/*
+docs/dist/*
