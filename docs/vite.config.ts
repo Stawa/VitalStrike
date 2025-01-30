@@ -27,7 +27,6 @@ export default defineConfig({
     host: true,
   },
   build: {
-    outDir: "dist/client",
     manifest: true,
   },
 });
