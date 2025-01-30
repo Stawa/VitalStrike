@@ -14,7 +14,6 @@ export default defineConfig({
   base: "/VitalStrike/",
   plugins: [
     remix({
-      ssr: false,
       buildDirectory: "dist",
       basename: "/VitalStrike/",
       future: {
@@ -23,14 +22,6 @@ export default defineConfig({
         v3_throwAbortReason: true,
         v3_singleFetch: true,
         v3_lazyRouteDiscovery: true,
-      },
-      buildEnd(args) {
-        if (!args.viteConfig.isProduction) return;
-        const buildPath = args.viteConfig.build.outDir;
-        copyFileSync(
-          join(buildPath, "index.html"),
-          join(buildPath, "404.html")
-        );
       },
     }),
     tsconfigPaths(),
