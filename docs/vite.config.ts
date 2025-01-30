@@ -1,7 +1,6 @@
 import { vitePlugin as remix } from "@remix-run/dev";
 import { defineConfig } from "vite";
-import { copyFileSync } from "node:fs";
-import { join } from "node:path";
+import { vercelPreset } from "@vercel/remix/vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 declare module "@remix-run/node" {
@@ -11,11 +10,8 @@ declare module "@remix-run/node" {
 }
 
 export default defineConfig({
-  base: "/VitalStrike/",
   plugins: [
     remix({
-      buildDirectory: "dist",
-      basename: "/VitalStrike/",
       future: {
         v3_fetcherPersist: true,
         v3_relativeSplatPath: true,
@@ -23,6 +19,7 @@ export default defineConfig({
         v3_singleFetch: true,
         v3_lazyRouteDiscovery: true,
       },
+      presets: [vercelPreset()],
     }),
     tsconfigPaths(),
   ],
