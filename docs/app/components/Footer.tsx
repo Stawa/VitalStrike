@@ -20,7 +20,7 @@ export function Footer() {
             </p>
             <div className="flex space-x-4">
               <a
-                href="https://github.com/yourusername/VitalStrike"
+                href="https://github.com/Stawa/VitalStrike"
                 className="text-gray-500 hover:text-gray-900 dark:hover:text-gray-300"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -97,7 +97,7 @@ export function Footer() {
                   </li>
                   <li>
                     <a
-                      href="https://github.com/yourusername/VitalStrike/issues"
+                      href="https://github.com/Stawa/VitalStrike/issues"
                       className="text-base text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors"
                       target="_blank"
                       rel="noopener noreferrer"

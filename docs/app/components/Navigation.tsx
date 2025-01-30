@@ -11,6 +11,12 @@ export function Navigation() {
     setMounted(true);
   }, []);
 
+  const links = [
+    { name: "Documentation", href: "/docs" },
+    { name: "Blog", href: "/blog" },
+    { name: "GitHub", href: "https://github.com/Stawa/VitalStrike" },
+  ];
+
   return (
     <nav className="bg-white dark:bg-dark-bg border-b border-gray-200/80 dark:border-dark-border sticky top-0 z-40 backdrop-blur-sm bg-white/80 dark:bg-dark-bg/80">
       <div className="mx-auto max-w-8xl px-4 sm:px-6 lg:px-8">
@@ -25,30 +31,21 @@ export function Navigation() {
               </Link>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <Link
-                to="/docs"
-                className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-primary-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-              >
-                Documentation
-              </Link>
-              <Link
-                to="/blog"
-                className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-primary-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-              >
-                Blog
-              </Link>
-              <Link
-                to="/showcase"
-                className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-primary-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-              >
-                Showcase
-              </Link>
+              {links.map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.href}
+                  className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-primary-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                >
+                  {link.name}
+                </Link>
+              ))}
             </div>
           </div>
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <a
-                href="https://github.com/yourusername/VitalStrike"
+                href="https://github.com/Stawa/VitalStrike"
                 className="relative inline-flex items-center gap-x-1.5 rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
               >
                 <GitHubIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
@@ -92,24 +89,15 @@ export function Navigation() {
       {/* Mobile menu */}
       <div className={`sm:hidden ${isOpen ? "block" : "hidden"}`}>
         <div className="space-y-1 pb-3 pt-2">
-          <Link
-            to="/docs"
-            className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-primary-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300"
-          >
-            Documentation
-          </Link>
-          <Link
-            to="/blog"
-            className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-primary-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300"
-          >
-            Blog
-          </Link>
-          <Link
-            to="/showcase"
-            className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-primary-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300"
-          >
-            Showcase
-          </Link>
+          {links.map((link) => (
+            <Link
+              key={link.name}
+              to={link.href}
+              className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-primary-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+            >
+              {link.name}
+            </Link>
+          ))}
         </div>
       </div>
     </nav>

@@ -45,7 +45,7 @@ export function WIPBanner() {
           features may be incomplete or subject to change.
         </p>
         <a
-          href="https://github.com/yourusername/VitalStrike"
+          href="https://github.com/Stawa/VitalStrike"
           className="flex-none rounded-full bg-white/10 px-3.5 py-1 text-sm font-semibold text-white shadow-sm hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           View on GitHub <span aria-hidden="true">&rarr;</span>

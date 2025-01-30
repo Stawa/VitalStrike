@@ -46,32 +46,22 @@ jobs:
           NODE_ENV: production
           BASE_URL: "/VitalStrike"
 
-      - name: Upload build files
-        uses: actions/upload-artifact@v3
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: docs-build
-          path: docs/build
-          if-no-files-found: error
+          path: docs/public
 
   deploy:
-    name: Deploy to GitHub Pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-
+    name: Deploy Documentation
     steps:
-      - name: Download build files
-        uses: actions/download-artifact@v3
-        with:
-          name: docs-build
-          path: ./build
-
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build
-          force_orphan: true
-          user_name: "github-actions[bot]"
-          user_email: "github-actions[bot]@users.noreply.github.com"
-          commit_message: "docs: deploy documentation site"
+        id: deployment
+        uses: actions/deploy-pages@v4

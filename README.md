@@ -8,7 +8,7 @@ VitalStrike is a customizable Minecraft plugin that provides dynamic damage indi
 
 ## Documentation
 
-Visit our documentation site at [https://stawa.github.io/VitalStrike](https://stawa.github.io/VitalStrike) to learn more about VitalStrike's features, installation, and usage.
+Visit our documentation site at [https://stawa.github.io/VitalStrike/](https://stawa.github.io/VitalStrike/) to learn more about VitalStrike's features, installation, and usage.
 
 ---
 

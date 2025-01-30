@@ -17,10 +17,10 @@ export default function Index() {
             {/* Announcement Badge */}
             <div className="mb-8">
               <a
-                href="/blog/v1-release"
+                href="/blog/v1.1"
                 className="inline-flex items-center px-4 py-2 rounded-full bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-300 text-sm font-medium hover:bg-primary-200 dark:hover:bg-primary-800/50 transition-colors"
               >
-                <span className="mr-2">🎉</span> VitalStrike v1.0 Released!
+                <span className="mr-2">🎉</span> VitalStrike v1.1 Released!
               </a>
             </div>
 
