@@ -14,7 +14,6 @@ export function Navigation() {
   const links = [
     { name: "Documentation", href: "/docs" },
     { name: "Blog", href: "/blog" },
-    { name: "GitHub", href: "https://github.com/Stawa/VitalStrike" },
   ];
 
   return (
@@ -43,7 +42,7 @@ export function Navigation() {
             </div>
           </div>
           <div className="flex items-center">
-            <div className="flex-shrink-0">
+            <div className="hidden sm:block flex-shrink-0">
               <a
                 href="https://github.com/Stawa/VitalStrike"
                 className="relative inline-flex items-center gap-x-1.5 rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
@@ -88,16 +87,27 @@ export function Navigation() {
 
       {/* Mobile menu */}
       <div className={`sm:hidden ${isOpen ? "block" : "hidden"}`}>
-        <div className="space-y-1 pb-3 pt-2">
+        <div className="space-y-1 px-3 pb-3 pt-2 shadow-lg border-t border-gray-200/80 dark:border-dark-border bg-white dark:bg-dark-bg">
           {links.map((link) => (
             <Link
               key={link.name}
               to={link.href}
-              className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-primary-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-primary-600 dark:text-gray-300 dark:hover:bg-gray-800/50 dark:hover:text-primary-400 transition-colors"
+              onClick={() => setIsOpen(false)}
             >
               {link.name}
             </Link>
           ))}
+          <div className="pt-2 border-t border-gray-200/80 dark:border-dark-border mt-2">
+            <a
+              href="https://github.com/Stawa/VitalStrike"
+              className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-primary-600 dark:text-gray-300 dark:hover:bg-gray-800/50 dark:hover:text-primary-400 transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              <GitHubIcon className="h-4 w-4" />
+              Star on GitHub
+            </a>
+          </div>
         </div>
       </div>
     </nav>
