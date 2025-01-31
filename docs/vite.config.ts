@@ -23,6 +23,9 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
+  optimizeDeps: {
+    include: ["prismjs", "lucide-react"],
+  },
   server: {
     port: 5173,
     host: true,
