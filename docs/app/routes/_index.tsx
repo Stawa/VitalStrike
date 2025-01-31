@@ -1,4 +1,5 @@
 import type { MetaFunction } from "@remix-run/node";
+import { useHighlightCode } from "~/hooks/prism";
 
 export const meta: MetaFunction = () => {
   return [
@@ -8,6 +9,8 @@ export const meta: MetaFunction = () => {
 };
 
 export default function Index() {
+  useHighlightCode();
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -97,8 +100,9 @@ export default function Index() {
       {/* Code Example Section */}
       <section className="py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
+          <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
+            {/* Text Content */}
+            <div className="order-1 lg:order-none">
               <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
                 Simple to Configure,
                 <br />
@@ -127,11 +131,13 @@ export default function Index() {
                 ))}
               </div>
             </div>
-            <div className="relative">
+
+            {/* Code Block */}
+            <div className="relative order-0 lg:order-none -mx-4 sm:mx-0">
               <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-r from-primary-600/5 to-primary-400/5 dark:from-primary-400/5 dark:to-primary-300/5 rounded-lg">
                 <div className="w-full h-full backdrop-blur-sm rounded-lg" />
               </div>
-              <div className="relative rounded-xl bg-white/80 dark:bg-dark-bg/80 shadow-xl ring-1 ring-gray-900/10 dark:ring-gray-100/10 backdrop-blur">
+              <div className="relative rounded-xl bg-white/80 dark:bg-dark-bg/80 shadow-xl ring-1 ring-gray-900/10 dark:ring-gray-100/10 backdrop-blur overflow-hidden">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200/80 dark:border-dark-border">
                   <div className="flex space-x-2">
                     <div className="w-3 h-3 rounded-full bg-red-500" />
@@ -143,8 +149,8 @@ export default function Index() {
                   </div>
                 </div>
                 <div className="p-4 overflow-x-auto">
-                  <pre className="text-sm text-gray-800 dark:text-gray-200">
-                    <code>{`# VitalStrike Configuration
+                  <pre className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words">
+                    <code className="language-yaml inline-block min-w-full">{`# VitalStrike Configuration
 damage-indicators:
   enabled: true
   format: "&c-{damage}❤"

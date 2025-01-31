@@ -29,7 +29,7 @@ export function Footer() {
                 <GitHubIcon className="h-6 w-6" />
               </a>
               <a
-                href="https://discord.gg/yourinvite"
+                href="https://discord.gg/b4nxvp8NcH"
                 className="text-gray-500 hover:text-gray-900 dark:hover:text-gray-300"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -88,14 +88,6 @@ export function Footer() {
                 </h3>
                 <ul className="mt-4 space-y-3">
                   <li>
-                    <Link
-                      to="/docs/faq"
-                      className="text-base text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors"
-                    >
-                      FAQ
-                    </Link>
-                  </li>
-                  <li>
                     <a
                       href="https://github.com/Stawa/VitalStrike/issues"
                       className="text-base text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors"
@@ -103,16 +95,6 @@ export function Footer() {
                       rel="noopener noreferrer"
                     >
                       Issue Tracker
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="https://discord.gg/yourinvite"
-                      className="text-base text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Discord Community
                     </a>
                   </li>
                 </ul>
