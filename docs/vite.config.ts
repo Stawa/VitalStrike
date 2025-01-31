@@ -23,15 +23,6 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
-  optimizeDeps: {
-    include: ["lucide-react"],
-    entries: ["lucide-react/dist/esm/icons/*.js"],
-    esbuildOptions: {
-      loader: {
-        ".js": "jsx",
-      },
-    },
-  },
   server: {
     port: 5173,
     host: true,

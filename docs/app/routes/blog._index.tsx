@@ -1,6 +1,7 @@
 import { Link } from "@remix-run/react";
 import { blogPosts } from "./CHANGELOG";
-import { Calendar, ArrowRight, Zap } from "lucide-react";
+import { BsLightningCharge, BsArrowRight } from "react-icons/bs";
+import { FaCalendarAlt } from "react-icons/fa";
 
 export default function BlogIndex() {
   return (
@@ -8,7 +9,7 @@ export default function BlogIndex() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <header className="text-center mb-16 space-y-4">
           <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-            <Zap className="w-4 h-4 stroke-[2.5]" />
+            <BsLightningCharge className="w-4 h-4" />
             <span className="text-sm font-medium">Development Updates</span>
           </div>
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl text-black dark:text-white">
@@ -32,11 +33,11 @@ export default function BlogIndex() {
                     <div className="flex-1 space-y-4">
                       <div className="flex flex-wrap items-center gap-4">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
-                          <Zap className="w-4 h-4 stroke-[2.5]" />
+                          <BsLightningCharge className="w-4 h-4" />
                           {post.version}
                         </div>
                         <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                          <Calendar className="w-4 h-4 stroke-[1.5]" />
+                          <FaCalendarAlt className="w-4 h-4" />
                           <time className="text-sm">{post.date}</time>
                           <span className="mx-1 text-xs">•</span>
                           <span className="text-sm">
@@ -62,7 +63,7 @@ export default function BlogIndex() {
                     </div>
 
                     <div className="ml-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <ArrowRight className="h-6 w-6 text-primary transform translate-x-0 group-hover:translate-x-1 transition-transform" />
+                      <BsArrowRight className="h-6 w-6 text-primary transform translate-x-0 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
                 </Link>
