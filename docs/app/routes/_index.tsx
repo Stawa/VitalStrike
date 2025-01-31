@@ -100,9 +100,9 @@ export default function Index() {
       {/* Code Example Section */}
       <section className="py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
+          <div className="grid lg:grid-cols-2 gap-8 md:gap-12">
             {/* Text Content */}
-            <div className="order-1 lg:order-none">
+            <div className="order-0 lg:order-1 lg:order-none">
               <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
                 Simple to Configure,
                 <br />
@@ -133,7 +133,7 @@ export default function Index() {
             </div>
 
             {/* Code Block */}
-            <div className="relative order-0 lg:order-none -mx-4 sm:mx-0">
+            <div className="order-1 lg:order-0 relative rounded-xl bg-white/80 dark:bg-dark-bg/80 shadow-xl ring-1 ring-gray-900/10 dark:ring-gray-100/10 backdrop-blur overflow-hidden">
               <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-r from-primary-600/5 to-primary-400/5 dark:from-primary-400/5 dark:to-primary-300/5 rounded-lg">
                 <div className="w-full h-full backdrop-blur-sm rounded-lg" />
               </div>
