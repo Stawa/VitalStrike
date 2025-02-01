@@ -9,7 +9,7 @@ export function Footer() {
           {/* Brand and Description */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-              <img className="h-8 w-auto" src="/logo.png" alt="VitalStrike" />
+              <img className="h-8 w-auto" src="/Icon.png" alt="VitalStrike" />
               <span className="text-xl font-bold text-gray-900 dark:text-white">
                 VitalStrike
               </span>

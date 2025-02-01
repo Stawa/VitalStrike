@@ -48,8 +48,13 @@ export function Navigation() {
             <div className="flex flex-shrink-0 items-center">
               <Link
                 to="/"
-                className="text-xl font-bold text-gray-900 dark:text-white"
+                className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white"
               >
+                <img 
+                    src="/Icon.png" 
+                    alt="VitalStrike Logo" 
+                    className="h-8 w-8"
+                />
                 VitalStrike
               </Link>
             </div>
