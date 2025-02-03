@@ -35,7 +35,7 @@ function Document({
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        {title && (<title>{title}</title>)}
+        {title && <title>{title}</title>}
         <Meta />
         <Links />
       </head>
@@ -69,15 +69,19 @@ export default function App() {
                 aria-label="Toggle Sidebar"
               >
                 <FaChevronRight
-                  className={`w-5 h-5 transition-transform duration-300 ${isSidebarOpen ? "rotate-180" : ""
-                    }`}
+                  className={`w-5 h-5 transition-transform duration-300 ${
+                    isSidebarOpen ? "rotate-180" : ""
+                  }`}
                 />
               </button>
 
               {/* Mobile Sidebar Overlay */}
               <div
-                className={`fixed inset-0 z-40 lg:hidden bg-black/20 backdrop-blur-sm transition-opacity duration-300 ${isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-                  }`}
+                className={`fixed inset-0 z-40 lg:hidden bg-black/20 backdrop-blur-sm transition-opacity duration-300 ${
+                  isSidebarOpen
+                    ? "opacity-100"
+                    : "opacity-0 pointer-events-none"
+                }`}
                 onClick={() => setIsSidebarOpen(false)}
               />
 
@@ -93,23 +97,22 @@ export default function App() {
               </div>
 
               {/* Desktop Sidebar */}
-                <div className="sticky left-0 top-[calc(var(--navbar-height)+2rem)] hidden lg:block h-[calc(100vh-var(--navbar-height)-2rem)] w-[280px] border-r border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
+              <div className="sticky left-0 top-[calc(var(--navbar-height)+2rem)] hidden lg:block h-[calc(100vh-var(--navbar-height)-2rem)] w-[280px] border-r border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
                 <DocsSidebar />
               </div>
-
             </>
           )}
 
           {/* Main Content */}
           <main className="flex-1 w-full">
             <div
-              className={`mx-auto ${isDocsPage ? "max-w-6xl" : "max-w-8xl"
-                } px-4 sm:px-6 lg:px-8 py-8`}
+              className={`mx-auto ${
+                isDocsPage ? "max-w-6xl" : "max-w-8xl"
+              } px-4 sm:px-6 lg:px-8 py-8`}
             >
               <Outlet />
             </div>
           </main>
-
         </div>
       </div>
     </Document>

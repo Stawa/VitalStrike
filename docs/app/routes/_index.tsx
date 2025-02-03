@@ -7,6 +7,9 @@ export const meta: MetaFunction = () => {
     "Transform Minecraft combat with customizable damage indicators, hit effects, and combat analytics. Perfect for PvP and RPG servers.";
 
   return [
+    { rel: "icon", href: "/icon.png", type: "image/png" },
+    { property: "og:image", content: "/og-preview.png" },
+    { name: "twitter:image", content: "/og-preview.png" },
     { title },
     { name: "description", content: description },
     { property: "og:title", content: title },

@@ -5,7 +5,6 @@ import {
   FaJava,
   FaServer,
   FaMemory,
-  FaTerminal,
   FaRegCopy,
   FaChevronDown,
 } from "react-icons/fa";
@@ -20,6 +19,9 @@ export const meta: MetaFunction = () => {
     "Step-by-step guide to installing and setting up VitalStrike on your Minecraft server. Learn about requirements, installation steps, and initial configuration.";
 
   return [
+    { rel: "icon", href: "/icon.png", type: "image/png" },
+    { property: "og:image", content: "/og-preview.png" },
+    { name: "twitter:image", content: "/og-preview.png" },
     { title },
     { name: "description", content: description },
     { property: "og:title", content: title },
@@ -31,7 +33,8 @@ export const meta: MetaFunction = () => {
     { name: "twitter:description", content: description },
     {
       name: "keywords",
-      content: "vitalstrike installation, minecraft plugin setup, server requirements, plugin configuration, getting started guide",
+      content:
+        "vitalstrike installation, minecraft plugin setup, server requirements, plugin configuration, getting started guide",
     },
     { name: "theme-color", content: "#4f46e5" },
     { name: "application-name", content: "VitalStrike" },
@@ -66,18 +69,18 @@ export default function GettingStarted() {
     {
       name: "Hangar (Paper)",
       href: "https://hangar.papermc.io/Stawa/VitalStrike",
-      description: "Download from Paper's official platform"
+      description: "Download from Paper's official platform",
     },
     {
       name: "Modrinth",
       href: "https://modrinth.com/plugin/vitalstrike/",
-      description: "Get it from Modrinth"
+      description: "Get it from Modrinth",
     },
     {
       name: "GitHub",
       href: "https://github.com/Stawa/VitalStrike/releases",
-      description: "Download from GitHub releases"
-    }
+      description: "Download from GitHub releases",
+    },
   ];
 
   return (
@@ -152,8 +155,14 @@ export default function GettingStarted() {
                     className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-500 dark:from-primary-500 dark:to-primary-400 text-white rounded-lg hover:opacity-90 transition-opacity"
                   >
                     <FaDownload className="mr-2" />
-                    {loading ? "Download Latest" : `Download Latest (v${version})`}
-                    <FaChevronDown className={`ml-2 transition-transform duration-200 ${isDownloadOpen ? "rotate-180" : ""}`} />
+                    {loading
+                      ? "Download Latest"
+                      : `Download Latest (v${version})`}
+                    <FaChevronDown
+                      className={`ml-2 transition-transform duration-200 ${
+                        isDownloadOpen ? "rotate-180" : ""
+                      }`}
+                    />
                   </button>
 
                   {isDownloadOpen && (
@@ -170,8 +179,12 @@ export default function GettingStarted() {
                             onClick={() => setIsDownloadOpen(false)}
                           >
                             <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{option.name}</p>
-                              <p className="text-gray-500 dark:text-gray-400 text-sm">{option.description}</p>
+                              <p className="font-medium text-gray-900 dark:text-white">
+                                {option.name}
+                              </p>
+                              <p className="text-gray-500 dark:text-gray-400 text-sm">
+                                {option.description}
+                              </p>
                             </div>
                           </a>
                         ))}
@@ -260,7 +273,8 @@ enabled: true
 database:
   enabled: true
   file: "playerdata.yml"`,
-                  explanation: "These are the fundamental settings that control the plugin's basic functionality and update checking."
+                  explanation:
+                    "These are the fundamental settings that control the plugin's basic functionality and update checking.",
                 },
                 {
                   title: "Damage Indicators",
@@ -270,7 +284,8 @@ damage-formats:
   default: "<gradient:#FF6B6B:#FF8787>-%.1f ❤</gradient>"
   critical: "<bold><gradient:#FF0000:#8B0000>-%.1f ⚡</gradient></bold>"
   heal: "<green>+%.1f ❤"`,
-                  explanation: "Configure how different types of damage are displayed. Supports gradients, colors, and custom symbols."
+                  explanation:
+                    "Configure how different types of damage are displayed. Supports gradients, colors, and custom symbols.",
                 },
                 {
                   title: "Combo System",
@@ -283,10 +298,14 @@ combo:
     format: "<bold><gradient:#FF0000:#FFD700>✦ %dx COMBO ✦</gradient></bold>"
     rank:
       enabled: true`,
-                  explanation: "Control the combo system behavior, including timing, display format, and ranking features."
-                }
+                  explanation:
+                    "Control the combo system behavior, including timing, display format, and ranking features.",
+                },
               ].map((section, index) => (
-                <div key={index} className="language-yaml border-b border-gray-100 dark:border-gray-800 pb-8 last:border-0">
+                <div
+                  key={index}
+                  className="language-yaml border-b border-gray-100 dark:border-gray-800 pb-8 last:border-0"
+                >
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
                     {section.title}
                   </h3>

@@ -17,6 +17,9 @@ export async function loader({ params }: LoaderFunctionArgs) {
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data?.post) {
     return [
+      { rel: "icon", href: "/icon.png", type: "image/png" },
+      { property: "og:image", content: "/og-preview.png" },
+      { name: "twitter:image", content: "/og-preview.png" },
       { title: "Post Not Found - VitalStrike" },
       { description: "The requested blog post could not be found." },
     ];
@@ -26,6 +29,9 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   const title = `VitalStrike ${post.version} - Changelog`;
 
   return [
+    { rel: "icon", href: "/icon.png", type: "image/png" },
+    { property: "og:image", content: "/og-preview.png" },
+    { name: "twitter:image", content: "/og-preview.png" },
     { title },
     { name: "description", content: post.description },
     { property: "og:title", content: title },

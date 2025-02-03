@@ -8,6 +8,9 @@ export const meta: MetaFunction = () => {
     "Comprehensive configuration guide for VitalStrike. Learn about color formats, damage indicators, combo systems, and all available configuration options.";
 
   return [
+    { rel: 'icon', href: '/icon.png', type: 'image/png' },
+    { property: "og:image", content: "/og-preview.png" },
+    { name: "twitter:image", content: "/og-preview.png" },
     { title },
     { name: "description", content: description },
     { property: "og:title", content: title },

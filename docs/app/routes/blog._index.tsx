@@ -3,9 +3,11 @@ import { blogPosts } from "./CHANGELOG";
 import { BlogHeader } from "~/components/BlogHeader";
 import { BlogPostCard } from "~/components/BlogPostCard";
 
-
 export const meta: MetaFunction = () => {
   return [
+    { rel: "icon", href: "/icon.png", type: "image/png" },
+    { property: "og:image", content: "/og-preview.png" },
+    { name: "twitter:image", content: "/og-preview.png" },
     { title: "VitalStrike Changelog | Development Updates" },
     {
       name: "description",
@@ -43,9 +45,12 @@ export default function BlogIndex() {
 
         <div className="space-y-12">
           {blogPosts.map((post, index) => (
-            <div key={post.id} className="group transform transition-all duration-300 hover:-translate-y-1">
+            <div
+              key={post.id}
+              className="group transform transition-all duration-300 hover:-translate-y-1"
+            >
               <BlogPostCard post={post} />
-              
+
               {index < blogPosts.length - 1 && (
                 <div className="my-12 border-b border-gray-200 dark:border-gray-800/50"></div>
               )}
@@ -54,6 +59,5 @@ export default function BlogIndex() {
         </div>
       </div>
     </div>
-
   );
 }

@@ -7,6 +7,9 @@ export const meta: MetaFunction = () => {
     "Master VitalStrike with our comprehensive documentation. Learn installation, configuration, commands, and API integration for your Minecraft server.";
 
   return [
+    { rel: "icon", href: "/icon.png", type: "image/png" },
+    { property: "og:image", content: "/og-preview.png" },
+    { name: "twitter:image", content: "/og-preview.png" },
     { title },
     { name: "description", content: description },
     { property: "og:title", content: title },
