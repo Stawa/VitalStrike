@@ -2,6 +2,7 @@ import { useLoaderData } from "@remix-run/react";
 import { type LoaderFunctionArgs } from "@remix-run/node";
 import { marked } from "marked";
 import { blogPosts } from "./CHANGELOG";
+import type { MetaFunction } from "@remix-run/node";
 
 export async function loader({ params }: LoaderFunctionArgs) {
   const post = blogPosts.find((post) => post.version === params.slug);
@@ -12,6 +13,31 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
   return { post };
 }
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  if (!data?.post) {
+    return [
+      { title: "Post Not Found - VitalStrike" },
+      { description: "The requested blog post could not be found." },
+    ];
+  }
+
+  const { post } = data;
+  const title = `VitalStrike ${post.version} - Changelog`;
+
+  return [
+    { title },
+    { name: "description", content: post.description },
+    { property: "og:title", content: title },
+    { property: "og:description", content: post.description },
+    { property: "og:type", content: "article" },
+    { property: "article:published_time", content: post.date },
+    { property: "article:author", content: post.author },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: title },
+    { name: "twitter:description", content: post.description },
+  ];
+};
 
 export default function BlogPost() {
   const { post } = useLoaderData<typeof loader>();

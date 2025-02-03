@@ -1,9 +1,11 @@
 import { Link } from "@remix-run/react";
 import { useState, useEffect, useRef } from "react";
 import { useTheme } from "~/hooks/useThemes";
+import { useLatestVersion } from "~/hooks/useLatestVersion";
 
 export function Navigation() {
   const { toggleTheme, isDarkMode } = useTheme();
+  const { version, loading } = useLatestVersion();
   const [isOpen, setIsOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -36,8 +38,18 @@ export function Navigation() {
   ];
 
   const downloadLinks = [
-    { name: "Paper", href: "https://hangar.papermc.io/Stawa/VitalStrike" },
-    { name: "GitHub", href: "https://github.com/Stawa/VitalStrike/releases" },
+    { 
+      name: loading ? "Paper" : `Paper (v${version})`, 
+      href: "https://hangar.papermc.io/Stawa/VitalStrike" 
+    },
+    { 
+      name: loading ? "Modrinth" : `Modrinth (v${version})`, 
+      href: "https://modrinth.com/plugin/vitalstrike/" 
+    },
+    { 
+      name: loading ? "GitHub" : `GitHub (v${version})`, 
+      href: "https://github.com/Stawa/VitalStrike/releases" 
+    },
   ];
 
   return (

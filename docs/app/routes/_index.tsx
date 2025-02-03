@@ -2,9 +2,27 @@ import type { MetaFunction } from "@remix-run/node";
 import { useHighlightCode } from "~/hooks/prism";
 
 export const meta: MetaFunction = () => {
+  const title = "VitalStrike - Dynamic Combat Feedback for Minecraft";
+  const description =
+    "Transform Minecraft combat with customizable damage indicators, hit effects, and combat analytics. Perfect for PvP and RPG servers.";
+
   return [
-    { title: "VitalStrike Documentation" },
-    { name: "description", content: "Dynamic Combat Feedback for Minecraft" },
+    { title },
+    { name: "description", content: description },
+    { property: "og:title", content: title },
+    { property: "og:description", content: description },
+    { property: "og:type", content: "website" },
+    { property: "og:site_name", content: "VitalStrike" },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: title },
+    { name: "twitter:description", content: description },
+    {
+      name: "keywords",
+      content:
+        "minecraft, plugin, combat, damage indicators, pvp, rpg, server plugin",
+    },
+    { name: "theme-color", content: "#4f46e5" },
+    { name: "application-name", content: "VitalStrike" },
   ];
 };
 

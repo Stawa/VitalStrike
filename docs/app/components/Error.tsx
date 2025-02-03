@@ -2,7 +2,7 @@ interface ErrorProps {
   error: any;
 }
 
-export function Error({ error }: ErrorProps) {
+export default function Error({ error }: ErrorProps) {
   return (
     <main className="grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
       <div className="text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
