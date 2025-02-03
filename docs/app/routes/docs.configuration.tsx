@@ -8,7 +8,7 @@ export const meta: MetaFunction = () => {
     "Comprehensive configuration guide for VitalStrike. Learn about color formats, damage indicators, combo systems, and all available configuration options.";
 
   return [
-    { rel: 'icon', href: '/icon.png', type: 'image/png' },
+    { rel: "icon", href: "/icon.png", type: "image/png" },
     { property: "og:image", content: "/og-preview.png" },
     { name: "twitter:image", content: "/og-preview.png" },
     { title },
@@ -22,7 +22,8 @@ export const meta: MetaFunction = () => {
     { name: "twitter:description", content: description },
     {
       name: "keywords",
-      content: "vitalstrike configuration, minecraft plugin settings, damage indicators, combo system, color formats, minecraft server configuration",
+      content:
+        "vitalstrike configuration, minecraft plugin settings, damage indicators, combo system, color formats, minecraft server configuration",
     },
     { name: "theme-color", content: "#4f46e5" },
     { name: "application-name", content: "VitalStrike" },
@@ -56,7 +57,8 @@ export default function Configuration() {
             {
               title: "Color Formats",
               id: "color-formats",
-              description: "VitalStrike supports both MiniMessage format and traditional Minecraft color codes.",
+              description:
+                "VitalStrike supports both MiniMessage format and traditional Minecraft color codes.",
               subsections: [
                 {
                   title: "MiniMessage Format",
@@ -76,7 +78,8 @@ export default function Configuration() {
 
 # Gradients:
 <gradient:color1:color2>text</gradient>`,
-                  explanation: "MiniMessage format provides a more modern and flexible way to format text with support for gradients and advanced styling."
+                  explanation:
+                    "MiniMessage format provides a more modern and flexible way to format text with support for gradients and advanced styling.",
                 },
                 {
                   title: "Minecraft Color Codes",
@@ -94,14 +97,16 @@ export default function Configuration() {
 &l: Bold          &o: Italic
 &n: Underline     &m: Strikethrough
 &k: Obfuscated    &r: Reset`,
-                  explanation: "Traditional Minecraft color codes are still supported for backwards compatibility and simpler styling needs."
-                }
-              ]
+                  explanation:
+                    "Traditional Minecraft color codes are still supported for backwards compatibility and simpler styling needs.",
+                },
+              ],
             },
             {
               title: "Damage Indicators",
               id: "damage-indicators",
-              description: "Customize the appearance and behavior of damage indicators.",
+              description:
+                "Customize the appearance and behavior of damage indicators.",
               subsections: [
                 {
                   title: "Damage Formats",
@@ -111,7 +116,8 @@ export default function Configuration() {
   poison: "<gradient:#50C878:#228B22>-%.1f ☠</gradient>"
   fire: "<gradient:#FFD700:#FF4500>-%.1f 🔥</gradient>"
   magic: "<gradient:#9400D3:#800080>-%.1f ✨</gradient>"`,
-                  explanation: "Configure how different types of damage are displayed, including support for gradients, emojis, and custom formatting."
+                  explanation:
+                    "Configure how different types of damage are displayed, including support for gradients, emojis, and custom formatting.",
                 },
                 {
                   title: "Display Settings",
@@ -122,9 +128,10 @@ export default function Configuration() {
     x: -0.5 # Horizontal offset
     random-offset: -1 # Random variation
     direction: "down" # Movement direction`,
-                  explanation: "Control the positioning, duration, and animation of damage indicators."
-                }
-              ]
+                  explanation:
+                    "Control the positioning, duration, and animation of damage indicators.",
+                },
+              ],
             },
             {
               title: "Combo System",
@@ -142,7 +149,8 @@ export default function Configuration() {
     rate: 1
     interval: 1
     minimum: 0`,
-                  explanation: "Basic combo system settings including timing and decay mechanics."
+                  explanation:
+                    "Basic combo system settings including timing and decay mechanics.",
                 },
                 {
                   title: "Multiplier Settings",
@@ -159,12 +167,17 @@ export default function Configuration() {
     S: 2.2
     SS: 2.6
     SSS: 3.0`,
-                  explanation: "Configure damage multipliers based on combo count and ranks."
-                }
-              ]
-            }
+                  explanation:
+                    "Configure damage multipliers based on combo count and ranks.",
+                },
+              ],
+            },
           ].map((section, index) => (
-            <section key={index} id={section.id} className="language-yaml bg-white dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-800 p-8">
+            <section
+              key={index}
+              id={section.id}
+              className="language-yaml bg-white dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-800 p-8"
+            >
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                 {section.title}
               </h2>
@@ -174,7 +187,10 @@ export default function Configuration() {
 
               <div className="space-y-8">
                 {section.subsections.map((subsection, subIndex) => (
-                  <div key={subIndex} className="border-t border-gray-100 dark:border-gray-800 pt-8 first:border-0 first:pt-0">
+                  <div
+                    key={subIndex}
+                    className="border-t border-gray-100 dark:border-gray-800 pt-8 first:border-0 first:pt-0"
+                  >
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                       {subsection.title}
                     </h3>
@@ -200,4 +216,4 @@ export default function Configuration() {
       </div>
     </div>
   );
-} 
+}
