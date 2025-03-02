@@ -26,10 +26,10 @@ export const links: LinksFunction = () => [
 function Document({
   children,
   title,
-}: {
+}: Readonly<{
   children: React.ReactNode;
   title?: string;
-}) {
+}>) {
   return (
     <html lang="en" className="h-full scroll-smooth" suppressHydrationWarning>
       <head>

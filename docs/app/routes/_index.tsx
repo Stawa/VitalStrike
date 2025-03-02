@@ -371,7 +371,7 @@ function ApiIcon() {
   );
 }
 
-function GithubIcon({ className }: { className?: string }) {
+function GithubIcon({ className }: Readonly<{ className?: string }>) {
   return (
     <svg className={className} fill="currentColor" viewBox="0 0 24 24">
       <path
@@ -383,7 +383,7 @@ function GithubIcon({ className }: { className?: string }) {
   );
 }
 
-function CheckIcon({ className }: { className?: string }) {
+function CheckIcon({ className }: Readonly<{ className?: string }>) {
   return (
     <svg
       className={className}
