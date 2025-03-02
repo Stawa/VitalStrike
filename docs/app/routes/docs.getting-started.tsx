@@ -111,7 +111,7 @@ export default function GettingStarted() {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[
-            { title: "Java 17+", icon: <FaJava className="text-2xl" /> },
+            { title: "Java 21+", icon: <FaJava className="text-2xl" /> },
             {
               title: "Spigot/Paper 1.20-1.21+",
               icon: <FaServer className="text-2xl" />,

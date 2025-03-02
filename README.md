@@ -94,12 +94,6 @@ Players can customize their own damage indicators:
 
 1. Toggle indicators: `/vs toggle`
 
-Example styles:
-
-- Basic: `/vs style <red>-%.1f ❤`
-- Fancy: `/vs style <gradient:red:gold>-%.1f ⚔</gradient>`
-- Critical: `/vs style <dark_red><bold>-%.1f 🗡</bold>`
-
 ## 🔧 API
 
 VitalStrike provides a simple API for developers:

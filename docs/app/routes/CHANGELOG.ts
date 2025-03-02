@@ -47,7 +47,10 @@ export const blogPosts: BlogPost[] = [
 
 ## Fixed
 - Fixed damage indicator display issues
-- Fixed various bugs related to damage calculation and display`,
+- Fixed various bugs related to damage calculation and display
+
+## Technical
+- Requires Java 21`,
     author: "Stawa",
     version: "1.1",
   },
