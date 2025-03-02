@@ -14,8 +14,8 @@ Visit our documentation site at [https://vitalstrike.vercel.app/](https://vitals
 
 ## ⚡ Requirements
 
-- Java 17 or higher
-- Paper 1.20+ or compatible forks
+- Java 21 or higher
+- Paper 1.20.6+ or compatible forks
 
 ## ✨ Features
 
@@ -26,6 +26,8 @@ Visit our documentation site at [https://vitalstrike.vercel.app/](https://vitals
 - Per-player settings and preferences
 - Easy to configure and use
 - Support for all damage types
+- Automatic update checking
+- Leaderboard system for player statistics
 
 ## 🚀 Quick Start
 
@@ -36,13 +38,15 @@ Visit our documentation site at [https://vitalstrike.vercel.app/](https://vitals
 
 ## 📖 Commands
 
-| Command      | Permission         | Description                     | Default |
-| ------------ | ------------------ | ------------------------------- | ------- |
-| `/vs help`   | vitalstrike.use    | Show the help menu              | true    |
-| `/vs toggle` | vitalstrike.use    | Toggle damage indicators on/off | true    |
-| `/vs reload` | vitalstrike.reload | Reload the plugin configuration | op      |
+| Command           | Permission              | Description                     | Default |
+| ----------------- | ----------------------- | ------------------------------- | ------- |
+| `/vs help`        | vitalstrike.use         | Show the help menu              | true    |
+| `/vs toggle`      | vitalstrike.use         | Toggle damage indicators on/off | true    |
+| `/vs reload`      | vitalstrike.reload      | Reload the plugin configuration | op      |
+| `/vs stats`       | vitalstrike.stats       | View your combat statistics     | true    |
+| `/vs leaderboard` | vitalstrike.leaderboard | View server leaderboards        | true    |
 
-Aliases: `/vitalstrike`, `/vs`
+Aliases: `/vitalstrike`, `/vs`, `/vs lb` (for leaderboard)
 
 ## 🎨 Damage Formats
 
@@ -89,7 +93,6 @@ display:
 Players can customize their own damage indicators:
 
 1. Toggle indicators: `/vs toggle`
-2. Set custom style: `/vs style <format>`
 
 Example styles:
 

@@ -15,7 +15,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   ];
 
   // Dynamic blog pages
-  const dynamicBlogUrls = blogPosts.map(post => `/blog/${post.id}`);
+  const dynamicBlogUrls = blogPosts.map((post) => `/blog/${post.id}`);
 
   // Combine all URLs
   const allPages = [...staticPages, ...dynamicBlogUrls];
@@ -42,7 +42,7 @@ export const loader: LoaderFunction = async ({ request }) => {
     status: 200,
     headers: {
       "Content-Type": "application/xml",
-      "xml-version": "1.0", 
+      "xml-version": "1.0",
       encoding: "UTF-8",
     },
   });

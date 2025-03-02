@@ -38,17 +38,17 @@ export function Navigation() {
   ];
 
   const downloadLinks = [
-    { 
-      name: loading ? "Paper" : `Paper (v${version})`, 
-      href: "https://hangar.papermc.io/Stawa/VitalStrike" 
+    {
+      name: loading ? "Paper" : `Paper (v${version})`,
+      href: "https://hangar.papermc.io/Stawa/VitalStrike",
     },
-    { 
-      name: loading ? "Modrinth" : `Modrinth (v${version})`, 
-      href: "https://modrinth.com/plugin/vitalstrike/" 
+    {
+      name: loading ? "Modrinth" : `Modrinth (v${version})`,
+      href: "https://modrinth.com/plugin/vitalstrike/",
     },
-    { 
-      name: loading ? "GitHub" : `GitHub (v${version})`, 
-      href: "https://github.com/Stawa/VitalStrike/releases" 
+    {
+      name: loading ? "GitHub" : `GitHub (v${version})`,
+      href: "https://github.com/Stawa/VitalStrike/releases",
     },
   ];
 
@@ -62,10 +62,10 @@ export function Navigation() {
                 to="/"
                 className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white"
               >
-                <img 
-                    src="/Icon.png" 
-                    alt="VitalStrike Logo" 
-                    className="h-8 w-8"
+                <img
+                  src="/Icon.png"
+                  alt="VitalStrike Logo"
+                  className="h-8 w-8"
                 />
                 VitalStrike
               </Link>

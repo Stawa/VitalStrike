@@ -1,8 +1,7 @@
 import { useLoaderData } from "@remix-run/react";
-import { type LoaderFunctionArgs } from "@remix-run/node";
+import { type LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { marked } from "marked";
 import { blogPosts } from "./CHANGELOG";
-import type { MetaFunction } from "@remix-run/node";
 
 export async function loader({ params }: LoaderFunctionArgs) {
   const post = blogPosts.find((post) => post.version === params.slug);

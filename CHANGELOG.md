@@ -2,6 +2,20 @@
 
 All notable changes to VitalStrike will be documented in this file.
 
+## [1.2] - 2025-03-02
+
+### Added
+- Added improved update checker with more detailed version information
+- Enhanced error handling for update checking process
+
+### Changed
+- Refactored update checking system for better performance
+- Improved logging system to avoid duplicate plugin name in log messages
+- Optimized code structure to reduce cognitive complexity
+
+### Fixed
+- Improved error handling in various parts of the plugin
+
 ## [1.1] - 2025-01-30
 
 ### Added
@@ -38,7 +52,6 @@ All notable changes to VitalStrike will be documented in this file.
   - actions/checkout@v4
   - actions/setup-java@v4
   - actions/upload-artifact@v4
-- Added "[VitalStrike]" prefix to all logger messages for better identification
 - Improved version checker to show when running latest version
 
 ### Technical

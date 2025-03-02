@@ -9,6 +9,26 @@ export interface BlogPost {
 
 export const blogPosts: BlogPost[] = [
   {
+    id: "1.2",
+    description:
+      "VitalStrike v1.2 focuses on performance improvements and code quality. This update includes an enhanced update checker, improved logging system, and optimized code structure for better performance and maintainability.",
+    date: "February 15, 2025",
+    changes: `
+## Added
+- Added improved update checker with more detailed version information
+- Enhanced error handling for update checking process
+
+## Changed
+- Refactored update checking system for better performance
+- Improved logging system to avoid duplicate plugin name in log messages
+- Optimized code structure to reduce cognitive complexity
+
+## Fixed
+- Improved error handling in various parts of the plugin`,
+    author: "Stawa",
+    version: "1.2",
+  },
+  {
     id: "1.1",
     description:
       "VitalStrike v1.1 brings exciting new features including player statistics tracking, custom damage sounds, and a new leaderboard system. We've also refactored the core plugin for better organization and fixed various bugs.",
@@ -29,7 +49,7 @@ export const blogPosts: BlogPost[] = [
 - Fixed damage indicator display issues
 - Fixed various bugs related to damage calculation and display`,
     author: "Stawa",
-    version: "1.1"
+    version: "1.1",
   },
   {
     id: "1.1-SNAPSHOT",
@@ -62,6 +82,6 @@ export const blogPosts: BlogPost[] = [
 - Uses Paper API
 - Requires Java 17`,
     author: "Stawa",
-    version: "1.1-SNAPSHOT"
-  }
+    version: "1.1-SNAPSHOT",
+  },
 ];

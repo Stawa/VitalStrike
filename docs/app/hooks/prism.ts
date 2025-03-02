@@ -16,9 +16,9 @@ const loadPrism = async () => {
   const Prism = await import("prismjs");
 
   // Add custom styles to document
-  if (!document.querySelector('#prism-custom-styles')) {
+  if (!document.querySelector("#prism-custom-styles")) {
     const styleSheet = document.createElement("style");
-    styleSheet.id = 'prism-custom-styles';
+    styleSheet.id = "prism-custom-styles";
     styleSheet.textContent = customStyles;
     document.head.appendChild(styleSheet);
   }

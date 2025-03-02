@@ -1,32 +1,38 @@
 package stawa.vitalstrike;
 
+import stawa.vitalstrike.Errors.DatabaseException;
+
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 
 /**
  * Manages player statistics for the VitalStrike plugin.
  * <p>
- * This class handles the storage and retrieval of player combat statistics including:
+ * This class handles the storage and retrieval of player combat statistics
+ * including:
  * <ul>
- *   <li>Highest combo achieved</li>
- *   <li>Total damage dealt</li>
- *   <li>Total hits landed</li>
- *   <li>Average damage per hit</li>
+ * <li>Highest combo achieved</li>
+ * <li>Total damage dealt</li>
+ * <li>Total hits landed</li>
+ * <li>Average damage per hit</li>
  * </ul>
  * </p>
  * 
  * @author Stawa
- * @version 1.1
+ * @version 1.2
  */
 public class PlayerStats {
+    private static final String STATS_FILE = "stats.yml";
+
     private final VitalStrike plugin;
     private final Map<UUID, PlayerStatistics> playerStats;
     private final File statsFile;
@@ -36,11 +42,12 @@ public class PlayerStats {
      * Creates a new PlayerStats instance.
      * 
      * @param plugin the VitalStrike plugin instance
+     * @throws DatabaseException
      */
-    public PlayerStats(VitalStrike plugin) {
+    public PlayerStats(VitalStrike plugin) throws DatabaseException {
         this.plugin = plugin;
-        this.playerStats = new HashMap<>();
-        this.statsFile = new File(plugin.getDataFolder(), "stats.yml");
+        this.playerStats = new ConcurrentHashMap<>();
+        this.statsFile = new File(plugin.getDataFolder(), STATS_FILE);
         this.statsConfig = YamlConfiguration.loadConfiguration(statsFile);
         loadAllStats();
     }
@@ -122,25 +129,33 @@ public class PlayerStats {
 
     /**
      * Loads all player statistics from the stats file.
+     * 
+     * @throws Errors.DatabaseException if there's an error parsing the stats file
      */
-    private void loadAllStats() {
+    private void loadAllStats() throws DatabaseException {
         if (!statsFile.exists())
             return;
 
-        for (String uuidStr : statsConfig.getKeys(false)) {
-            UUID uuid = UUID.fromString(uuidStr);
-            PlayerStatistics stats = new PlayerStatistics();
-            stats.highestCombo = statsConfig.getInt(uuidStr + ".highestCombo", 0);
-            stats.totalDamageDealt = statsConfig.getDouble(uuidStr + ".totalDamageDealt", 0);
-            stats.totalHits = statsConfig.getInt(uuidStr + ".totalHits", 0);
-            playerStats.put(uuid, stats);
+        try {
+            for (String uuidStr : statsConfig.getKeys(false)) {
+                UUID uuid = UUID.fromString(uuidStr);
+                PlayerStatistics stats = new PlayerStatistics();
+                stats.highestCombo = statsConfig.getInt(uuidStr + ".highestCombo", 0);
+                stats.totalDamageDealt = statsConfig.getDouble(uuidStr + ".totalDamageDealt", 0);
+                stats.totalHits = statsConfig.getInt(uuidStr + ".totalHits", 0);
+                playerStats.put(uuid, stats);
+            }
+        } catch (IllegalArgumentException e) {
+            throw new Errors.DatabaseException("Failed to parse UUID in stats file", e);
         }
     }
 
     /**
      * Saves all player statistics to the stats file.
+     * 
+     * @throws Errors.DatabaseException if there's an error saving the stats file
      */
-    public void saveAllStats() {
+    public void saveAllStats() throws DatabaseException {
         for (Map.Entry<UUID, PlayerStatistics> entry : playerStats.entrySet()) {
             String uuidStr = entry.getKey().toString();
             PlayerStatistics stats = entry.getValue();
@@ -152,7 +167,29 @@ public class PlayerStats {
         try {
             statsConfig.save(statsFile);
         } catch (IOException e) {
-            plugin.getLogger().warning("Failed to save player statistics: " + e.getMessage());
+            plugin.getLogger().severe(
+                    "Failed to save player statistics to " + statsFile.getAbsolutePath() + ": " + e.getMessage());
+            e.printStackTrace();
+            throw new Errors.DatabaseException("Failed to save player statistics to file: " + statsFile.getName(), e);
+        }
+    }
+
+    /**
+     * Resets statistics for a specific player.
+     * 
+     * @param uuid the UUID of the player to reset
+     */
+    public void resetPlayerStats(UUID uuid) {
+        playerStats.put(uuid, new PlayerStatistics());
+    }
+
+    /**
+     * Resets statistics for all players.
+     */
+    public void resetAllStats() {
+        playerStats.clear();
+        for (String uuidStr : statsConfig.getKeys(false)) {
+            statsConfig.set(uuidStr, null);
         }
     }
 
@@ -171,7 +208,7 @@ public class PlayerStats {
      * 
      * @param player the player to update
      * @param damage the damage dealt
-     * @param combo the combo achieved
+     * @param combo  the combo achieved
      */
     public void updateStats(Player player, double damage, int combo) {
         PlayerStatistics stats = getPlayerStats(player.getUniqueId());
@@ -182,16 +219,26 @@ public class PlayerStats {
     /**
      * Gets the top players based on the provided value extractor.
      * 
-     * @param limit the maximum number of players to return
+     * @param limit          the maximum number of players to return
      * @param valueExtractor the function to extract the value to sort by
      * @return the top players
      */
     public List<Map.Entry<UUID, PlayerStatistics>> getTopPlayers(int limit,
-            Function<PlayerStatistics, Double> valueExtractor) {
+            ToDoubleFunction<PlayerStatistics> valueExtractor) {
         return playerStats.entrySet().stream()
-                .sorted((a, b) -> Double.compare(valueExtractor.apply(b.getValue()),
-                        valueExtractor.apply(a.getValue())))
+                .sorted((a, b) -> Double.compare(valueExtractor.applyAsDouble(b.getValue()),
+                        valueExtractor.applyAsDouble(a.getValue())))
                 .limit(limit)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Checks if statistics exist for a player.
+     * 
+     * @param uuid the player's UUID
+     * @return true if the player has statistics
+     */
+    public boolean hasStats(UUID uuid) {
+        return playerStats.containsKey(uuid);
     }
 }
