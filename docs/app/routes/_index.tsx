@@ -1,5 +1,6 @@
 import type { MetaFunction } from "@remix-run/node";
 import { useHighlightCode } from "~/hooks/prism";
+import { blogPosts } from "./CHANGELOG";
 
 export const meta: MetaFunction = () => {
   const title = "VitalStrike - Dynamic Combat Feedback for Minecraft";
@@ -31,6 +32,7 @@ export const meta: MetaFunction = () => {
 
 export default function Index() {
   useHighlightCode();
+  const latestPost = blogPosts[0]; // Get first entry which is latest
 
   return (
     <div className="min-h-screen">
@@ -41,10 +43,12 @@ export default function Index() {
             {/* Announcement Badge */}
             <div className="mb-8">
               <a
-                href="/blog/1.1"
+                href={`/blog/${latestPost.id}`}
                 className="inline-flex items-center px-4 py-2 rounded-full bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-300 text-sm font-medium hover:bg-primary-200 dark:hover:bg-primary-800/50 transition-colors"
+                title={`Released on ${latestPost.date}`}
               >
-                <span className="mr-2">🎉</span> VitalStrike v1.1 Released!
+                <span className="mr-2">🎉</span> VitalStrike{" "}
+                {latestPost.version} Released!
               </a>
             </div>
 
@@ -323,7 +327,7 @@ function PerformanceIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth={2}
-        d="M13 10V3L4 14h7v7l9-11h-7z"
+        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
       />
     </svg>
   );
