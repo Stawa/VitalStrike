@@ -7,84 +7,59 @@ export interface BlogPost {
   version: string;
 }
 
-export const blogPosts: BlogPost[] = [
-  {
-    id: "1.2",
-    description:
-      "VitalStrike v1.2 focuses on performance improvements and code quality. This update includes an enhanced update checker, improved logging system, and optimized code structure for better performance and maintainability.",
-    date: "February 15, 2025",
-    changes: `
-## Added
-- Added improved update checker with more detailed version information
-- Enhanced error handling for update checking process
+async function fetchChangelog(): Promise<BlogPost[]> {
+  try {
+    const response = await fetch(
+      "https://raw.githubusercontent.com/Stawa/VitalStrike/main/CHANGELOG.md"
+    );
+    const markdown = await response.text();
+    return parseChangelog(markdown);
+  } catch (error) {
+    console.error("Failed to fetch changelog:", error);
+    return [];
+  }
+}
 
-## Changed
-- Refactored update checking system for better performance
-- Improved logging system to avoid duplicate plugin name in log messages
-- Optimized code structure to reduce cognitive complexity
+function parseChangelog(markdown: string): BlogPost[] {
+  const posts: BlogPost[] = [];
+  const sections = markdown.split(/^## \[/m).slice(1);
 
-## Fixed
-- Improved error handling in various parts of the plugin`,
-    author: "Stawa",
-    version: "1.2",
-  },
-  {
-    id: "1.1",
-    description:
-      "VitalStrike v1.1 brings exciting new features including player statistics tracking, custom damage sounds, and a new leaderboard system. We've also refactored the core plugin for better organization and fixed various bugs.",
-    date: "January 30, 2025",
-    changes: `
-## Added
-- Added PlayerStats class for managing player statistics
-- Implemented player stats tracking system
-- Added configuration options for stats tracking
-- Added custom damage sounds for different damage types
-- Implemented statistics tracking and leaderboard system
+  for (const section of sections) {
+    const [versionLine, ...content] = section.split("\n");
+    const [version, date] = versionLine.split("] - ");
 
-## Changed
-- Refactored main plugin class for better organization
-- Updated configuration structure to support stats tracking
+    const descriptionMatch = /^\n(.*?)\n\n/.exec(content.join("\n"));
+    const description = descriptionMatch
+      ? descriptionMatch[1].trim()
+      : "No description available";
 
-## Fixed
-- Fixed damage indicator display issues
-- Fixed various bugs related to damage calculation and display
+    const changes = content.join("\n").trim();
 
-## Technical
-- Requires Java 21`,
-    author: "Stawa",
-    version: "1.1",
-  },
-  {
-    id: "1.1-SNAPSHOT",
-    description:
-      "Initial release of VitalStrike featuring dynamic damage indicators, combo system, and comprehensive configuration options.",
-    date: "January 29, 2025",
-    changes: `
-## Added
-- Initial release of VitalStrike
-- Dynamic damage indicators with customizable formats
-- Combo system with ranks (D through SSS)
-- Damage multiplier system based on combo count and ranks
-- Combo decay system with configurable settings
-- Visual effects (particles and sounds) for combo milestones
-- Action bar display for combo information
-- Customizable display settings (position, animation, duration)
-- Support for MiniMessage format and gradient colors
-- Comprehensive configuration system
+    posts.push({
+      id: version,
+      version: version,
+      date: formatDate(date),
+      changes: changes,
+      description,
+      author: "Stawa",
+    });
+  }
 
-## Changed
-- Updated GitHub Actions workflow to use latest versions:
-  - actions/checkout@v4
-  - actions/setup-java@v4
-  - actions/upload-artifact@v4
-- Added "[VitalStrike]" prefix to all logger messages for better identification
-- Improved version checker to show when running latest version
+  return posts;
+}
 
-## Technical
-- Built for Minecraft 1.20+
-- Uses Paper API
-- Requires Java 17`,
-    author: "Stawa",
-    version: "1.1-SNAPSHOT",
-  },
-];
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+export async function loader() {
+  const posts = await fetchChangelog();
+  return { posts };
+}
+
+export const blogPosts = await fetchChangelog();
