@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.ToDoubleFunction;
-import java.util.stream.Collectors;
 
 /**
  * Manages player statistics for the VitalStrike plugin.
@@ -25,10 +24,11 @@ import java.util.stream.Collectors;
  * <li>Total hits landed</li>
  * <li>Average damage per hit</li>
  * </ul>
+ * Statistics are persisted to a YAML file and loaded on plugin startup.
  * </p>
  * 
  * @author Stawa
- * @version 1.2
+ * @version 1.3
  */
 public class PlayerStats {
     private static final String STATS_FILE = "stats.yml";
@@ -229,7 +229,7 @@ public class PlayerStats {
                 .sorted((a, b) -> Double.compare(valueExtractor.applyAsDouble(b.getValue()),
                         valueExtractor.applyAsDouble(a.getValue())))
                 .limit(limit)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**

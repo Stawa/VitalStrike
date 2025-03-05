@@ -16,24 +16,53 @@ public class Errors {
     public static class VitalStrikeException extends Exception {
         private final ErrorCode errorCode;
 
+        /**
+         * Creates a new VitalStrikeException with the specified message
+         * 
+         * @param message the error message
+         */
         public VitalStrikeException(String message) {
             this(message, ErrorCode.UNKNOWN);
         }
 
+        /**
+         * Creates a new VitalStrikeException with the specified message and error code
+         * 
+         * @param message   the error message
+         * @param errorCode the error code
+         */
         public VitalStrikeException(String message, ErrorCode errorCode) {
             super(message);
             this.errorCode = errorCode;
         }
 
+        /**
+         * Creates a new VitalStrikeException with the specified message and cause
+         * 
+         * @param message the error message
+         * @param cause   the cause of the error
+         */
         public VitalStrikeException(String message, Throwable cause) {
             this(message, cause, ErrorCode.UNKNOWN);
         }
 
+        /**
+         * Creates a new VitalStrikeException with the specified message, cause, and error code
+         * 
+         * @param message   the error message
+         * @param cause     the cause of the error
+         * @param errorCode the error code
+         */
         public VitalStrikeException(String message, Throwable cause, ErrorCode errorCode) {
             super(message, cause);
             this.errorCode = errorCode;
         }
 
+        /**
+         * Gets the error code associated with this exception
+         * 
+         * @return the error code
+         */
         public ErrorCode getErrorCode() {
             return errorCode;
         }

@@ -178,6 +178,13 @@ combo:
       type: "CRIT" # Particle effect type
       count: 10 # Number of particles
 
+  hologram:
+    enabled: true
+    min-combo: 10
+    duration: 3.0
+    format: "<gradient:red:gold><bold>COMBO STREAK!</bold></gradient>"
+    height: 2.0
+
 # Display Settings
 display:
   duration: 1.5 # How long damage/heal numbers stay visible (in seconds)
@@ -238,6 +245,9 @@ help-menu:
     leaderboard:
       command: "/vs leaderboard [damage|combo|average]"
       description: "View top players leaderboard"
+    hologram:
+      command: "/vs hologram [on|off]"
+      description: "Toggle combo hologram display"
   footer: "<dark_gray><strikethrough>                    </strikethrough>"
 # Color code reference:
 # <red> - Red

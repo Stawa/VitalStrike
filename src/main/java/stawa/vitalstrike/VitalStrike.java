@@ -1,6 +1,8 @@
 package stawa.vitalstrike;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,21 +20,23 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.stream.Collectors;
 import java.util.Arrays;
 import java.util.Map;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import stawa.vitalstrike.Errors.DatabaseException;
+
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.configuration.ConfigurationSection;
 import org.joml.Vector3f;
 import org.joml.AxisAngle4f;
@@ -52,7 +56,7 @@ import org.bukkit.util.Transformation;
  * </p>
  * 
  * @author Stawa
- * @version 1.2
+ * @version 1.3
  * @see <a href="https://github.com/Stawa/VitalStrike">GitHub Repository</a>
  */
 public class VitalStrike extends JavaPlugin implements Listener {
@@ -95,11 +99,18 @@ public class VitalStrike extends JavaPlugin implements Listener {
     private double floatCurve = 0.02;
     private String moveDirection = "down";
     private String decayWarningFormat = "<italic><gray>(Decaying in %.1fs)</gray></italic>";
+    private boolean comboHologramEnabled = true;
+    private int comboHologramMinCombo = 10;
+    private double comboHologramDuration = 3.0;
+    private String comboHologramFormat = "<gradient:red:gold><bold>COMBO STREAK!</bold></gradient>";
+    private double comboHologramHeight = 2.0;
+    private Map<UUID, TextDisplay> activeHolograms = new HashMap<>();
     private static final String CMD_TOGGLE = "toggle";
     private static final String CMD_RELOAD = "reload";
     private static final String CMD_STATS = "stats";
     private static final String CMD_LEADERBOARD = "leaderboard";
     private static final String CMD_LEADERBOARD_SHORT = "lb";
+    private static final String CMD_HOLOGRAM = "hologram";
 
     /**
      * Enum representing the direction of movement for the damage indicators.
@@ -180,6 +191,12 @@ public class VitalStrike extends JavaPlugin implements Listener {
      */
     @Override
     public void onDisable() {
+        for (TextDisplay hologram : activeHolograms.values()) {
+            if (hologram != null && hologram.isValid()) {
+                hologram.remove();
+            }
+        }
+        activeHolograms.clear();
         if (playerManager != null) {
             try {
                 playerManager.saveDatabase();
@@ -239,6 +256,13 @@ public class VitalStrike extends JavaPlugin implements Listener {
         comboMultiplierBase = config.getDouble("combo.multiplier.base", 1.0);
         comboMultiplierPerCombo = config.getDouble("combo.multiplier.per-combo", 0.1);
         comboMultiplierMax = config.getDouble("combo.multiplier.max", 3.0);
+
+        comboHologramEnabled = config.getBoolean("combo.display.hologram.enabled", true);
+        comboHologramMinCombo = config.getInt("combo.display.hologram.min-combo", 10);
+        comboHologramDuration = config.getDouble("combo.display.hologram.duration", 3.0);
+        comboHologramFormat = config.getString("combo.display.hologram.format",
+                "<gradient:red:gold><bold>COMBO STREAK!</bold></gradient>");
+        comboHologramHeight = config.getDouble("combo.display.hologram.height", 2.0);
 
         ConfigurationSection rankMultSection = config.getConfigurationSection("combo.multiplier.ranks");
         if (rankMultSection != null) {
@@ -313,8 +337,8 @@ public class VitalStrike extends JavaPlugin implements Listener {
      */
     private String fetchLatestReleaseData() throws Errors.UpdateException {
         try {
-            URL url = new URL("https://api.github.com/repos/Stawa/VitalStrike/releases/latest");
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            URI uri = URI.create("https://api.github.com/repos/Stawa/VitalStrike/releases/latest");
+            HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
             connection.setRequestMethod("GET");
             connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
 
@@ -351,6 +375,7 @@ public class VitalStrike extends JavaPlugin implements Listener {
 
     /**
      * Processes version information from GitHub API response.
+     * Extracts version tag and compares with current plugin version.
      * 
      * @param jsonResponse the JSON response from GitHub API
      * @throws Errors.UpdateException if there's an error processing the version
@@ -369,19 +394,26 @@ public class VitalStrike extends JavaPlugin implements Listener {
     }
 
     /**
-     * Logs version information.
+     * Logs version comparison information to the server console.
+     * Notifies if a new version is available or confirms running the latest
+     * version.
      * 
      * @param currentVersion the current plugin version
-     * @param latestVersion  the latest available version
+     * @param latestVersion  the latest available version from GitHub
      */
     private void logVersionInfo(String currentVersion, String latestVersion) {
         if (!currentVersion.equals(latestVersion)) {
-            getLogger().info("New version available: " + latestVersion);
-            getLogger().info("You are running version: " + currentVersion);
-            getLogger().info(
-                    "Download the latest version from: https://github.com/Stawa/VitalStrike/releases");
+            String newVersionMessage = String.format("New version available: %s", latestVersion);
+            String currentVersionMessage = String.format("You are running version: %s", currentVersion);
+            String downloadMessage = String.format(
+                    "Download the latest version from: %s",
+                    "https://github.com/Stawa/VitalStrike/releases");
+            getLogger().info(newVersionMessage);
+            getLogger().info(currentVersionMessage);
+            getLogger().info(downloadMessage);
         } else {
-            getLogger().info("You are running the latest version: " + latestVersion);
+            String latestVersionMessage = String.format("You are running the latest version: %s", latestVersion);
+            getLogger().info(latestVersionMessage);
         }
     }
 
@@ -424,8 +456,8 @@ public class VitalStrike extends JavaPlugin implements Listener {
         UUID entityId = entity.getUniqueId();
         long currentTime = System.currentTimeMillis();
 
-        if (event instanceof org.bukkit.event.entity.EntityDamageByEntityEvent) {
-            handlePlayerCombos((org.bukkit.event.entity.EntityDamageByEntityEvent) event, currentTime);
+        if (event instanceof org.bukkit.event.entity.EntityDamageByEntityEvent entitydamagebyentityevent) {
+            handlePlayerCombos(entitydamagebyentityevent, currentTime);
         }
 
         if (isOnCooldown(entityId, currentTime))
@@ -480,12 +512,12 @@ public class VitalStrike extends JavaPlugin implements Listener {
 
         updatePlayerCombo(playerId, currentTime);
         handleComboDecay(player, playerId);
-        applyDamageMultiplier(playerId, event);
+        applyDamageMultiplier(player, playerId, event);
         playComboEffects(player, playerId);
 
         playerStats.updateStats(player, event.getFinalDamage(), playerCombos.get(playerId));
 
-        displayComboHUD(player);
+        displayComboHUD(player, event.getEntity());
     }
 
     /**
@@ -530,7 +562,7 @@ public class VitalStrike extends JavaPlugin implements Listener {
                 int currentCombo = playerCombos.getOrDefault(playerId, 0);
                 if (currentCombo > comboDecayMinimum) {
                     playerCombos.put(playerId, Math.max(currentCombo - comboDecayRate, comboDecayMinimum));
-                    displayComboHUD(player);
+                    displayComboHUD(player, null);
                 }
             }
         }, comboDecayTime * 20L, comboDecayInterval * 20L);
@@ -544,7 +576,7 @@ public class VitalStrike extends JavaPlugin implements Listener {
      * @param playerId the player UUID
      * @param event    the damage event
      */
-    private void applyDamageMultiplier(UUID playerId, EntityDamageEvent event) {
+    private void applyDamageMultiplier(Player player, UUID playerId, EntityDamageEvent event) {
         if (!comboMultiplierEnabled)
             return;
 
@@ -555,10 +587,43 @@ public class VitalStrike extends JavaPlugin implements Listener {
 
         double rankMultiplier = rankMultipliers.getOrDefault(rank, comboMultiplierBase);
         multiplier = Math.max(multiplier, rankMultiplier);
+        applyElementalEffects(player, event.getEntity(), combo);
 
         multiplier = Math.min(multiplier, comboMultiplierMax);
 
         event.setDamage(event.getDamage() * multiplier);
+    }
+
+    /**
+     * Applies elemental effects based on player's selected element and combo count.
+     * 
+     * @param player the player applying the effect
+     * @param target the target entity receiving the effect
+     * @param combo  the current combo count which affects effect strength
+     */
+    private void applyElementalEffects(Player player, Entity target, int combo) {
+        String element = playerManager.getPlayerElement(player);
+        if (element == null)
+            return;
+
+        switch (element.toLowerCase()) {
+            case "fire":
+                target.setFireTicks(combo * 20);
+                break;
+            case "ice":
+                if (target instanceof LivingEntity livingEntity) {
+                    livingEntity.addPotionEffect(new PotionEffect(
+                            PotionEffectType.SLOW, combo * 20, combo / 5));
+                }
+                break;
+            case "lightning":
+                if (combo % 10 == 0) {
+                    target.getWorld().strikeLightning(target.getLocation());
+                }
+                break;
+            default:
+                break;
+        }
     }
 
     /**
@@ -568,7 +633,7 @@ public class VitalStrike extends JavaPlugin implements Listener {
      * @param playerId the player UUID
      */
     private void playComboEffects(Player player, UUID playerId) {
-        if (!getConfig().getBoolean("combo.effects.enabled", true))
+        if (!getConfig().getBoolean("combo.effects.enabled", true) || !playerManager.isEnabled(player))
             return;
 
         playComboSound(player, playerId);
@@ -663,8 +728,7 @@ public class VitalStrike extends JavaPlugin implements Listener {
                 }
             case POISON:
                 return getConfig().getString("damage-formats.poison", "<dark_green>-%.1f ☠");
-            case FIRE:
-            case FIRE_TICK:
+            case FIRE, FIRE_TICK:
                 return getConfig().getString("damage-formats.fire", "<gold>-%.1f 🔥");
             case KILL:
                 return getConfig().getString("damage-formats.kill", "<dark_red>-%.1f ☠");
@@ -674,8 +738,7 @@ public class VitalStrike extends JavaPlugin implements Listener {
                 return getConfig().getString("damage-formats.fall", "<gray>-%.1f 💨");
             case DROWNING:
                 return getConfig().getString("damage-formats.drown", "<blue>-%.1f 💧");
-            case BLOCK_EXPLOSION:
-            case ENTITY_EXPLOSION:
+            case BLOCK_EXPLOSION, ENTITY_EXPLOSION:
                 return getConfig().getString("damage-formats.explosion", "<red>-%.1f 💥");
             case CONTACT:
                 return getConfig().getString("damage-formats.contact", "<green>-%.1f 🌵");
@@ -739,6 +802,11 @@ public class VitalStrike extends JavaPlugin implements Listener {
 
     /**
      * Formats legacy color codes to MiniMessage format.
+     * Converts both ampersand (&) and section symbol (§) color codes to MiniMessage
+     * tags.
+     * 
+     * @param text the text containing legacy color codes
+     * @return the text with color codes converted to MiniMessage format
      */
     private String formatColorCodes(String text) {
         return text.replace("&c", "<red>")
@@ -943,8 +1011,8 @@ public class VitalStrike extends JavaPlugin implements Listener {
      * 
      * @param player the player
      */
-    private void displayComboHUD(Player player) {
-        if (!comboEnabled)
+    private void displayComboHUD(Player player, Entity target) {
+        if (!comboEnabled || !playerManager.isEnabled(player))
             return;
 
         int combo = playerCombos.getOrDefault(player.getUniqueId(), 0);
@@ -956,7 +1024,53 @@ public class VitalStrike extends JavaPlugin implements Listener {
         Component message = MiniMessage.miniMessage().deserialize(displayText);
         player.sendActionBar(message);
 
+        if (comboHologramEnabled && combo >= comboHologramMinCombo && target != null) {
+            createComboHologram(player, combo, target);
+        }
+
         scheduleActionBarClear(player, combo);
+    }
+
+    /**
+     * Creates a hologram display above the target showing combo information.
+     * Only displays for combos that meet or exceed the minimum threshold.
+     * 
+     * @param player the player who achieved the combo
+     * @param combo  the current combo count
+     * @param target the target entity to display above
+     */
+    private void createComboHologram(Player player, int combo, Entity target) {
+        UUID playerId = player.getUniqueId();
+
+        if (activeHolograms.containsKey(playerId)) {
+            TextDisplay existing = activeHolograms.get(playerId);
+            if (existing != null && existing.isValid()) {
+                existing.remove();
+            }
+            activeHolograms.remove(playerId);
+        }
+
+        Location loc = target.getLocation().add(0, target.getHeight() + comboHologramHeight, 0);
+        TextDisplay hologram = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
+
+        String formattedText = comboHologramFormat.replace("%combo%", String.valueOf(combo));
+        hologram.text(MiniMessage.miniMessage().deserialize(formattedText));
+
+        hologram.setBillboard(org.bukkit.entity.Display.Billboard.CENTER);
+        hologram.setAlignment(TextDisplay.TextAlignment.CENTER);
+        hologram.setSeeThrough(true);
+        hologram.setShadowed(true);
+        hologram.setPersistent(false);
+
+        activeHolograms.put(playerId, hologram);
+
+        int removalTicks = (int) (comboHologramDuration * 20);
+        getServer().getScheduler().runTaskLater(this, () -> {
+            if (hologram.isValid()) {
+                hologram.remove();
+                activeHolograms.remove(playerId);
+            }
+        }, removalTicks);
     }
 
     /**
@@ -996,7 +1110,7 @@ public class VitalStrike extends JavaPlugin implements Listener {
         String rank = getComboRank(combo).replace("[", "").replace("]", "");
         double multiplier = comboMultiplierBase + (combo * comboMultiplierPerCombo);
         double rankMultiplier = rankMultipliers.getOrDefault(rank, comboMultiplierBase);
-        multiplier = Math.min(Math.max(multiplier, rankMultiplier), comboMultiplierMax);
+        multiplier = Math.clamp(multiplier, rankMultiplier, comboMultiplierMax);
         return String.format(multiplierFormat, multiplier);
     }
 
@@ -1059,18 +1173,26 @@ public class VitalStrike extends JavaPlugin implements Listener {
 
         String subCommand = args[0].toLowerCase();
 
-        switch (subCommand) {
-            case CMD_TOGGLE:
-                return handleToggleCommand(sender, args);
-            case CMD_RELOAD:
-                return handleReloadCommand(sender);
-            case CMD_STATS:
-                return handleStatsCommand(sender);
-            case CMD_LEADERBOARD:
-            case CMD_LEADERBOARD_SHORT:
-                return handleLeaderboardCommand(sender, args);
-            default:
-                return false;
+        try {
+            switch (subCommand) {
+                case CMD_TOGGLE:
+                    return handleToggleCommand(sender, args);
+                case CMD_RELOAD:
+                    return handleReloadCommand(sender);
+                case CMD_STATS:
+                    return handleStatsCommand(sender);
+                case CMD_LEADERBOARD, CMD_LEADERBOARD_SHORT:
+                    return handleLeaderboardCommand(sender, args);
+                case CMD_HOLOGRAM:
+                    return handleHologramCommand(sender, args);
+                default:
+                    return false;
+            }
+        } catch (DatabaseException e) {
+            sender.sendMessage(MiniMessage.miniMessage().deserialize(
+                    "<red>An error occurred while processing your command: " + e.getMessage()));
+            getLogger().severe("[VitalStrike] Database error: " + e.getMessage());
+            return false;
         }
     }
 
@@ -1238,6 +1360,63 @@ public class VitalStrike extends JavaPlugin implements Listener {
         }
     }
 
+    private boolean handleHologramCommand(CommandSender sender, String[] args) throws DatabaseException {
+        if (!(sender instanceof Player)) {
+            sendPlayerOnlyMessage(sender);
+            return false;
+        }
+
+        if (!hasPermission(sender, "vitalstrike.hologram")) {
+            return false;
+        }
+
+        Player player = (Player) sender;
+        boolean currentState = playerManager.isHologramEnabled(player);
+
+        if (args.length > 1) {
+            return handleSpecificHologramToggle(player, args[1], currentState);
+        }
+
+        playerManager.setHologramEnabled(player, !currentState);
+        sendHologramToggleMessage(player, !currentState);
+        return true;
+    }
+
+    private boolean handleSpecificHologramToggle(Player player, String toggleType, boolean currentState)
+            throws DatabaseException {
+        switch (toggleType.toLowerCase()) {
+            case "on":
+                if (currentState) {
+                    player.sendMessage(MiniMessage.miniMessage().deserialize(
+                            "<yellow>Combo holograms are already enabled for you!"));
+                    return false;
+                }
+                playerManager.setHologramEnabled(player, true);
+                sendHologramToggleMessage(player, true);
+                return true;
+
+            case "off":
+                if (!currentState) {
+                    player.sendMessage(MiniMessage.miniMessage().deserialize(
+                            "<yellow>Combo holograms are already disabled for you!"));
+                    return false;
+                }
+                playerManager.setHologramEnabled(player, false);
+                sendHologramToggleMessage(player, false);
+                return true;
+
+            default:
+                player.sendMessage(MiniMessage.miniMessage().deserialize(
+                        "<red>Invalid toggle option. Use 'on' or 'off'."));
+                return false;
+        }
+    }
+
+    private void sendHologramToggleMessage(Player player, boolean enabled) {
+        player.sendMessage(MiniMessage.miniMessage().deserialize(
+                enabled ? "<green>Combo holograms enabled for you!" : "<red>Combo holograms disabled for you!"));
+    }
+
     /**
      * Container class for leaderboard data.
      */
@@ -1264,24 +1443,21 @@ public class VitalStrike extends JavaPlugin implements Listener {
         int limit = getConfig().getInt("leaderboard.display-limit", 10);
 
         switch (type) {
-            case "damage":
-            case "dmg":
+            case "damage", "dmg":
                 return new LeaderboardData(
                         playerStats.getTopPlayers(limit, PlayerStats.PlayerStatistics::getTotalDamageDealt),
                         getConfig().getString("leaderboard.display.title-formats.damage",
                                 "<gold><bold>Top %d Damage Dealers</bold></gold>"),
                         getConfig().getString("leaderboard.number-format.damage", "%.1f"),
                         PlayerStats.PlayerStatistics::getTotalDamageDealt);
-            case "combo":
-            case "combos":
+            case "combo", "combos":
                 return new LeaderboardData(
                         playerStats.getTopPlayers(limit, stats -> (double) stats.getHighestCombo()),
                         getConfig().getString("leaderboard.display.title-formats.combo",
                                 "<gold><bold>Top %d Highest Combos</bold></gold>"),
                         getConfig().getString("leaderboard.number-format.combo", "%d"),
                         stats -> (double) stats.getHighestCombo());
-            case "average":
-            case "avg":
+            case "average", "avg":
                 return new LeaderboardData(
                         playerStats.getTopPlayers(limit, PlayerStats.PlayerStatistics::getAverageDamagePerHit),
                         getConfig().getString("leaderboard.display.title-formats.average",
@@ -1432,8 +1608,13 @@ public class VitalStrike extends JavaPlugin implements Listener {
             completions.add(CMD_LEADERBOARD);
             completions.add(CMD_LEADERBOARD_SHORT);
         }
+        if (sender.hasPermission("vitalstrike.hologram"))
+            completions.add(CMD_HOLOGRAM);
 
-        return filterCompletions(completions, arg);
+        return Collections.unmodifiableList(
+                completions.stream()
+                        .filter(s -> s.toLowerCase().startsWith(arg.toLowerCase()))
+                        .toList());
     }
 
     /**
@@ -1444,28 +1625,25 @@ public class VitalStrike extends JavaPlugin implements Listener {
      * @return list of filtered completions
      */
     private List<String> getSecondArgumentCompletions(String firstArg, String secondArg) {
-        if (firstArg.equalsIgnoreCase(CMD_TOGGLE)) {
-            return filterCompletions(Arrays.asList("on", "off"), secondArg);
+        List<String> completions = new ArrayList<>();
+
+        switch (firstArg.toLowerCase()) {
+            case CMD_TOGGLE:
+                completions.addAll(Arrays.asList("on", "off"));
+                break;
+            case CMD_LEADERBOARD, CMD_LEADERBOARD_SHORT:
+                completions.addAll(Arrays.asList("damage", "combo", "average"));
+                break;
+            case CMD_HOLOGRAM:
+                completions.addAll(Arrays.asList("on", "off"));
+                break;
+            default:
+                return Collections.emptyList();
         }
 
-        if (firstArg.equalsIgnoreCase(CMD_LEADERBOARD) || firstArg.equalsIgnoreCase(CMD_LEADERBOARD_SHORT)) {
-            return filterCompletions(Arrays.asList("damage", "combo", "average"), secondArg);
-        }
-
-        return Collections.emptyList();
-    }
-
-    /**
-     * Filters completions based on the current argument.
-     * 
-     * @param completions list of possible completions
-     * @param currentArg  the current argument
-     * @return filtered list of completions
-     */
-    private List<String> filterCompletions(List<String> completions, String currentArg) {
         return completions.stream()
-                .filter(s -> s.toLowerCase().startsWith(currentArg.toLowerCase()))
-                .collect(Collectors.toList());
+                .filter(s -> s.toLowerCase().startsWith(secondArg.toLowerCase()))
+                .toList();
     }
 
     /**

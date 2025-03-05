@@ -15,6 +15,7 @@ commands:
       §e/vs reload §7- Reload the plugin configuration
       §e/vs stats §7- View your combat statistics
       §e/vs leaderboard [damage|combo|average] §7- View top players leaderboard
+      §e/vs hologram [on|off] §7- Toggle combo hologram display
     aliases: [vs]
     permission: vitalstrike.use
     permission-message: §cYou don't have permission to use VitalStrike commands!
@@ -31,4 +32,7 @@ permissions:
     default: true
   vitalstrike.leaderboard:
     description: Allows viewing the leaderboard
+    default: true
+  vitalstrike.hologram:
+    description: Allows toggling combo hologram display
     default: true

@@ -10,11 +10,16 @@ import stawa.vitalstrike.Errors.DatabaseException;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
+/**
+ * Manages player preferences and settings for the VitalStrike plugin
+ * Handles loading, saving, and accessing player-specific configuration
+ */
 public class PlayerManager {
     private static final String PLAYERS_PATH = "players.";
     private static final String ENABLED_PATH = ".enabled";
@@ -26,7 +31,15 @@ public class PlayerManager {
     private FileConfiguration database;
     private final Map<UUID, Boolean> playerSettings;
     private final Map<UUID, String> playerStyles;
+    private final HashMap<UUID, String> playerElements = new HashMap<>();
+    private Map<UUID, Boolean> playerHologramPreferences = new HashMap<>();
 
+    /**
+     * Creates a new PlayerManager instance
+     * 
+     * @param plugin the VitalStrike plugin instance
+     * @throws DatabaseException if database initialization fails
+     */
     public PlayerManager(VitalStrike plugin) throws DatabaseException {
         this.plugin = plugin;
         this.databaseFile = new File(plugin.getDataFolder(), DATABASE_FILE);
@@ -196,10 +209,8 @@ public class PlayerManager {
      */
     private boolean getPlayerSetting(Player player, boolean defaultValue) {
         UUID uuid = player.getUniqueId();
-        if (!playerSettings.containsKey(uuid)) {
-            playerSettings.put(uuid, database.getBoolean(PLAYERS_PATH + uuid + ENABLED_PATH, defaultValue));
-        }
-        return playerSettings.get(uuid);
+        return playerSettings.computeIfAbsent(uuid,
+                key -> database.getBoolean(PLAYERS_PATH + key + ENABLED_PATH, defaultValue));
     }
 
     /**
@@ -221,11 +232,8 @@ public class PlayerManager {
      */
     private String getPlayerStyle(Player player) {
         UUID uuid = player.getUniqueId();
-        if (!playerStyles.containsKey(uuid)) {
-            playerStyles.put(uuid, database.getString(PLAYERS_PATH + uuid + STYLE_PATH,
-                    plugin.getConfig().getString("damage-format", "<red>-%.1f ❤")));
-        }
-        return playerStyles.get(uuid);
+        return playerStyles.computeIfAbsent(uuid, key -> database.getString(PLAYERS_PATH + key + STYLE_PATH,
+                plugin.getConfig().getString("damage-format", "<red>-%.1f ❤")));
     }
 
     /**
@@ -240,5 +248,47 @@ public class PlayerManager {
         } catch (DatabaseException e) {
             plugin.getLogger().log(Level.WARNING, "[VitalStrike] Failed to save player setting", e);
         }
+    }
+
+    /**
+     * Gets the player's elemental effect type
+     * 
+     * @param player the player to check
+     * @return the player's element type or null if not set
+     */
+    public String getPlayerElement(Player player) {
+        return playerElements.get(player.getUniqueId());
+    }
+
+    /**
+     * Sets the player's elemental effect type
+     * 
+     * @param player  the player to update
+     * @param element the element type to set
+     */
+    public void setPlayerElement(Player player, String element) {
+        playerElements.put(player.getUniqueId(), element);
+    }
+
+    /**
+     * Checks if holograms are enabled for a player
+     * 
+     * @param player the player to check
+     * @return true if holograms are enabled for the player
+     */
+    public boolean isHologramEnabled(Player player) {
+        return playerHologramPreferences.getOrDefault(player.getUniqueId(), true);
+    }
+
+    /**
+     * Sets whether holograms are enabled for a player
+     * 
+     * @param player  the player to update
+     * @param enabled the new hologram enabled status
+     * @throws DatabaseException if saving to database fails
+     */
+    public void setHologramEnabled(Player player, boolean enabled) throws DatabaseException {
+        playerHologramPreferences.put(player.getUniqueId(), enabled);
+        saveDatabase();
     }
 }
