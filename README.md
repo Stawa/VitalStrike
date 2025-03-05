@@ -4,11 +4,11 @@
 [![Build](https://github.com/Stawa/VitalStrike/actions/workflows/build.yml/badge.svg)](https://github.com/Stawa/VitalStrike/actions/workflows/build.yml)
 [![Release](https://img.shields.io/github/v/release/Stawa/VitalStrike?include_prereleases&style=flat)](https://github.com/Stawa/VitalStrike/releases)
 
-VitalStrike is a customizable Minecraft plugin that provides dynamic damage indications, allowing you to adjust combat feedback to match your server's style.
+VitalStrike is a powerful and highly customizable Minecraft plugin that enhances combat feedback with dynamic damage indicators, combo systems, and comprehensive statistics tracking.
 
 ## Documentation
 
-Visit our documentation site at [https://vitalstrike.vercel.app/](https://vitalstrike.vercel.app/) to learn more about VitalStrike's features, installation, and usage.
+For detailed information about features, installation, and configuration, visit our documentation at [https://vitalstrike.vercel.app/](https://vitalstrike.vercel.app/)
 
 ---
 
@@ -38,13 +38,14 @@ Visit our documentation site at [https://vitalstrike.vercel.app/](https://vitals
 
 ## 📖 Commands
 
-| Command           | Permission              | Description                     | Default |
-| ----------------- | ----------------------- | ------------------------------- | ------- |
-| `/vs help`        | vitalstrike.use         | Show the help menu              | true    |
-| `/vs toggle`      | vitalstrike.use         | Toggle damage indicators on/off | true    |
-| `/vs reload`      | vitalstrike.reload      | Reload the plugin configuration | op      |
-| `/vs stats`       | vitalstrike.stats       | View your combat statistics     | true    |
-| `/vs leaderboard` | vitalstrike.leaderboard | View server leaderboards        | true    |
+| Command           | Permission              | Description                 | Default |
+| ----------------- | ----------------------- | --------------------------- | ------- |
+| `/vs help`        | vitalstrike.use         | Show the help menu          | true    |
+| `/vs toggle`      | vitalstrike.use         | Toggle damage indicators    | true    |
+| `/vs reload`      | vitalstrike.reload      | Reload plugin configuration | op      |
+| `/vs stats`       | vitalstrike.stats       | View combat statistics      | true    |
+| `/vs leaderboard` | vitalstrike.leaderboard | View server leaderboards    | true    |
+| `/vs hologram`    | vitalstrike.hologram    | Toggle combo holograms      | true    |
 
 Aliases: `/vitalstrike`, `/vs`, `/vs lb` (for leaderboard)
 
@@ -54,31 +55,50 @@ VitalStrike supports different formats for various types of damage:
 
 ```yaml
 damage-formats:
-  default: "<red>-%.1f ⚔"
-  critical: "<dark_red><bold>-%.1f ⚡</bold>"
-  poison: "<dark_green>-%.1f ☠"
-  fire: "<gold>-%.1f 🔥"
-  fall: "<gray>-%.1f 💨"
+  default: "<gradient:#FF6B6B:#FF8787>-%.1f ❤</gradient>"
+  critical: "<bold><gradient:#FF0000:#8B0000>-%.1f ⚡</gradient></bold>"
+  poison: "<gradient:#50C878:#228B22>-%.1f ☠</gradient>"
+  fire: "<gradient:#FFD700:#FF4500>-%.1f 🔥</gradient>"
+  magic: "<gradient:#9400D3:#800080>-%.1f ✨</gradient>"
   # ... and many more!
 ```
 
 ## ⚙️ Configuration
 
+### ### Combo System
+
+```yaml
+combo:
+  enabled: true
+  reset-time: 3
+  multiplier:
+    enabled: true
+    base: 1.0
+    per-combo: 0.1
+    max: 3.0
+  decay:
+    enabled: true
+    time: 10
+    rate: 1
+    interval: 1
+    minimum: 0
+```
+
 ### Display Settings
 
 ```yaml
 display:
-  duration: 1.5 # How long indicators stay visible
+  duration: 1.5
   position:
-    y: -0.2 # Vertical offset
-    x: -0.5 # Horizontal offset
-    random-offset: -1 # Random variation (-1 to disable)
-    direction: "down" # Direction (up/down/left/right)
+    y: -0.2
+    x: -0.5
+    random-offset: -1
+    direction: "down"
   animation:
-    fade-in: 0.25 # Fade in duration
-    fade-out: 0.25 # Fade out duration
-    float-speed: 0.03 # Movement speed
-    float-curve: 0.02 # Wave motion intensity
+    fade-in: 0.25
+    fade-out: 0.25
+    float-speed: 0.03
+    float-curve: 0.02
 ```
 
 ### 🔄 Animation Directions
@@ -99,20 +119,18 @@ Players can customize their own damage indicators:
 VitalStrike provides a simple API for developers:
 
 ```java
-// Get the plugin instance
+// Get plugin instance
 VitalStrike plugin = (VitalStrike) Bukkit.getPluginManager().getPlugin("VitalStrike");
 
-// Check if indicators are enabled for a player
+// Player management
 boolean isEnabled = plugin.getPlayerManager().isEnabled(player);
+plugin.getPlayerManager().setStyle(player, "<gradient:#FF6B6B:#FF8787>-%.1f ❤</gradient>");
 
-// Set custom style for a player
-plugin.getPlayerManager().setStyle(player, "<red>-%.1f ⚔");
-
-// Access player statistics
+// Statistics access
 PlayerStats playerStats = plugin.getPlayerStats();
 PlayerStats.PlayerStatistics stats = playerStats.getPlayerStatistics(player.getUniqueId());
 
-// Get player combat stats
+// Combat statistics
 int highestCombo = stats.getHighestCombo();
 double totalDamage = stats.getTotalDamageDealt();
 double avgDamage = stats.getAverageDamagePerHit();
