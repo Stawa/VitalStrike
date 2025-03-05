@@ -62,4 +62,7 @@ export async function loader() {
   return { posts };
 }
 
-export const blogPosts = await fetchChangelog();
+export let blogPosts: BlogPost[] = [];
+fetchChangelog().then((posts) => {
+  blogPosts = posts;
+});
