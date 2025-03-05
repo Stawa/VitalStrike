@@ -1,0 +1,202 @@
+{
+  "buildManifest": {
+    "serverBundles": {
+      "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0": {
+        "id": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+        "file": "build/server/nodejs-eyJydW50aW1lIjoibm9kZWpzIn0/index.js",
+        "config": {
+          "runtime": "nodejs"
+        }
+      }
+    },
+    "routeIdToServerBundleId": {
+      "routes/docs.getting-started": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/docs.configuration": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/[sitemap.xml]": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/[robots.txt]": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/blog._index": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/docs._index": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/blog.$slug": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/CHANGELOG": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/_index": "nodejs-eyJydW50aW1lIjoibm9kZWpzIn0"
+    },
+    "routes": {
+      "root": {
+        "path": "",
+        "id": "root",
+        "file": "app/root.tsx",
+        "config": {}
+      },
+      "routes/docs.getting-started": {
+        "file": "app/routes/docs.getting-started.tsx",
+        "id": "routes/docs.getting-started",
+        "path": "docs/getting-started",
+        "parentId": "root",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/docs.configuration": {
+        "file": "app/routes/docs.configuration.tsx",
+        "id": "routes/docs.configuration",
+        "path": "docs/configuration",
+        "parentId": "root",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/[sitemap.xml]": {
+        "file": "app/routes/[sitemap.xml].tsx",
+        "id": "routes/[sitemap.xml]",
+        "path": "sitemap.xml",
+        "parentId": "root",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/[robots.txt]": {
+        "file": "app/routes/[robots.txt].tsx",
+        "id": "routes/[robots.txt]",
+        "path": "robots.txt",
+        "parentId": "root",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/blog._index": {
+        "file": "app/routes/blog._index.tsx",
+        "id": "routes/blog._index",
+        "path": "blog",
+        "index": true,
+        "parentId": "root",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/docs._index": {
+        "file": "app/routes/docs._index.tsx",
+        "id": "routes/docs._index",
+        "path": "docs",
+        "index": true,
+        "parentId": "root",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/blog.$slug": {
+        "file": "app/routes/blog.$slug.tsx",
+        "id": "routes/blog.$slug",
+        "path": "blog/:slug",
+        "parentId": "root",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/CHANGELOG": {
+        "file": "app/routes/CHANGELOG.ts",
+        "id": "routes/CHANGELOG",
+        "path": "CHANGELOG",
+        "parentId": "root",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/_index": {
+        "file": "app/routes/_index.tsx",
+        "id": "routes/_index",
+        "index": true,
+        "parentId": "root",
+        "config": {
+          "runtime": "nodejs"
+        }
+      }
+    }
+  },
+  "remixConfig": {
+    "appDirectory": "C:\\Users\\krish\\Desktop\\VitalStrike\\docs\\app",
+    "basename": "/",
+    "buildDirectory": "C:\\Users\\krish\\Desktop\\VitalStrike\\docs\\build",
+    "future": {
+      "v3_fetcherPersist": true,
+      "v3_relativeSplatPath": true,
+      "v3_throwAbortReason": true,
+      "v3_routeConfig": false,
+      "v3_singleFetch": true,
+      "v3_lazyRouteDiscovery": true,
+      "unstable_optimizeDeps": false
+    },
+    "manifest": false,
+    "publicPath": "/",
+    "routes": {
+      "root": {
+        "path": "",
+        "id": "root",
+        "file": "root.tsx"
+      },
+      "routes/docs.getting-started": {
+        "file": "routes/docs.getting-started.tsx",
+        "id": "routes/docs.getting-started",
+        "path": "docs/getting-started",
+        "parentId": "root"
+      },
+      "routes/docs.configuration": {
+        "file": "routes/docs.configuration.tsx",
+        "id": "routes/docs.configuration",
+        "path": "docs/configuration",
+        "parentId": "root"
+      },
+      "routes/[sitemap.xml]": {
+        "file": "routes/[sitemap.xml].tsx",
+        "id": "routes/[sitemap.xml]",
+        "path": "sitemap.xml",
+        "parentId": "root"
+      },
+      "routes/[robots.txt]": {
+        "file": "routes/[robots.txt].tsx",
+        "id": "routes/[robots.txt]",
+        "path": "robots.txt",
+        "parentId": "root"
+      },
+      "routes/blog._index": {
+        "file": "routes/blog._index.tsx",
+        "id": "routes/blog._index",
+        "path": "blog",
+        "index": true,
+        "parentId": "root"
+      },
+      "routes/docs._index": {
+        "file": "routes/docs._index.tsx",
+        "id": "routes/docs._index",
+        "path": "docs",
+        "index": true,
+        "parentId": "root"
+      },
+      "routes/blog.$slug": {
+        "file": "routes/blog.$slug.tsx",
+        "id": "routes/blog.$slug",
+        "path": "blog/:slug",
+        "parentId": "root"
+      },
+      "routes/CHANGELOG": {
+        "file": "routes/CHANGELOG.ts",
+        "id": "routes/CHANGELOG",
+        "path": "CHANGELOG",
+        "parentId": "root"
+      },
+      "routes/_index": {
+        "file": "routes/_index.tsx",
+        "id": "routes/_index",
+        "index": true,
+        "parentId": "root"
+      }
+    },
+    "serverBuildFile": "index.js",
+    "serverModuleFormat": "esm",
+    "ssr": true
+  },
+  "viteConfig": {
+    "build": {
+      "assetsDir": "assets"
+    }
+  }
+}

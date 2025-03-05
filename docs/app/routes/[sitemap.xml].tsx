@@ -1,6 +1,7 @@
 import type { LoaderFunction } from "@remix-run/node";
 import { getDomainUrl } from "~/utils/misc";
-import { blogPosts } from "./CHANGELOG";
+import { loader as changelogLoader } from "./CHANGELOG";
+import { BlogPost } from "~/types/blog";
 
 export const loader: LoaderFunction = async ({ request }) => {
   const baseUrl = getDomainUrl(request);
@@ -14,10 +15,12 @@ export const loader: LoaderFunction = async ({ request }) => {
     "/docs/configuration",
   ];
 
-  // Dynamic blog pages
-  const dynamicBlogUrls = blogPosts.map((post) => `/blog/${post.id}`);
+  const response = await changelogLoader();
+  const { posts } = await response.json();
+  const dynamicBlogUrls = posts.map(
+    (post: BlogPost) => `/blog/${post.version}`
+  );
 
-  // Combine all URLs
   const allPages = [...staticPages, ...dynamicBlogUrls];
 
   const content = `

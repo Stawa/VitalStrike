@@ -1,7 +1,15 @@
 import type { MetaFunction } from "@remix-run/node";
-import { blogPosts } from "./CHANGELOG";
+import { useLoaderData, Await } from "@remix-run/react";
 import { BlogHeader } from "~/components/BlogHeader";
 import { BlogPostCard } from "~/components/BlogPostCard";
+import { loader as changelogLoader } from "./CHANGELOG";
+import { BlogPost } from "~/types/blog";
+import { Suspense } from "react";
+import { BlogCardSkeleton } from "~/components/BlogSkeleton";
+
+export async function loader() {
+  return changelogLoader();
+}
 
 export const meta: MetaFunction = () => {
   return [
@@ -38,25 +46,45 @@ export const meta: MetaFunction = () => {
 };
 
 export default function BlogIndex() {
+  const { posts } = useLoaderData<typeof loader>();
+
   return (
     <div className="min-h-screen py-24 bg-gradient-to-b from-background to-gray-50 dark:from-background dark:to-gray-900/50 text-foreground antialiased">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <BlogHeader />
 
-        <div className="space-y-12">
-          {blogPosts.map((post, index) => (
-            <div
-              key={post.id}
-              className="group transform transition-all duration-300 hover:-translate-y-1"
-            >
-              <BlogPostCard post={post} />
-
-              {index < blogPosts.length - 1 && (
-                <div className="my-12 border-b border-gray-200 dark:border-gray-800/50"></div>
-              )}
+        <Suspense
+          fallback={
+            <div className="space-y-12">
+              {[...Array(3)].map((_, i) => (
+                <div key={i}>
+                  <BlogCardSkeleton />
+                  {i < 2 && (
+                    <div className="my-12 border-b border-gray-200 dark:border-gray-800/50" />
+                  )}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          }
+        >
+          <Await resolve={posts}>
+            {(resolvedPosts) => (
+              <div className="space-y-12">
+                {resolvedPosts.map((post: BlogPost, index: number) => (
+                  <div
+                    key={post.id}
+                    className="group transform transition-all duration-300 hover:-translate-y-1"
+                  >
+                    <BlogPostCard post={post} />
+                    {index < resolvedPosts.length - 1 && (
+                      <div className="my-12 border-b border-gray-200 dark:border-gray-800/50" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </Await>
+        </Suspense>
       </div>
     </div>
   );

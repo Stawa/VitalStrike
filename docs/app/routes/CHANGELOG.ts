@@ -1,17 +1,15 @@
-export interface BlogPost {
-  id: string;
-  description: string;
-  date: string;
-  changes: string;
-  author: string;
-  version: string;
-}
+import type { BlogPost } from "~/types/blog";
 
 async function fetchChangelog(): Promise<BlogPost[]> {
   try {
     const response = await fetch(
       "https://raw.githubusercontent.com/Stawa/VitalStrike/main/CHANGELOG.md"
     );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch changelog: ${response.statusText}`);
+    }
+
     const markdown = await response.text();
     return parseChangelog(markdown);
   } catch (error) {
@@ -28,12 +26,8 @@ function parseChangelog(markdown: string): BlogPost[] {
     const [versionLine, ...content] = section.split("\n");
     const [version, date] = versionLine.split("] - ");
 
-    const descriptionMatch = /^\n(.*?)\n\n/.exec(content.join("\n"));
-    const description = descriptionMatch
-      ? descriptionMatch[1].trim()
-      : "No description available";
-
-    const changes = content.join("\n").trim();
+    const description = content[0] || "No description available";
+    const changes = content.slice(2).join("\n").trim();
 
     posts.push({
       id: version,
@@ -58,11 +52,13 @@ function formatDate(dateStr: string): string {
 }
 
 export async function loader() {
-  const posts = await fetchChangelog();
-  return { posts };
+  try {
+    const posts = await fetchChangelog();
+    return Response.json({ posts, error: null });
+  } catch (error) {
+    return Response.json({
+      posts: [],
+      error: "Failed to load changelog. Please try again later.",
+    });
+  }
 }
-
-export let blogPosts: BlogPost[] = [];
-fetchChangelog().then((posts) => {
-  blogPosts = posts;
-});

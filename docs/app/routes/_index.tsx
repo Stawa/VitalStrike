@@ -1,6 +1,12 @@
 import type { MetaFunction } from "@remix-run/node";
+import { useLoaderData, Await } from "@remix-run/react";
+import { Suspense } from "react";
 import { useHighlightCode } from "~/hooks/prism";
-import { blogPosts } from "./CHANGELOG";
+import { loader as changelogLoader } from "./CHANGELOG";
+
+export async function loader() {
+  return changelogLoader();
+}
 
 export const meta: MetaFunction = () => {
   const title = "VitalStrike - Dynamic Combat Feedback for Minecraft";
@@ -32,7 +38,8 @@ export const meta: MetaFunction = () => {
 
 export default function Index() {
   useHighlightCode();
-  const latestPost = blogPosts[0]; // Get first entry which is latest
+  const { posts } = useLoaderData<typeof loader>();
+  const latestPost = posts[0];
 
   return (
     <div className="min-h-screen">
@@ -41,16 +48,30 @@ export default function Index() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             {/* Announcement Badge */}
-            <div className="mb-8">
-              <a
-                href={`/blog/${latestPost.id}`}
-                className="inline-flex items-center px-4 py-2 rounded-full bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-300 text-sm font-medium hover:bg-primary-200 dark:hover:bg-primary-800/50 transition-colors"
-                title={`Released on ${latestPost.date}`}
-              >
-                <span className="mr-2">🎉</span> VitalStrike{" "}
-                {latestPost.version} Released!
-              </a>
-            </div>
+            <Suspense
+              fallback={
+                <div className="mb-8">
+                  <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary-100 dark:bg-primary-900/50 animate-pulse">
+                    <div className="h-4 w-32 bg-primary-200 dark:bg-primary-800 rounded" />
+                  </div>
+                </div>
+              }
+            >
+              <Await resolve={latestPost}>
+                {(resolvedPost) => (
+                  <div className="mb-8">
+                    <a
+                      href={`/blog/${resolvedPost.id}`}
+                      className="inline-flex items-center px-4 py-2 rounded-full bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-300 text-sm font-medium hover:bg-primary-200 dark:hover:bg-primary-800/50 transition-colors"
+                      title={`Released on ${resolvedPost.date}`}
+                    >
+                      <span className="mr-2">🎉</span> VitalStrike{" "}
+                      {resolvedPost.version} Released!
+                    </a>
+                  </div>
+                )}
+              </Await>
+            </Suspense>
 
             {/* Hero Content */}
             <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-400 dark:from-primary-400 dark:to-primary-300">
