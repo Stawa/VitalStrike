@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 
 import stawa.vitalstrike.Errors.ConfigurationException;
 import stawa.vitalstrike.Errors.DatabaseException;
+import stawa.vitalstrike.logger.VitalLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,24 +15,25 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
 
 /**
  * Manages player preferences and settings for the VitalStrike plugin
  * Handles loading, saving, and accessing player-specific configuration
  */
 public class PlayerManager {
-    private static final String PLAYERS_PATH = "players.";
-    private static final String ENABLED_PATH = ".enabled";
-    private static final String STYLE_PATH = ".style";
     private static final String DATABASE_FILE = "playerdata.yml";
+    private static final String ENABLED_PATH = ".enabled";
+    private static final String PLAYERS_PATH = "players.";
+    private static final String STYLE_PATH = ".style";
 
-    private final VitalStrike plugin;
     private final File databaseFile;
+    private final VitalStrike plugin;
     private FileConfiguration database;
+    private VitalLogger logger;
+
+    private final HashMap<UUID, String> playerElements = new HashMap<>();
     private final Map<UUID, Boolean> playerSettings;
     private final Map<UUID, String> playerStyles;
-    private final HashMap<UUID, String> playerElements = new HashMap<>();
     private Map<UUID, Boolean> playerHologramPreferences = new HashMap<>();
 
     /**
@@ -42,6 +44,7 @@ public class PlayerManager {
      */
     public PlayerManager(VitalStrike plugin) throws DatabaseException {
         this.plugin = plugin;
+        this.logger = new VitalLogger(plugin);
         this.databaseFile = new File(plugin.getDataFolder(), DATABASE_FILE);
         this.playerSettings = new ConcurrentHashMap<>();
         this.playerStyles = new ConcurrentHashMap<>();
@@ -60,7 +63,7 @@ public class PlayerManager {
             }
             loadDatabase();
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "[VitalStrike] Failed to initialize database", e);
+            logger.severe("Failed to initialize database: {}", e.getMessage());
             database = new YamlConfiguration();
             throw new Errors.DatabaseException("Failed to initialize player database", e);
         }
@@ -88,7 +91,7 @@ public class PlayerManager {
         try {
             database.save(databaseFile);
         } catch (IOException e) {
-            plugin.getLogger().log(Level.WARNING, "[VitalStrike] Could not save player data", e);
+            logger.warning("Could not save player data", e);
             throw new Errors.DatabaseException("Failed to save player data", e);
         }
     }
@@ -223,7 +226,7 @@ public class PlayerManager {
         try {
             saveDatabase();
         } catch (DatabaseException e) {
-            plugin.getLogger().log(Level.WARNING, "[VitalStrike] Failed to save player setting", e);
+            logger.warning("Failed to save player setting", e);
         }
     }
 
@@ -246,7 +249,7 @@ public class PlayerManager {
         try {
             saveDatabase();
         } catch (DatabaseException e) {
-            plugin.getLogger().log(Level.WARNING, "[VitalStrike] Failed to save player setting", e);
+            logger.warning("Failed to save player style: {}", e.getMessage());
         }
     }
 

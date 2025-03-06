@@ -29,6 +29,6 @@
  * </ul>
  * 
  * @author Stawa
- * @version 1.3
+ * @version 1.3.1
  */
 package stawa.vitalstrike;

@@ -2,6 +2,30 @@
 
 All notable changes to VitalStrike will be documented in this file.
 
+## [1.3.1] - 2024-03-10
+VitalStrike v1.3.1 focuses on modernizing the plugin for Minecraft 1.21.4 and improving code quality with better logging and sound handling.
+
+### Added
+- Implemented custom VitalLogger system for better logging management
+- Added comprehensive error handling for sound systems
+
+### Changed
+- Updated Minecraft API support from 1.20.x to 1.21.4
+- Modernized sound names to match current Minecraft standards
+- Improved code readability and structure
+- Updated deprecated API calls to use modern alternatives
+- Enhanced error handling for plugin initialization
+
+### Fixed
+- Fixed invalid sound names in configuration
+- Resolved deprecated method calls from older API versions
+- Fixed logger initialization sequence
+- Corrected sound registry lookups for 1.21.4
+
+### Technical
+- Now supports Minecraft 1.21.4
+- Updated Paper API dependencies
+
 ## [1.3] - 2025-03-05
 VitalStrike v1.3 introduces bStats integration, custom hologram displays, and comprehensive documentation improvements along with various bug fixes and performance enhancements.
 

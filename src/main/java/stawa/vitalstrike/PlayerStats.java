@@ -1,6 +1,7 @@
 package stawa.vitalstrike;
 
 import stawa.vitalstrike.Errors.DatabaseException;
+import stawa.vitalstrike.logger.VitalLogger;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -28,12 +29,11 @@ import java.util.function.ToDoubleFunction;
  * </p>
  * 
  * @author Stawa
- * @version 1.3
+ * @version 1.3.1
  */
 public class PlayerStats {
     private static final String STATS_FILE = "stats.yml";
-
-    private final VitalStrike plugin;
+    private VitalLogger logger;
     private final Map<UUID, PlayerStatistics> playerStats;
     private final File statsFile;
     private final YamlConfiguration statsConfig;
@@ -45,7 +45,7 @@ public class PlayerStats {
      * @throws DatabaseException
      */
     public PlayerStats(VitalStrike plugin) throws DatabaseException {
-        this.plugin = plugin;
+        this.logger = new VitalLogger(plugin);
         this.playerStats = new ConcurrentHashMap<>();
         this.statsFile = new File(plugin.getDataFolder(), STATS_FILE);
         this.statsConfig = YamlConfiguration.loadConfiguration(statsFile);
@@ -167,7 +167,7 @@ public class PlayerStats {
         try {
             statsConfig.save(statsFile);
         } catch (IOException e) {
-            plugin.getLogger().severe(
+            logger.severe(
                     "Failed to save player statistics to " + statsFile.getAbsolutePath() + ": " + e.getMessage());
             e.printStackTrace();
             throw new Errors.DatabaseException("Failed to save player statistics to file: " + statsFile.getName(), e);

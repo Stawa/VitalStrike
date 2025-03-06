@@ -83,34 +83,34 @@ damage-formats:
 
 # Custom damage type sounds
 damage-type-sounds:
-  entity_attack: ENTITY_PLAYER_ATTACK_STRONG
-  critical: ENTITY_PLAYER_ATTACK_CRIT
-  poison: ENTITY_SPIDER_AMBIENT
-  fire: BLOCK_FIRE_AMBIENT
-  fire_tick: BLOCK_FIRE_AMBIENT
-  kill: ENTITY_PLAYER_DEATH
-  magic: ENTITY_ILLUSIONER_CAST_SPELL
-  fall: ENTITY_PLAYER_SMALL_FALL
-  drowning: BLOCK_WATER_AMBIENT
-  block_explosion: ENTITY_GENERIC_EXPLODE
-  entity_explosion: ENTITY_GENERIC_EXPLODE
-  contact: BLOCK_GRASS_BREAK
-  cramming: ENTITY_PLAYER_HURT
-  dragon_breath: ENTITY_ENDER_DRAGON_GROWL
-  dryout: BLOCK_WATER_AMBIENT
-  entity_sweep_attack: ENTITY_PLAYER_ATTACK_SWEEP
-  falling_block: BLOCK_STONE_BREAK
-  fly_into_wall: ENTITY_PLAYER_HURT
-  freeze: BLOCK_GLASS_BREAK
-  hot_floor: BLOCK_FIRE_AMBIENT
-  lava: BLOCK_LAVA_AMBIENT
-  lightning: ENTITY_LIGHTNING_BOLT_THUNDER
-  projectile: ENTITY_ARROW_HIT
-  sonic_boom: ENTITY_WARDEN_SONIC_BOOM
-  thorns: BLOCK_SWEET_BERRY_BUSH_HURT
-  void: ENTITY_PLAYER_HURT
-  wither: ENTITY_WITHER_AMBIENT
-  world_border: ENTITY_ELDER_GUARDIAN_CURSE
+  entity_attack: "entity.player.attack.strong"
+  critical: "entity.player.attack.crit"
+  poison: "entity.spider.hurt"
+  fire: "block.fire.ambient"
+  fire_tick: "block.fire.ambient"
+  kill: "entity.player.death"
+  magic: "entity.illusioner.cast_spell"
+  fall: "entity.player.small_fall"
+  drowning: "block.water.ambient"
+  block_explosion: "entity.generic.explode"
+  entity_explosion: "entity.generic.explode"
+  contact: "block.grass.break"
+  cramming: "entity.player.hurt"
+  dragon_breath: "entity.ender_dragon.growl"
+  dryout: "block.water.ambient"
+  entity_sweep_attack: "entity.player.attack.sweep"
+  falling_block: "block.stone.break"
+  fly_into_wall: "entity.player.hurt"
+  freeze: "block.glass.break"
+  hot_floor: "block.fire.ambient"
+  lava: "block.lava.ambient"
+  lightning: "entity.lightning_bolt.thunder"
+  projectile: "entity.arrow.hit"
+  sonic_boom: "entity.warden.sonic_boom"
+  thorns: "block.sweet_berry_bush.hurt"
+  void: "entity.player.hurt"
+  wither: "entity.wither.ambient"
+  world_border: "entity.elder_guardian.curse"
 
 # Combo System Configuration
 combo:
@@ -169,8 +169,8 @@ combo:
     enabled: true
     sound:
       enabled: true
-      combo-up: "ENTITY_EXPERIENCE_ORB_PICKUP" # Sound when combo increases
-      combo-milestone: "ENTITY_PLAYER_LEVELUP" # Sound when reaching new rank
+      combo-up: "entity.experience_orb.pickup" # Sound when combo increases
+      combo-milestone: "entity.player.levelup" # Sound when reaching new rank
       volume: 1.0
       pitch: 1.0
     particles:

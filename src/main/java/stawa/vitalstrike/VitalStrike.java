@@ -1,46 +1,50 @@
 package stawa.vitalstrike;
 
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Sound;
-import org.bukkit.Particle;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
+import stawa.vitalstrike.Errors.DatabaseException;
+import stawa.vitalstrike.logger.*;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.util.HashMap;
-import java.util.UUID;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import stawa.vitalstrike.Errors.DatabaseException;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Particle;
+import org.bukkit.Registry;
+import org.bukkit.Sound;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.TextDisplay;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.configuration.ConfigurationSection;
-import org.joml.Vector3f;
-import org.joml.AxisAngle4f;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Transformation;
+import org.joml.AxisAngle4f;
+import org.joml.Vector3f;
 
 /**
  * VitalStrike is a dynamic damage indication plugin for Minecraft servers.
@@ -56,61 +60,71 @@ import org.bukkit.util.Transformation;
  * </p>
  * 
  * @author Stawa
- * @version 1.3
+ * @version 1.3.1
  * @see <a href="https://github.com/Stawa/VitalStrike">GitHub Repository</a>
  */
 public class VitalStrike extends JavaPlugin implements Listener {
-    private boolean enabled = true;
-    private boolean updateCheckerEnabled;
-    private HashMap<UUID, Long> lastDamageTime = new HashMap<>();
-    private HashMap<UUID, Integer> playerCombos = new HashMap<>();
-    private HashMap<UUID, Long> lastComboTime = new HashMap<>();
-    private static final long DAMAGE_COOLDOWN = 500;
-    private long comboResetTime = 3000;
-    private boolean comboEnabled = true;
-    private boolean comboRankEnabled = true;
-    private boolean comboMultiplierEnabled = true;
-    private boolean comboDecayEnabled = true;
-    private int comboDecayTime = 10;
-    private int comboDecayRate = 1;
-    private int comboDecayInterval = 1;
-    private int comboDecayMinimum = 0;
-    private Map<UUID, Long> lastActionTime = new HashMap<>();
-    private Map<UUID, org.bukkit.scheduler.BukkitTask> decayTasks = new HashMap<>();
-    private double comboMultiplierBase = 1.0;
-    private double comboMultiplierPerCombo = 0.1;
-    private double comboMultiplierMax = 3.0;
-    private Map<String, Double> rankMultipliers = new HashMap<>();
-    private String comboFormat = "<bold><gradient:#FF0000:#FFD700>✦ %dx COMBO ✦</gradient></bold>";
-    private String multiplierFormat = " <gray>(<gradient:#FFD700:#FFA500>%.1fx</gradient>)</gray>";
-    private String rankFormat = "\n<bold>%s</bold>";
-    private Map<String, Integer> rankThresholds = new HashMap<>();
-    private Map<String, String> rankColors = new HashMap<>();
-    private PlayerManager playerManager;
-    private PlayerStats playerStats;
-    private Map<String, Sound> damageTypeSounds;
-    private double displayDuration = 1.5;
-    private double displayY = -0.2;
-    private double displayX = -0.5;
-    private double displayRandomOffset = -1;
-    private double fadeInDuration = 0.25;
-    private double fadeOutDuration = 0.25;
-    private double floatSpeed = 0.03;
-    private double floatCurve = 0.02;
-    private String moveDirection = "down";
-    private String decayWarningFormat = "<italic><gray>(Decaying in %.1fs)</gray></italic>";
-    private boolean comboHologramEnabled = true;
-    private int comboHologramMinCombo = 10;
-    private double comboHologramDuration = 3.0;
-    private String comboHologramFormat = "<gradient:red:gold><bold>COMBO STREAK!</bold></gradient>";
-    private double comboHologramHeight = 2.0;
-    private Map<UUID, TextDisplay> activeHolograms = new HashMap<>();
-    private static final String CMD_TOGGLE = "toggle";
-    private static final String CMD_RELOAD = "reload";
-    private static final String CMD_STATS = "stats";
+    private static final String CMD_HOLOGRAM = "hologram";
     private static final String CMD_LEADERBOARD = "leaderboard";
     private static final String CMD_LEADERBOARD_SHORT = "lb";
-    private static final String CMD_HOLOGRAM = "hologram";
+    private static final String CMD_RELOAD = "reload";
+    private static final String CMD_STATS = "stats";
+    private static final String CMD_TOGGLE = "toggle";
+
+    private static final long DAMAGE_COOLDOWN = 500;
+
+    private Map<UUID, TextDisplay> activeHolograms = new HashMap<>();
+    private Map<UUID, org.bukkit.scheduler.BukkitTask> decayTasks = new HashMap<>();
+    private Map<UUID, Long> lastActionTime = new HashMap<>();
+    private HashMap<UUID, Long> lastComboTime = new HashMap<>();
+    private HashMap<UUID, Long> lastDamageTime = new HashMap<>();
+    private HashMap<UUID, Integer> playerCombos = new HashMap<>();
+
+    private boolean comboDecayEnabled = true;
+    private boolean comboEnabled = true;
+    private boolean comboHologramEnabled = true;
+    private boolean comboMultiplierEnabled = true;
+    private boolean comboRankEnabled = true;
+    private boolean enabled = true;
+    private boolean updateCheckerEnabled;
+
+    private double comboHologramDuration = 3.0;
+    private double comboHologramHeight = 2.0;
+    private int comboHologramMinCombo = 10;
+    private double comboMultiplierBase = 1.0;
+    private double comboMultiplierMax = 3.0;
+    private double comboMultiplierPerCombo = 0.1;
+    private long comboResetTime = 3000;
+
+    private int comboDecayInterval = 1;
+    private int comboDecayMinimum = 0;
+    private int comboDecayRate = 1;
+    private int comboDecayTime = 10;
+
+    private double displayDuration = 1.5;
+    private double displayRandomOffset = -1;
+    private double displayX = -0.5;
+    private double displayY = -0.2;
+    private double fadeInDuration = 0.25;
+    private double fadeOutDuration = 0.25;
+    private double floatCurve = 0.02;
+    private double floatSpeed = 0.03;
+    private String moveDirection = "down";
+
+    private String comboFormat = "<bold><gradient:#FF0000:#FFD700>✦ %dx COMBO ✦</gradient></bold>";
+    private String comboHologramFormat = "<gradient:red:gold><bold>COMBO STREAK!</bold></gradient>";
+    private String decayWarningFormat = "<italic><gray>(Decaying in %.1fs)</gray></italic>";
+    private String multiplierFormat = " <gray>(<gradient:#FFD700:#FFA500>%.1fx</gradient>)</gray>";
+    private String rankFormat = "\n<bold>%s</bold>";
+
+    private Map<String, Sound> damageTypeSounds;
+    private Map<String, String> rankColors = new HashMap<>();
+    private Map<String, Double> rankMultipliers = new HashMap<>();
+    private Map<String, Integer> rankThresholds = new HashMap<>();
+
+    private VitalLogger logger;
+    private PlayerManager playerManager;
+    private PlayerStats playerStats;
 
     /**
      * Enum representing the direction of movement for the damage indicators.
@@ -163,6 +177,7 @@ public class VitalStrike extends JavaPlugin implements Listener {
      */
     @Override
     public void onEnable() {
+        this.logger = new VitalLogger(this);
         saveDefaultConfig();
         loadConfig();
         getServer().getPluginManager().registerEvents(this, this);
@@ -174,16 +189,16 @@ public class VitalStrike extends JavaPlugin implements Listener {
         try {
             playerManager = new PlayerManager(this);
         } catch (Errors.DatabaseException e) {
-            getLogger().severe("[VitalStrike] Failed to initialize player manager: " + e.getMessage());
+            logger.severe(" Failed to initialize player manager: " + e.getMessage());
         }
         try {
             playerStats = new PlayerStats(this);
         } catch (Errors.DatabaseException e) {
-            getLogger().severe("[VitalStrike] Failed to initialize player statistics: " + e.getMessage());
+            logger.severe(" Failed to initialize player statistics: " + e.getMessage());
         }
 
         loadDamageTypeSounds();
-        getLogger().info("[VitalStrike] VitalStrike has been enabled!");
+        logger.info("VitalStrike has been enabled!");
     }
 
     /**
@@ -201,17 +216,17 @@ public class VitalStrike extends JavaPlugin implements Listener {
             try {
                 playerManager.saveDatabase();
             } catch (Errors.DatabaseException e) {
-                getLogger().severe("[VitalStrike] Failed to save player database: " + e.getMessage());
+                logger.severe(" Failed to save player database: " + e.getMessage());
             }
         }
         if (playerStats != null) {
             try {
                 playerStats.saveAllStats();
             } catch (Errors.DatabaseException e) {
-                getLogger().severe("[VitalStrike] Failed to save player statistics: " + e.getMessage());
+                logger.severe("Failed to save player statistics: " + e.getMessage());
             }
         }
-        getLogger().info("[VitalStrike] VitalStrike has been disabled!");
+        logger.info("VitalStrike has been disabled!");
     }
 
     /**
@@ -226,11 +241,11 @@ public class VitalStrike extends JavaPlugin implements Listener {
                 try {
                     String soundName = soundSection.getString(damageType);
                     if (soundName != null) {
-                        Sound sound = Sound.valueOf(soundName.toUpperCase());
+                        Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase()));
                         damageTypeSounds.put(damageType, sound);
                     }
                 } catch (IllegalArgumentException e) {
-                    getLogger().warning("[VitalStrike] Invalid sound name for damage type " + damageType);
+                    logger.warning("Invalid sound name for damage type " + damageType);
                 }
             }
         }
@@ -320,11 +335,11 @@ public class VitalStrike extends JavaPlugin implements Listener {
                 String jsonResponse = fetchLatestReleaseData();
                 processVersionInfo(jsonResponse);
             } catch (Errors.UpdateException e) {
-                getLogger().warning("[VitalStrike] " + e.getMessage());
+                logger.warning(e.getMessage());
             } catch (Exception e) {
-                getLogger().warning("[VitalStrike] Failed to check for updates: " + e.getMessage());
+                logger.warning("Failed to check for updates: " + e.getMessage());
                 Errors.UpdateException updateException = new Errors.UpdateException("Failed to check for updates", e);
-                getLogger().warning("[VitalStrike] Error code: " + updateException.getErrorCode().getCode());
+                logger.warning("Error code: " + updateException.getErrorCode().getCode());
             }
         });
     }
@@ -408,12 +423,12 @@ public class VitalStrike extends JavaPlugin implements Listener {
             String downloadMessage = String.format(
                     "Download the latest version from: %s",
                     "https://github.com/Stawa/VitalStrike/releases");
-            getLogger().info(newVersionMessage);
-            getLogger().info(currentVersionMessage);
-            getLogger().info(downloadMessage);
+            logger.info(newVersionMessage);
+            logger.info(currentVersionMessage);
+            logger.info(downloadMessage);
         } else {
             String latestVersionMessage = String.format("You are running the latest version: %s", latestVersion);
-            getLogger().info(latestVersionMessage);
+            logger.info(latestVersionMessage);
         }
     }
 
@@ -613,7 +628,7 @@ public class VitalStrike extends JavaPlugin implements Listener {
             case "ice":
                 if (target instanceof LivingEntity livingEntity) {
                     livingEntity.addPotionEffect(new PotionEffect(
-                            PotionEffectType.SLOW, combo * 20, combo / 5));
+                            PotionEffectType.SLOWNESS, combo * 20, combo / 5));
                 }
                 break;
             case "lightning":
@@ -652,10 +667,18 @@ public class VitalStrike extends JavaPlugin implements Listener {
 
         try {
             String soundName = getConfig().getString("combo.effects.sound.combo-up", "ENTITY_EXPERIENCE_ORB_PICKUP");
-            Sound sound = Sound.valueOf(soundName.toUpperCase());
+            Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase()));
+            if (sound == null) {
+                logger.warning("Invalid sound name in config: " + soundName);
+                return;
+            }
+
             float volume = (float) getConfig().getDouble("combo.effects.sound.volume", 1.0);
             float pitch = (float) getConfig().getDouble("combo.effects.sound.pitch", 1.0);
-            player.playSound(player.getLocation(), sound, volume, pitch);
+            Location location = player.getLocation();
+            if (location != null) {
+                player.playSound(location, sound, volume, pitch);
+            }
 
             int prevCombo = playerCombos.getOrDefault(playerId, 0) - 1;
             String prevRank = getComboRank(prevCombo).replace("[", "").replace("]", "");
@@ -664,11 +687,19 @@ public class VitalStrike extends JavaPlugin implements Listener {
             if (!prevRank.equals(newRank)) {
                 String milestoneSoundName = getConfig().getString("combo.effects.sound.combo-milestone",
                         "ENTITY_PLAYER_LEVELUP");
-                Sound milestoneSound = Sound.valueOf(milestoneSoundName.toUpperCase());
-                player.playSound(player.getLocation(), milestoneSound, volume * 1.2f, pitch * 1.2f);
+                Sound milestoneSound = Registry.SOUNDS.get(NamespacedKey.minecraft(milestoneSoundName.toLowerCase()));
+                if (milestoneSound == null) {
+                    logger.warning("Invalid milestone sound name in config: " + milestoneSoundName);
+                    return;
+                }
+
+                Location playerLoc = player.getLocation();
+                if (playerLoc != null) {
+                    player.playSound(playerLoc, milestoneSound, volume * 1.2f, pitch * 1.2f);
+                }
             }
         } catch (IllegalArgumentException e) {
-            getLogger().warning("[VitalStrike] Invalid sound name in config: " + e.getMessage());
+            logger.warning("Invalid sound name in config: " + e.getMessage());
         }
     }
 
@@ -684,10 +715,16 @@ public class VitalStrike extends JavaPlugin implements Listener {
         try {
             String particleType = getConfig().getString("combo.effects.particles.type", "CRIT");
             int count = getConfig().getInt("combo.effects.particles.count", 10);
-            player.getWorld().spawnParticle(Particle.valueOf(particleType.toUpperCase()),
-                    player.getLocation().add(0, 1, 0), count, 0.5, 0.5, 0.5, 0);
+            Location playerLocation = player.getLocation();
+
+            if (playerLocation != null) {
+                Location particleLocation = playerLocation.clone().add(0, 1, 0);
+                player.getWorld().spawnParticle(Particle.valueOf(particleType.toUpperCase()),
+                        particleLocation, count, 0.5, 0.5, 0.5, 0);
+            }
+
         } catch (IllegalArgumentException e) {
-            getLogger().warning("[VitalStrike] Invalid particle type in config: " + e.getMessage());
+            logger.warning("Invalid particle type in config: " + e.getMessage());
         }
     }
 
@@ -1191,7 +1228,7 @@ public class VitalStrike extends JavaPlugin implements Listener {
         } catch (DatabaseException e) {
             sender.sendMessage(MiniMessage.miniMessage().deserialize(
                     "<red>An error occurred while processing your command: " + e.getMessage()));
-            getLogger().severe("[VitalStrike] Database error: " + e.getMessage());
+            logger.severe("Database error: " + e.getMessage());
             return false;
         }
     }
@@ -1277,7 +1314,7 @@ public class VitalStrike extends JavaPlugin implements Listener {
         } catch (Exception e) {
             sender.sendMessage(MiniMessage.miniMessage().deserialize(
                     "<red>Failed to reload configuration: " + e.getMessage()));
-            getLogger().severe("[VitalStrike] Error reloading configuration: " + e.getMessage());
+            logger.severe("Error reloading configuration: " + e.getMessage());
             return false;
         }
     }
@@ -1316,7 +1353,7 @@ public class VitalStrike extends JavaPlugin implements Listener {
         } catch (Exception e) {
             sender.sendMessage(MiniMessage.miniMessage().deserialize(
                     "<red>Failed to retrieve statistics: " + e.getMessage()));
-            getLogger().severe("[VitalStrike] Error retrieving player statistics: " + e.getMessage());
+            logger.severe("Error retrieving player statistics: " + e.getMessage());
             return false;
         }
     }
@@ -1355,7 +1392,7 @@ public class VitalStrike extends JavaPlugin implements Listener {
         } catch (Exception e) {
             sender.sendMessage(MiniMessage.miniMessage().deserialize(
                     "<red>Failed to retrieve leaderboard data: " + e.getMessage()));
-            getLogger().severe("[VitalStrike] Error retrieving leaderboard data: " + e.getMessage());
+            logger.severe("Error retrieving leaderboard data: " + e.getMessage());
             return false;
         }
     }

@@ -1,6 +1,6 @@
 # VitalStrike
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.20+-brightgreen.svg)](https://www.minecraft.net/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.4-brightgreen.svg)](https://www.minecraft.net/)
 [![Build](https://github.com/Stawa/VitalStrike/actions/workflows/build.yml/badge.svg)](https://github.com/Stawa/VitalStrike/actions/workflows/build.yml)
 [![Release](https://img.shields.io/github/v/release/Stawa/VitalStrike?include_prereleases&style=flat)](https://github.com/Stawa/VitalStrike/releases)
 
@@ -15,19 +15,17 @@ For detailed information about features, installation, and configuration, visit 
 ## ⚡ Requirements
 
 - Java 21 or higher
-- Paper 1.20.6+ or compatible forks
+- Paper 1.21.4+ or compatible forks
 
 ## ✨ Features
 
-- Customizable damage indicators with different styles and colors
-- Smooth animations with configurable directions
-- Dynamic combo system with multipliers and ranks
-- Player combat statistics tracking
-- Per-player settings and preferences
+- Customizable damage indicators (styles, colors, animations, and directions)
+- Dynamic combo system with multipliers, ranks, and hologram displays
+- Player combat statistics tracking with leaderboards
+- Per-player settings and preferences for a personalized experience
+- Supports all damage types and integrates with modern sound systems
+- Automatic updates reminder, error handling, and bStats usage tracking
 - Easy to configure and use
-- Support for all damage types
-- Automatic update checking
-- Leaderboard system for player statistics
 
 ## 🚀 Quick Start
 

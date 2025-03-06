@@ -1,7 +1,7 @@
 name: VitalStrike
 version: "${project.version}"
 main: stawa.vitalstrike.VitalStrike
-api-version: "1.20"
+api-version: "1.21"
 author: stawa
 description: A plugin that displays damage indicators when entities or players take damage
 
