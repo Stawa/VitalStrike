@@ -1,7 +1,7 @@
 ---
 name: Feature Request
 about: Suggest an idea for VitalStrike
-title: "[FEATURE] "
+title: "[FEATURE] TITLE"
 labels: "enhancement"
 assignees: ""
 ---

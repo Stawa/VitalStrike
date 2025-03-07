@@ -1,7 +1,7 @@
 ---
 name: Feedback
 about: Provide feedback about VitalStrike
-title: "[FEEDBACK] "
+title: "[FEEDBACK] TITLE"
 labels: "feedback"
 assignees: ""
 ---

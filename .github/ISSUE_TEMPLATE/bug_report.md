@@ -1,7 +1,7 @@
 ---
 name: Bug Report
 about: Create a report to help improve VitalStrike
-title: "[BUG] "
+title: "[BUG] TITLE"
 labels: "bug"
 assignees: ""
 ---
