@@ -1,17 +1,16 @@
 import { Link, useLocation } from "@remix-run/react";
 import { useEffect, useState } from "react";
 
+interface NavItem {
+  title: string;
+  href: string;
+  code?: boolean;
+  items?: NavItem[];
+}
+
 interface NavSection {
   title: string;
-  items: {
-    title: string;
-    href: string;
-    code?: boolean;
-    items?: {
-      title: string;
-      href: string;
-    }[];
-  }[];
+  items: NavItem[];
 }
 
 const navigation: NavSection[] = [
@@ -24,7 +23,26 @@ const navigation: NavSection[] = [
   },
   {
     title: "Configuration",
-    items: [{ title: "Basic Settings", href: "/docs/configuration" }],
+    items: [
+      {
+        title: "Configuration Guide",
+        href: "/docs/configuration",
+        items: [
+          { title: "Basic Settings", href: "/docs/configuration/basic" },
+          { title: "Damage Indicators", href: "/docs/configuration/damage" },
+          { title: "Combo System", href: "/docs/configuration/combo" },
+          { title: "Display Settings", href: "/docs/configuration/display" },
+          { title: "Messages", href: "/docs/configuration/messages" },
+          { title: "Permissions", href: "/docs/configuration/permissions" },
+        ],
+      },
+    ],
+  },
+  {
+    title: "Commands",
+    items: [
+      { title: "Command List", href: "/docs/commands" },
+    ],
   },
 ];
 

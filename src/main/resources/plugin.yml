@@ -21,12 +21,18 @@ commands:
     permission-message: §cYou don't have permission to use VitalStrike commands!
 
 permissions:
-  vitalstrike.use:
-    description: Allows using VitalStrike commands
-    default: true
+  vitalstrike.admin.permissions:
+    description: Allows managing VitalStrike permissions
+    default: op
   vitalstrike.reload:
     description: Allows reloading the plugin configuration
     default: op
+  vitalstrike.use:
+    description: Allows using VitalStrike commands
+    default: true
+  vitalstrike.toggle:
+    description: Allows toggling damage indicators for yourself
+    default: true
   vitalstrike.stats:
     description: Allows viewing combat statistics
     default: true

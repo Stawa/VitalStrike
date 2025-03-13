@@ -51,7 +51,9 @@ database:
 # "<bold><red>-%.1f</red></bold>"        # Bold red text
 
 # Damage Indicator Settings
-damage-formats:
+damage-indicator: "simple-damage-formats" # Default damage indicator format
+
+simple-damage-formats:
   default: "<gradient:#FF6B6B:#FF8787>-%.1f ❤</gradient>" # Normal damage with gradient
   critical: "<bold><gradient:#FF0000:#8B0000>-%.1f ⚡</gradient></bold>" # Critical hits with deep red gradient
   poison: "<gradient:#50C878:#228B22>-%.1f ☠</gradient>" # Poison damage with forest green gradient
@@ -80,6 +82,34 @@ damage-formats:
   void: "<dark_gray>-%.1f ⬇" # Void damage
   wither: "<dark_gray>-%.1f 💀" # Wither effect damage
   border: "<red>-%.1f 🌐" # World border damage
+
+group-damage-formats:
+  default: # Used when no permission matches
+    # You can either define specific formats here or use simple-damage-formats
+    use-simple-formats: true # Set to true to use simple-damage-formats instead of defining formats here
+    damage-formats: # These will be used only if use-simple-formats is false
+      default: "<gradient:#FF6B6B:#FF8787>-%.1f ❤</gradient>"
+      critical: "<bold><gradient:#FF0000:#8B0000>-%.1f ⚡</gradient></bold>"
+      poison: "<gradient:#50C878:#228B22>-%.1f ☠</gradient>"
+      # ... other damage types ...
+
+  water:
+    permission: "vitalstrike.group.water"
+    damage-formats:
+      default: "<gradient:#1E90FF:#00BFFF>-%.1f 💧</gradient>"
+      critical: "<bold><gradient:#0000FF:#000080>-%.1f 🌊</gradient></bold>"
+      poison: "<gradient:#4169E1:#1E90FF>-%.1f ⚓</gradient>"
+      fire: "<gradient:#1E90FF:#00BFFF>-%.1f 💨</gradient>"
+      # ... other damage types ...
+
+  fire:
+    permission: "vitalstrike.group.fire"
+    damage-formats:
+      default: "<gradient:#FF4500:#FF8C00>-%.1f 🔥</gradient>"
+      critical: "<bold><gradient:#FF0000:#8B0000>-%.1f ⚔</gradient></bold>"
+      poison: "<gradient:#FF6347:#FF4500>-%.1f ☄</gradient>"
+      fire: "<gradient:#FF4500:#FF8C00>-%.1f 🌋</gradient>"
+      # ... other damage types ...
 
 # Custom damage type sounds
 damage-type-sounds:
@@ -229,26 +259,46 @@ leaderboard:
 help-menu:
   header: "<dark_gray><strikethrough>                    </strikethrough>"
   title: "<gold><bold>VitalStrike Commands</bold></gold>"
+  footer: "<dark_gray><strikethrough>                    </strikethrough>"
   commands:
     toggle:
       command: "/vs toggle [on|off]"
-      description: "Toggle damage indicators"
+      description: "Toggle damage indicators on or off"
     reload:
       command: "/vs reload"
-      description: "Reload the configuration"
-    help:
-      command: "/vs help"
-      description: "Show this help menu"
+      description: "Reload the plugin configuration"
     stats:
       command: "/vs stats"
       description: "View your combat statistics"
     leaderboard:
-      command: "/vs leaderboard [damage|combo|average]"
-      description: "View top players leaderboard"
+      command: "/vs lb [damage|combo|average]"
+      description: "View the damage leaderboards"
     hologram:
       command: "/vs hologram [on|off]"
-      description: "Toggle combo hologram display"
-  footer: "<dark_gray><strikethrough>                    </strikethrough>"
+      description: "Toggle combo holograms on or off"
+    permissions:
+      command: "/vs perm <add|remove|list> <player> [permission]"
+      description: "Manage player permissions"
+    help:
+      command: "/vs help [section]"
+      description: "Show this help menu or a specific section"
+  sections:
+    combos:
+      title: "<gold><bold>Combo System Help</bold></gold>"
+      content:
+        1: "<yellow>Combos increase when you hit enemies in succession"
+        2: "<yellow>Higher combos give damage multipliers"
+        3: "<yellow>Combos decay after a period of inactivity"
+    permissions:
+      title: "<gold><bold>Permissions Help</bold></gold>"
+      content:
+        1: "<yellow>vitalstrike.use - Basic plugin usage"
+        2: "<yellow>vitalstrike.toggle - Toggle indicators"
+        3: "<yellow>vitalstrike.reload - Reload configuration"
+        4: "<yellow>vitalstrike.stats - View statistics"
+        5: "<yellow>vitalstrike.leaderboard - View leaderboards"
+        6: "<yellow>vitalstrike.hologram - Toggle holograms"
+        7: "<yellow>vitalstrike.admin.permissions - Manage permissions"
 # Color code reference:
 # <red> - Red
 # <dark_red> - Dark Red

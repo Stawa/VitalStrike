@@ -2,6 +2,36 @@
 
 All notable changes to VitalStrike will be documented in this file.
 
+## [1.4.0] - 2024-03-15
+VitalStrike v1.4.0 brings important bug fixes and enhanced damage indicator customization.
+
+### Added
+- Added support for multiple damage indicator formats:
+  - Simple damage formats (default)
+  - Customizable group-based damage formats with permission system
+- Added permission-based damage format groups:
+  - Custom group formats can be defined in config
+  - Each group can have unique damage indicators
+  - Format: `vitalstrike.group.<groupname>`
+
+### Changed
+- Refactored combo system for better performance
+- Improved error handling in configuration loading
+- Enhanced damage indicator format caching
+- Updated configuration validation system
+
+### Fixed
+- Fixed critical bug where combo system remained active after plugin disable
+- Fixed combo counter continuing when plugin is disabled
+- Fixed damage indicator persistence issues
+- Improved error handling for invalid configurations
+
+### Technical
+- Improved code organization and maintainability
+- Enhanced error handling system
+- Updated configuration validation
+- Optimized damage format caching system
+
 ## [1.3.1] - 2024-03-10
 VitalStrike v1.3.1 focuses on modernizing the plugin for Minecraft 1.21.4 and improving code quality with better logging and sound handling.
 

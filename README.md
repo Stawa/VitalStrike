@@ -63,7 +63,7 @@ damage-formats:
 
 ## ⚙️ Configuration
 
-### ### Combo System
+### Combo System
 
 ```yaml
 combo:

@@ -29,7 +29,7 @@ import java.util.function.ToDoubleFunction;
  * </p>
  * 
  * @author Stawa
- * @version 1.3.1
+ * @version 1.4.0
  */
 public class PlayerStats {
     private static final String STATS_FILE = "stats.yml";
@@ -153,7 +153,8 @@ public class PlayerStats {
     /**
      * Saves all player statistics to the stats file.
      * 
-     * @throws Errors.DatabaseException if there's an error saving the stats file
+     * @throws DatabaseException if there's an error saving the stats file
+     * @throws IOException       if there's an error writing to the file
      */
     public void saveAllStats() throws DatabaseException {
         for (Map.Entry<UUID, PlayerStatistics> entry : playerStats.entrySet()) {
@@ -185,6 +186,9 @@ public class PlayerStats {
 
     /**
      * Resets statistics for all players.
+     * This will clear all statistics from memory and remove them from the
+     * configuration.
+     * Note: Changes are not saved to disk until saveAllStats() is called.
      */
     public void resetAllStats() {
         playerStats.clear();
@@ -205,6 +209,7 @@ public class PlayerStats {
 
     /**
      * Updates the player's statistics with the provided damage and combo.
+     * Note: Changes are not saved to disk until saveAllStats() is called.
      * 
      * @param player the player to update
      * @param damage the damage dealt
@@ -220,8 +225,12 @@ public class PlayerStats {
      * Gets the top players based on the provided value extractor.
      * 
      * @param limit          the maximum number of players to return
-     * @param valueExtractor the function to extract the value to sort by
-     * @return the top players
+     * @param valueExtractor the function to extract the sorting value from
+     *                       PlayerStatistics
+     *                       (e.g., PlayerStatistics::getTotalDamageDealt)
+     * @return a list of player entries sorted by the extracted value in descending
+     *         order,
+     *         limited to the specified number of entries
      */
     public List<Map.Entry<UUID, PlayerStatistics>> getTopPlayers(int limit,
             ToDoubleFunction<PlayerStatistics> valueExtractor) {

@@ -164,13 +164,18 @@ export function Navigation() {
                 onClick={() => toggleTheme()}
               >
                 <span className="sr-only">Toggle theme</span>
-                {mounted ? (
-                  isDarkMode ? (
-                    <SunIcon className="h-6 w-6" aria-hidden="true" />
-                  ) : (
-                    <MoonIcon className="h-6 w-6" aria-hidden="true" />
-                  )
-                ) : null}
+                {mounted
+                  ? (() => {
+                      if (isDarkMode) {
+                        return (
+                          <SunIcon className="h-6 w-6" aria-hidden="true" />
+                        );
+                      }
+                      return (
+                        <MoonIcon className="h-6 w-6" aria-hidden="true" />
+                      );
+                    })()
+                  : null}
               </button>
             </div>
             <div className="ml-4 sm:hidden">
@@ -227,7 +232,7 @@ export function Navigation() {
 
 // Icon components remain the same
 
-function GitHubIcon({ className }: { className?: string }) {
+function GitHubIcon({ className }: Readonly<{ className?: string }>) {
   return (
     <svg className={className} fill="currentColor" viewBox="0 0 24 24">
       <path
@@ -239,7 +244,7 @@ function GitHubIcon({ className }: { className?: string }) {
   );
 }
 
-function SunIcon({ className }: { className?: string }) {
+function SunIcon({ className }: Readonly<{ className?: string }>) {
   return (
     <svg
       className={className}
@@ -258,7 +263,7 @@ function SunIcon({ className }: { className?: string }) {
   );
 }
 
-function MoonIcon({ className }: { className?: string }) {
+function MoonIcon({ className }: Readonly<{ className?: string }>) {
   return (
     <svg
       className={className}
@@ -277,7 +282,7 @@ function MoonIcon({ className }: { className?: string }) {
   );
 }
 
-function MenuIcon({ className }: { className?: string }) {
+function MenuIcon({ className }: Readonly<{ className?: string }>) {
   return (
     <svg
       className={className}
@@ -296,7 +301,7 @@ function MenuIcon({ className }: { className?: string }) {
   );
 }
 
-function XIcon({ className }: { className?: string }) {
+function XIcon({ className }: Readonly<{ className?: string }>) {
   return (
     <svg
       className={className}

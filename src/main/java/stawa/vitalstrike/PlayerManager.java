@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -156,6 +157,11 @@ public class PlayerManager {
      * @param enabled the new enabled status
      */
     public void setEnabled(Player player, boolean enabled) {
+        boolean previousState = getPlayerSetting(player, true);
+        if (enabled && !previousState && plugin instanceof VitalStrike) {
+            VitalStrike vs = (VitalStrike) plugin;
+            vs.resetPlayerCombo(player.getUniqueId());
+        }
         setPlayerSetting(player, enabled);
     }
 
@@ -293,5 +299,30 @@ public class PlayerManager {
     public void setHologramEnabled(Player player, boolean enabled) throws DatabaseException {
         playerHologramPreferences.put(player.getUniqueId(), enabled);
         saveDatabase();
+    }
+
+    /**
+     * Gets the player database configuration
+     * 
+     * @return the player database configuration
+     */
+    public FileConfiguration getDatabase() {
+        return database;
+    }
+
+    /**
+     * Checks if a player has a specific permission explicitly assigned
+     * 
+     * @param uuid       the UUID of the player
+     * @param permission the permission to check
+     * @return true if the player has the permission explicitly assigned
+     */
+    public boolean hasPlayerPermission(UUID uuid, String permission) {
+        String path = PLAYERS_PATH + uuid + ".permissions";
+        if (database.contains(path)) {
+            List<String> permissions = database.getStringList(path);
+            return permissions.contains(permission);
+        }
+        return false;
     }
 }

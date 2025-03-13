@@ -1,6 +1,6 @@
 package stawa.vitalstrike;
 
-import stawa.vitalstrike.Errors.DatabaseException;
+import stawa.vitalstrike.commands.CommandManager;
 import stawa.vitalstrike.logger.*;
 
 import java.io.BufferedReader;
@@ -8,9 +8,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +16,6 @@ import java.util.UUID;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
@@ -36,6 +32,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -60,17 +57,10 @@ import org.joml.Vector3f;
  * </p>
  * 
  * @author Stawa
- * @version 1.3.1
+ * @version 1.4.0
  * @see <a href="https://github.com/Stawa/VitalStrike">GitHub Repository</a>
  */
 public class VitalStrike extends JavaPlugin implements Listener {
-    private static final String CMD_HOLOGRAM = "hologram";
-    private static final String CMD_LEADERBOARD = "leaderboard";
-    private static final String CMD_LEADERBOARD_SHORT = "lb";
-    private static final String CMD_RELOAD = "reload";
-    private static final String CMD_STATS = "stats";
-    private static final String CMD_TOGGLE = "toggle";
-
     private static final long DAMAGE_COOLDOWN = 500;
 
     private Map<UUID, TextDisplay> activeHolograms = new HashMap<>();
@@ -117,10 +107,15 @@ public class VitalStrike extends JavaPlugin implements Listener {
     private String multiplierFormat = " <gray>(<gradient:#FFD700:#FFA500>%.1fx</gradient>)</gray>";
     private String rankFormat = "\n<bold>%s</bold>";
 
+    private String damageIndicatorType;
+    private PermissionManager permissionManager;
+    private CommandManager commandManager;
+
     private Map<String, Sound> damageTypeSounds;
     private Map<String, String> rankColors = new HashMap<>();
     private Map<String, Double> rankMultipliers = new HashMap<>();
     private Map<String, Integer> rankThresholds = new HashMap<>();
+    private Map<UUID, Map<String, String>> damageFormatCache;
 
     private VitalLogger logger;
     private PlayerManager playerManager;
@@ -177,24 +172,32 @@ public class VitalStrike extends JavaPlugin implements Listener {
      */
     @Override
     public void onEnable() {
+        HelpManager helpManager;
         this.logger = new VitalLogger(this);
         saveDefaultConfig();
         loadConfig();
         getServer().getPluginManager().registerEvents(this, this);
-
-        if (updateCheckerEnabled) {
-            checkForUpdates();
-        }
 
         try {
             playerManager = new PlayerManager(this);
         } catch (Errors.DatabaseException e) {
             logger.severe(" Failed to initialize player manager: " + e.getMessage());
         }
+
         try {
             playerStats = new PlayerStats(this);
         } catch (Errors.DatabaseException e) {
             logger.severe(" Failed to initialize player statistics: " + e.getMessage());
+        }
+
+        helpManager = new HelpManager(this);
+        commandManager = new CommandManager(this, logger, playerManager, playerStats, helpManager);
+        permissionManager = new PermissionManager(this);
+        damageFormatCache = new HashMap<>();
+        damageIndicatorType = getConfig().getString("damage-indicator", "simple-damage-formats");
+
+        if (updateCheckerEnabled) {
+            checkForUpdates();
         }
 
         loadDamageTypeSounds();
@@ -230,6 +233,15 @@ public class VitalStrike extends JavaPlugin implements Listener {
     }
 
     /**
+     * Reloads the plugin configuration and related components.
+     */
+    public void reload() {
+        reloadConfig();
+        loadConfig();
+        loadDamageTypeSounds();
+    }
+
+    /**
      * Loads the damage type sounds from the configuration.
      */
     private void loadDamageTypeSounds() {
@@ -256,22 +268,92 @@ public class VitalStrike extends JavaPlugin implements Listener {
      */
     private void loadConfig() {
         FileConfiguration config = getConfig();
-        enabled = config.getBoolean("enabled", true);
+        loadBasicSettings(config);
+        loadComboSettings(config);
+        loadDisplaySettings(config);
+    }
 
+    /**
+     * Loads basic plugin settings from configuration.
+     * Includes core settings like plugin enabled state and update checker.
+     * 
+     * @param config the plugin configuration
+     */
+    private void loadBasicSettings(FileConfiguration config) {
+        enabled = config.getBoolean("enabled", true);
+        updateCheckerEnabled = config.getBoolean("update-checker.enabled", true);
+    }
+
+    /**
+     * Loads all combo-related settings from configuration.
+     * This is a master method that calls specialized methods for different combo
+     * aspects.
+     * 
+     * @param config the plugin configuration
+     */
+    private void loadComboSettings(FileConfiguration config) {
+        loadComboBasicSettings(config);
+        loadComboDecaySettings(config);
+        loadComboMultiplierSettings(config);
+        loadComboDisplaySettings(config);
+        loadComboRankSettings(config);
+    }
+
+    /**
+     * Loads basic combo system settings from configuration.
+     * Includes combo enabled state and reset time.
+     * 
+     * @param config the plugin configuration
+     */
+    private void loadComboBasicSettings(FileConfiguration config) {
         comboEnabled = config.getBoolean("combo.enabled", true);
         comboResetTime = config.getLong("combo.reset-time", 3) * 1000;
+    }
 
+    /**
+     * Loads combo decay settings from configuration.
+     * Controls how combos decay over time when player is inactive.
+     * 
+     * @param config the plugin configuration
+     */
+    private void loadComboDecaySettings(FileConfiguration config) {
         comboDecayEnabled = config.getBoolean("combo.decay.enabled", true);
         comboDecayTime = config.getInt("combo.decay.time", 10);
         comboDecayRate = config.getInt("combo.decay.rate", 1);
         comboDecayInterval = config.getInt("combo.decay.interval", 1);
         comboDecayMinimum = config.getInt("combo.decay.minimum", 0);
+    }
 
+    /**
+     * Loads combo multiplier settings from configuration.
+     * Controls how combos affect damage multipliers and loads rank-specific
+     * multipliers.
+     * 
+     * @param config the plugin configuration
+     */
+    private void loadComboMultiplierSettings(FileConfiguration config) {
         comboMultiplierEnabled = config.getBoolean("combo.multiplier.enabled", true);
         comboMultiplierBase = config.getDouble("combo.multiplier.base", 1.0);
         comboMultiplierPerCombo = config.getDouble("combo.multiplier.per-combo", 0.1);
         comboMultiplierMax = config.getDouble("combo.multiplier.max", 3.0);
 
+        ConfigurationSection rankMultSection = config.getConfigurationSection("combo.multiplier.ranks");
+        if (rankMultSection != null) {
+            rankMultipliers.clear();
+            for (String rank : rankMultSection.getKeys(false)) {
+                rankMultipliers.put(rank, rankMultSection.getDouble(rank));
+            }
+        }
+    }
+
+    /**
+     * Loads combo display settings from configuration.
+     * Controls how combos are visually displayed to players including holograms and
+     * formats.
+     * 
+     * @param config the plugin configuration
+     */
+    private void loadComboDisplaySettings(FileConfiguration config) {
         comboHologramEnabled = config.getBoolean("combo.display.hologram.enabled", true);
         comboHologramMinCombo = config.getInt("combo.display.hologram.min-combo", 10);
         comboHologramDuration = config.getDouble("combo.display.hologram.duration", 3.0);
@@ -279,37 +361,67 @@ public class VitalStrike extends JavaPlugin implements Listener {
                 "<gradient:red:gold><bold>COMBO STREAK!</bold></gradient>");
         comboHologramHeight = config.getDouble("combo.display.hologram.height", 2.0);
 
-        ConfigurationSection rankMultSection = config.getConfigurationSection("combo.multiplier.ranks");
-        if (rankMultSection != null) {
-            for (String rank : rankMultSection.getKeys(false)) {
-                rankMultipliers.put(rank, rankMultSection.getDouble(rank));
-            }
-        }
-
         comboFormat = config.getString("combo.display.format",
                 "<bold><gradient:#FF0000:#FFD700>✦ %dx COMBO ✦</gradient></bold>");
         multiplierFormat = config.getString("combo.display.multiplier-format",
                 " <gray>(<gradient:#FFD700:#FFA500>%.1fx</gradient>)</gray>");
         decayWarningFormat = config.getString("combo.display.decay-warning",
                 "<italic><gray>(Decaying in %.1fs)</gray></italic>");
+    }
 
+    /**
+     * Loads combo rank settings from configuration.
+     * Controls the rank system for combos including thresholds and visual
+     * appearance.
+     * 
+     * @param config the plugin configuration
+     */
+    private void loadComboRankSettings(FileConfiguration config) {
         comboRankEnabled = config.getBoolean("combo.display.rank.enabled", true);
         rankFormat = config.getString("combo.display.rank.format", "\n<bold>%s</bold>");
+        loadRankThresholds(config);
+        loadRankColors(config);
+    }
 
+    /**
+     * Loads rank thresholds from configuration.
+     * Defines the combo count required to achieve each rank.
+     * 
+     * @param config the plugin configuration
+     */
+    private void loadRankThresholds(FileConfiguration config) {
         ConfigurationSection thresholds = config.getConfigurationSection("combo.display.rank.thresholds");
         if (thresholds != null) {
+            rankThresholds.clear();
             for (String rank : thresholds.getKeys(false)) {
                 rankThresholds.put(rank, thresholds.getInt(rank));
             }
         }
+    }
 
+    /**
+     * Loads rank colors from configuration.
+     * Defines the color formatting for each rank.
+     * 
+     * @param config the plugin configuration
+     */
+    private void loadRankColors(FileConfiguration config) {
         ConfigurationSection colors = config.getConfigurationSection("combo.display.rank.colors");
         if (colors != null) {
+            rankColors.clear();
             for (String rank : colors.getKeys(false)) {
                 rankColors.put(rank, colors.getString(rank));
             }
         }
+    }
 
+    /**
+     * Loads display settings from configuration.
+     * Controls how damage indicators are positioned and animated.
+     * 
+     * @param config the plugin configuration
+     */
+    private void loadDisplaySettings(FileConfiguration config) {
         displayDuration = config.getDouble("display.duration", 1.5);
         displayY = config.getDouble("display.position.y", -0.2);
         displayX = config.getDouble("display.position.x", -0.5);
@@ -320,8 +432,6 @@ public class VitalStrike extends JavaPlugin implements Listener {
         fadeOutDuration = config.getDouble("display.animation.fade-out", 0.25);
         floatSpeed = config.getDouble("display.animation.float-speed", 0.03);
         floatCurve = config.getDouble("display.animation.float-curve", 0.02);
-
-        updateCheckerEnabled = config.getBoolean("update-checker.enabled", true);
     }
 
     /**
@@ -422,7 +532,7 @@ public class VitalStrike extends JavaPlugin implements Listener {
             String currentVersionMessage = String.format("You are running version: %s", currentVersion);
             String downloadMessage = String.format(
                     "Download the latest version from: %s",
-                    "https://github.com/Stawa/VitalStrike/releases");
+                    "https://modrinth.com/plugin/vitalstrike");
             logger.info(newVersionMessage);
             logger.info(currentVersionMessage);
             logger.info(downloadMessage);
@@ -513,14 +623,30 @@ public class VitalStrike extends JavaPlugin implements Listener {
 
     /**
      * Handles player combo system for entity damage events.
+     * Processes combo counting, decay, multipliers, and effects when a player
+     * damages an entity.
+     * Ignores non-combat entities like holograms, armor stands, and display
+     * entities.
      * 
      * @param event       the damage event
-     * @param currentTime the current time
+     * @param currentTime the current time in milliseconds
      */
     private void handlePlayerCombos(org.bukkit.event.entity.EntityDamageByEntityEvent event, long currentTime) {
         Entity damager = event.getDamager();
+        Entity target = event.getEntity();
+
         if (!(damager instanceof Player))
             return;
+
+        if (target instanceof TextDisplay ||
+                target.getType() == EntityType.ARMOR_STAND ||
+                target.getType() == EntityType.ITEM_FRAME ||
+                target.getType() == EntityType.GLOW_ITEM_FRAME ||
+                target.getType() == EntityType.PAINTING ||
+                target.getType() == EntityType.ITEM_DISPLAY ||
+                target.getType() == EntityType.BLOCK_DISPLAY) {
+            return;
+        }
 
         Player player = (Player) damager;
         UUID playerId = player.getUniqueId();
@@ -611,6 +737,12 @@ public class VitalStrike extends JavaPlugin implements Listener {
 
     /**
      * Applies elemental effects based on player's selected element and combo count.
+     * Different elements provide different combat effects:
+     * - Fire: Sets the target on fire with duration based on combo count
+     * - Ice: Applies slowness effect with strength and duration based on combo
+     * count
+     * - Lightning: Has a chance to strike lightning at the target location on
+     * milestone combos
      * 
      * @param player the player applying the effect
      * @param target the target entity receiving the effect
@@ -735,10 +867,30 @@ public class VitalStrike extends JavaPlugin implements Listener {
      * @param event  the damage event
      */
     private void displayDamageIndicator(Entity entity, EntityDamageEvent event) {
+        if (!shouldShowDamageIndicator(entity)) {
+            return;
+        }
+
         double damage = event.getFinalDamage();
         Location loc = entity.getLocation().add(0, entity.getHeight() + 0.5, 0);
 
-        String damageFormat = getDamageFormat(event.getCause());
+        Player damager = null;
+        if (event instanceof EntityDamageByEntityEvent damageByEntityEvent) {
+            Entity damagerEntity = damageByEntityEvent.getDamager();
+            if (damagerEntity instanceof Player) {
+                damager = (Player) damagerEntity;
+            }
+        }
+
+        String damageType = event.getCause().name().toLowerCase();
+
+        String damageFormat;
+        if (damager != null && playerManager.isEnabled(damager)) {
+            damageFormat = permissionManager.getDamageFormat(damager, damageType,
+                    getSimpleDamageFormat(event.getCause()));
+        } else {
+            damageFormat = getSimpleDamageFormat(event.getCause());
+        }
 
         entity.getWorld().getNearbyEntities(loc, 20, 20, 20).stream()
                 .filter(Player.class::isInstance)
@@ -750,12 +902,75 @@ public class VitalStrike extends JavaPlugin implements Listener {
     }
 
     /**
-     * Gets the damage format string based on damage cause.
+     * Gets the damage format string based on damage cause and player permissions.
+     * 
+     * @param cause  the damage cause
+     * @param entity the damaged entity
+     * @return the format string
+     */
+    private String getDamageFormat(EntityDamageEvent.DamageCause cause, Entity entity) {
+        String damageType = cause.name().toLowerCase();
+
+        if ("simple-damage-formats".equals(damageIndicatorType)) {
+            return getSimpleDamageFormat(cause);
+        }
+
+        Player player = null;
+        if (entity instanceof Player) {
+            player = (Player) entity;
+        } else if (entity.getLastDamageCause() instanceof EntityDamageByEntityEvent damageByEntityEvent) {
+            Entity damager = damageByEntityEvent.getDamager();
+            if (damager instanceof Player) {
+                player = (Player) damager;
+            }
+        }
+
+        if (player == null) {
+            return getSimpleDamageFormat(cause);
+        }
+
+        return permissionManager.getDamageFormat(player, damageType, getSimpleDamageFormat(cause));
+    }
+
+    /**
+     * Checks if an entity should receive damage indicators.
+     * 
+     * @param entity the entity to check
+     * @return true if the entity should receive damage indicators, false otherwise
+     */
+    public boolean shouldShowDamageIndicator(Entity entity) {
+        if (!(entity instanceof LivingEntity)) {
+            return false;
+        }
+
+        if (entity.getType() == EntityType.ARMOR_STAND) {
+            return false;
+        }
+
+        if (entity instanceof TextDisplay ||
+                entity.getType() == EntityType.ARMOR_STAND ||
+                entity.getType() == EntityType.ITEM_FRAME ||
+                entity.getType() == EntityType.GLOW_ITEM_FRAME ||
+                entity.getType() == EntityType.PAINTING ||
+                entity.getType() == EntityType.ITEM_DISPLAY ||
+                entity.getType() == EntityType.BLOCK_DISPLAY) {
+            return false;
+        }
+
+        if (entity.getScoreboardTags().contains("nodamage")) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Gets the simple damage format based on damage cause.
      * 
      * @param cause the damage cause
      * @return the format string
      */
-    private String getDamageFormat(EntityDamageEvent.DamageCause cause) {
+    private String getSimpleDamageFormat(EntityDamageEvent.DamageCause cause) {
         switch (cause) {
             case ENTITY_ATTACK:
                 if (Math.random() < 0.2) {
@@ -1199,519 +1414,141 @@ public class VitalStrike extends JavaPlugin implements Listener {
      */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!command.getName().equalsIgnoreCase("vitalstrike")) {
-            return false;
-        }
-
-        if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
-            sendHelpMenu(sender);
-            return true;
-        }
-
-        String subCommand = args[0].toLowerCase();
-
-        try {
-            switch (subCommand) {
-                case CMD_TOGGLE:
-                    return handleToggleCommand(sender, args);
-                case CMD_RELOAD:
-                    return handleReloadCommand(sender);
-                case CMD_STATS:
-                    return handleStatsCommand(sender);
-                case CMD_LEADERBOARD, CMD_LEADERBOARD_SHORT:
-                    return handleLeaderboardCommand(sender, args);
-                case CMD_HOLOGRAM:
-                    return handleHologramCommand(sender, args);
-                default:
-                    return false;
-            }
-        } catch (DatabaseException e) {
-            sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                    "<red>An error occurred while processing your command: " + e.getMessage()));
-            logger.severe("Database error: " + e.getMessage());
-            return false;
-        }
+        return commandManager.onCommand(sender, command, label, args);
     }
 
-    /**
-     * Handles the toggle command.
-     * 
-     * @param sender the command sender
-     * @param args   the command arguments
-     * @return true if the command was handled successfully, false otherwise
-     */
-    private boolean handleToggleCommand(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player)) {
-            sendPlayerOnlyMessage(sender);
-            return false;
-        }
-
-        if (!hasPermission(sender, "vitalstrike.use")) {
-            return false;
-        }
-
-        Player player = (Player) sender;
-        boolean currentState = playerManager.isEnabled(player);
-
-        if (args.length > 1) {
-            return handleSpecificToggle(player, args[1], currentState);
-        }
-
-        playerManager.setEnabled(player, !currentState);
-        sendToggleMessage(player, !currentState);
-        return true;
-    }
-
-    /**
-     * Handles specific on/off toggle commands.
-     */
-    private boolean handleSpecificToggle(Player player, String toggleType, boolean currentState) {
-        switch (toggleType.toLowerCase()) {
-            case "on":
-                if (currentState) {
-                    sendAlreadyEnabledMessage(player);
-                    return false;
-                }
-                playerManager.setEnabled(player, true);
-                sendToggleMessage(player, true);
-                return true;
-
-            case "off":
-                if (!currentState) {
-                    sendAlreadyDisabledMessage(player);
-                    return false;
-                }
-                playerManager.setEnabled(player, false);
-                sendToggleMessage(player, false);
-                return true;
-
-            default:
-                player.sendMessage(MiniMessage.miniMessage().deserialize(
-                        "<red>Invalid toggle option. Use 'on' or 'off'."));
-                return false;
-        }
-    }
-
-    /**
-     * Handles the reload command.
-     * 
-     * @param sender the command sender
-     * @return true if the command was handled successfully, false otherwise
-     */
-    private boolean handleReloadCommand(CommandSender sender) {
-        if (!hasPermission(sender, "vitalstrike.reload")) {
-            return false;
-        }
-
-        try {
-            reloadConfig();
-            loadConfig();
-            loadDamageTypeSounds();
-            sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                    getConfig().getString("messages.config-reloaded",
-                            "<green>Configuration reloaded successfully!")));
-            return true;
-        } catch (Exception e) {
-            sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                    "<red>Failed to reload configuration: " + e.getMessage()));
-            logger.severe("Error reloading configuration: " + e.getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * Handles the stats command.
-     * 
-     * @param sender the command sender
-     * @return true if the command was handled successfully, false otherwise
-     */
-    private boolean handleStatsCommand(CommandSender sender) {
-        if (!(sender instanceof Player)) {
-            sendPlayerOnlyMessage(sender);
-            return false;
-        }
-
-        if (!hasPermission(sender, "vitalstrike.stats")) {
-            return false;
-        }
-
-        try {
-            Player statsPlayer = (Player) sender;
-            PlayerStats.PlayerStatistics stats = playerStats.getPlayerStats(statsPlayer.getUniqueId());
-
-            sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                    "<dark_gray><strikethrough>                    </strikethrough>\n" +
-                            "<gold><bold>Your Combat Statistics</bold></gold>\n" +
-                            "<yellow>Highest Combo: <white>" + stats.getHighestCombo() + "\n" +
-                            "<yellow>Total Damage Dealt: <white>" +
-                            String.format("%.1f", stats.getTotalDamageDealt()) + "\n" +
-                            "<yellow>Average Damage/Hit: <white>" +
-                            String.format("%.1f", stats.getAverageDamagePerHit()) + "\n" +
-                            "<yellow>Total Hits: <white>" + stats.getTotalHits() + "\n" +
-                            "<dark_gray><strikethrough>                    </strikethrough>"));
-            return true;
-        } catch (Exception e) {
-            sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                    "<red>Failed to retrieve statistics: " + e.getMessage()));
-            logger.severe("Error retrieving player statistics: " + e.getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * Handles the leaderboard command.
-     * 
-     * @param sender the command sender
-     * @param args   the command arguments
-     * @return true if the command was handled successfully, false otherwise
-     */
-    private boolean handleLeaderboardCommand(CommandSender sender, String[] args) {
-        if (!hasPermission(sender, "vitalstrike.leaderboard")) {
-            return false;
-        }
-
-        try {
-            String type = args.length > 1 ? args[1].toLowerCase()
-                    : getConfig().getString("leaderboard.default-type", "damage");
-
-            LeaderboardData data = getLeaderboardData(type);
-            if (data == null) {
-                sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                        "<red>Invalid leaderboard type! Use: damage, combo, or average"));
-                return false;
-            }
-
-            if (data.leaderboard.isEmpty()) {
-                sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                        "<yellow>No data available for this leaderboard type yet."));
-                return true;
-            }
-
-            sender.sendMessage(MiniMessage.miniMessage().deserialize(buildLeaderboardMessage(data)));
-            return true;
-        } catch (Exception e) {
-            sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                    "<red>Failed to retrieve leaderboard data: " + e.getMessage()));
-            logger.severe("Error retrieving leaderboard data: " + e.getMessage());
-            return false;
-        }
-    }
-
-    private boolean handleHologramCommand(CommandSender sender, String[] args) throws DatabaseException {
-        if (!(sender instanceof Player)) {
-            sendPlayerOnlyMessage(sender);
-            return false;
-        }
-
-        if (!hasPermission(sender, "vitalstrike.hologram")) {
-            return false;
-        }
-
-        Player player = (Player) sender;
-        boolean currentState = playerManager.isHologramEnabled(player);
-
-        if (args.length > 1) {
-            return handleSpecificHologramToggle(player, args[1], currentState);
-        }
-
-        playerManager.setHologramEnabled(player, !currentState);
-        sendHologramToggleMessage(player, !currentState);
-        return true;
-    }
-
-    private boolean handleSpecificHologramToggle(Player player, String toggleType, boolean currentState)
-            throws DatabaseException {
-        switch (toggleType.toLowerCase()) {
-            case "on":
-                if (currentState) {
-                    player.sendMessage(MiniMessage.miniMessage().deserialize(
-                            "<yellow>Combo holograms are already enabled for you!"));
-                    return false;
-                }
-                playerManager.setHologramEnabled(player, true);
-                sendHologramToggleMessage(player, true);
-                return true;
-
-            case "off":
-                if (!currentState) {
-                    player.sendMessage(MiniMessage.miniMessage().deserialize(
-                            "<yellow>Combo holograms are already disabled for you!"));
-                    return false;
-                }
-                playerManager.setHologramEnabled(player, false);
-                sendHologramToggleMessage(player, false);
-                return true;
-
-            default:
-                player.sendMessage(MiniMessage.miniMessage().deserialize(
-                        "<red>Invalid toggle option. Use 'on' or 'off'."));
-                return false;
-        }
-    }
-
-    private void sendHologramToggleMessage(Player player, boolean enabled) {
-        player.sendMessage(MiniMessage.miniMessage().deserialize(
-                enabled ? "<green>Combo holograms enabled for you!" : "<red>Combo holograms disabled for you!"));
-    }
-
-    /**
-     * Container class for leaderboard data.
-     */
-    private class LeaderboardData {
-        final List<Map.Entry<UUID, PlayerStats.PlayerStatistics>> leaderboard;
-        final String title;
-        final String valueFormat;
-        final java.util.function.Function<PlayerStats.PlayerStatistics, Double> valueExtractor;
-
-        LeaderboardData(List<Map.Entry<UUID, PlayerStats.PlayerStatistics>> leaderboard,
-                String title, String valueFormat,
-                java.util.function.Function<PlayerStats.PlayerStatistics, Double> valueExtractor) {
-            this.leaderboard = leaderboard;
-            this.title = title;
-            this.valueFormat = valueFormat;
-            this.valueExtractor = valueExtractor;
-        }
-    }
-
-    /**
-     * Gets leaderboard data based on type.
-     */
-    private LeaderboardData getLeaderboardData(String type) {
-        int limit = getConfig().getInt("leaderboard.display-limit", 10);
-
-        switch (type) {
-            case "damage", "dmg":
-                return new LeaderboardData(
-                        playerStats.getTopPlayers(limit, PlayerStats.PlayerStatistics::getTotalDamageDealt),
-                        getConfig().getString("leaderboard.display.title-formats.damage",
-                                "<gold><bold>Top %d Damage Dealers</bold></gold>"),
-                        getConfig().getString("leaderboard.number-format.damage", "%.1f"),
-                        PlayerStats.PlayerStatistics::getTotalDamageDealt);
-            case "combo", "combos":
-                return new LeaderboardData(
-                        playerStats.getTopPlayers(limit, stats -> (double) stats.getHighestCombo()),
-                        getConfig().getString("leaderboard.display.title-formats.combo",
-                                "<gold><bold>Top %d Highest Combos</bold></gold>"),
-                        getConfig().getString("leaderboard.number-format.combo", "%d"),
-                        stats -> (double) stats.getHighestCombo());
-            case "average", "avg":
-                return new LeaderboardData(
-                        playerStats.getTopPlayers(limit, PlayerStats.PlayerStatistics::getAverageDamagePerHit),
-                        getConfig().getString("leaderboard.display.title-formats.average",
-                                "<gold><bold>Top %d Average Damage</bold></gold>"),
-                        getConfig().getString("leaderboard.number-format.average", "%.1f"),
-                        PlayerStats.PlayerStatistics::getAverageDamagePerHit);
-            default:
-                return null;
-        }
-    }
-
-    /**
-     * Builds the leaderboard message.
-     */
-    private String buildLeaderboardMessage(LeaderboardData data) {
-        StringBuilder message = new StringBuilder();
-        String header = getConfig().getString("leaderboard.display.header",
-                "<dark_gray><strikethrough>                    </strikethrough>");
-        String footer = getConfig().getString("leaderboard.display.footer",
-                "<dark_gray><strikethrough>                    </strikethrough>");
-        String entryFormat = getConfig().getString("leaderboard.display.entry-format",
-                "<yellow>#%d <white>%s: <gold>%s");
-
-        int limit = getConfig().getInt("leaderboard.display-limit", 10);
-
-        message.append(header).append("\n")
-                .append(String.format(data.title, limit)).append("\n");
-
-        int rank = 1;
-        for (Map.Entry<UUID, PlayerStats.PlayerStatistics> entry : data.leaderboard) {
-            String playerName = Bukkit.getOfflinePlayer(entry.getKey()).getName();
-            if (playerName == null)
-                continue;
-
-            double value = data.valueExtractor.apply(entry.getValue());
-            String formattedValue = String.format(data.valueFormat, value);
-
-            message.append(String.format(entryFormat, rank++, playerName, formattedValue)).append("\n");
-        }
-
-        message.append(footer);
-        return message.toString();
-    }
-
-    /**
-     * Checks if sender has permission and sends message if not.
-     */
-    private boolean hasPermission(CommandSender sender, String permission) {
-        if (!sender.hasPermission(permission)) {
-            sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                    getConfig().getString("messages.no-permission",
-                            "<red>You don't have permission to use this command!")));
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Sends player-only command message.
-     */
-    private void sendPlayerOnlyMessage(CommandSender sender) {
-        sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                "<red>This command can only be used by players!"));
-    }
-
-    /**
-     * Sends toggle state message.
-     */
-    private void sendToggleMessage(Player player, boolean enabled) {
-        player.sendMessage(MiniMessage.miniMessage().deserialize(
-                getConfig().getString("messages." + (enabled ? "enabled-personal" : "disabled-personal"))));
-    }
-
-    /**
-     * Sends already enabled message.
-     */
-    private void sendAlreadyEnabledMessage(Player player) {
-        player.sendMessage(MiniMessage.miniMessage().deserialize(
-                getConfig().getString("messages.already-enabled",
-                        "<yellow>VitalStrike damage indicators are already enabled for you!")));
-    }
-
-    /**
-     * Sends already disabled message.
-     */
-    private void sendAlreadyDisabledMessage(Player player) {
-        player.sendMessage(MiniMessage.miniMessage().deserialize(
-                getConfig().getString("messages.already-disabled",
-                        "<yellow>VitalStrike damage indicators are already disabled for you!")));
-    }
-
-    /**
-     * Handles the tab completion.
-     * 
-     * @param sender  the command sender
-     * @param command the command
-     * @param alias   the alias
-     * @param args    the arguments
-     * @return the list of completions
-     */
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (!command.getName().equalsIgnoreCase("vitalstrike")) {
-            return Collections.emptyList();
-        }
-
-        return getCompletionsForArgument(sender, args);
+        return commandManager.onTabComplete(sender, command, alias, args);
     }
 
     /**
-     * Gets completions based on argument position.
+     * Gets the player manager instance.
      * 
-     * @param sender the command sender
-     * @param args   the command arguments
-     * @return list of tab completions
+     * @return the player manager
      */
-    private List<String> getCompletionsForArgument(CommandSender sender, String[] args) {
-        if (args.length == 1) {
-            return getFirstArgumentCompletions(sender, args[0]);
-        }
-
-        if (args.length == 2) {
-            return getSecondArgumentCompletions(args[0], args[1]);
-        }
-
-        return Collections.emptyList();
+    public PlayerManager getPlayerManager() {
+        return playerManager;
     }
 
     /**
-     * Gets completions for the first argument.
+     * Gets the player stats instance.
      * 
-     * @param sender the command sender
-     * @param arg    the current argument
-     * @return list of filtered completions
+     * @return the player stats
      */
-    private List<String> getFirstArgumentCompletions(CommandSender sender, String arg) {
-        List<String> completions = new ArrayList<>();
-
-        if (sender.hasPermission("vitalstrike.toggle"))
-            completions.add(CMD_TOGGLE);
-        if (sender.hasPermission("vitalstrike.reload"))
-            completions.add(CMD_RELOAD);
-        if (sender.hasPermission("vitalstrike.help"))
-            completions.add("help");
-        if (sender.hasPermission("vitalstrike.stats"))
-            completions.add(CMD_STATS);
-        if (sender.hasPermission("vitalstrike.leaderboard")) {
-            completions.add(CMD_LEADERBOARD);
-            completions.add(CMD_LEADERBOARD_SHORT);
-        }
-        if (sender.hasPermission("vitalstrike.hologram"))
-            completions.add(CMD_HOLOGRAM);
-
-        return Collections.unmodifiableList(
-                completions.stream()
-                        .filter(s -> s.toLowerCase().startsWith(arg.toLowerCase()))
-                        .toList());
+    public PlayerStats getPlayerStats() {
+        return playerStats;
     }
 
     /**
-     * Gets completions for the second argument.
+     * Gets the appropriate damage format for a player based on their permissions.
      * 
-     * @param firstArg  the first argument
-     * @param secondArg the current argument
-     * @return list of filtered completions
+     * @param player     the player
+     * @param damageType the type of damage
+     * @return the formatted damage string
      */
-    private List<String> getSecondArgumentCompletions(String firstArg, String secondArg) {
-        List<String> completions = new ArrayList<>();
-
-        switch (firstArg.toLowerCase()) {
-            case CMD_TOGGLE:
-                completions.addAll(Arrays.asList("on", "off"));
-                break;
-            case CMD_LEADERBOARD, CMD_LEADERBOARD_SHORT:
-                completions.addAll(Arrays.asList("damage", "combo", "average"));
-                break;
-            case CMD_HOLOGRAM:
-                completions.addAll(Arrays.asList("on", "off"));
-                break;
-            default:
-                return Collections.emptyList();
-        }
-
-        return completions.stream()
-                .filter(s -> s.toLowerCase().startsWith(secondArg.toLowerCase()))
-                .toList();
-    }
-
-    /**
-     * Sends the help menu to the sender.
-     * 
-     * @param sender the sender
-     */
-    private void sendHelpMenu(CommandSender sender) {
-        FileConfiguration config = getConfig();
-
-        sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                config.getString("help-menu.header",
-                        "<dark_gray><strikethrough>                    </strikethrough>")));
-
-        sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                config.getString("help-menu.title", "<gold><bold>VitalStrike Commands</bold></gold>")));
-
-        ConfigurationSection commandsSection = config.getConfigurationSection("help-menu.commands");
-        if (commandsSection != null) {
-            for (String key : commandsSection.getKeys(false)) {
-                if (sender.hasPermission("vitalstrike." + key)) {
-                    String command = commandsSection.getString(key + ".command", "");
-                    String description = commandsSection.getString(key + ".description", "");
-                    sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                            "<yellow>" + command + " <gray>- " + description));
-                }
+    public String getDamageFormat(Player player, String damageType) {
+        UUID playerId = player.getUniqueId();
+        if (damageFormatCache.containsKey(playerId)) {
+            Map<String, String> playerFormats = damageFormatCache.get(playerId);
+            if (playerFormats.containsKey(damageType)) {
+                return playerFormats.get(damageType);
             }
         }
 
-        sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                config.getString("help-menu.footer",
-                        "<dark_gray><strikethrough>                    </strikethrough>")));
+        String format = null;
+
+        if (getConfig().contains("group-damage-formats")) {
+            ConfigurationSection groupsSection = getConfig().getConfigurationSection("group-damage-formats");
+            if (groupsSection != null) {
+                for (String groupKey : groupsSection.getKeys(false)) {
+                    if (!groupKey.equals("default")) {
+                        String permission = "vitalstrike.group." + groupKey;
+                        if (player.hasPermission(permission)) {
+                            format = getConfig().getString(
+                                    "group-damage-formats." + groupKey + ".damage-formats." + damageType);
+
+                            if (format != null) {
+                                cacheFormat(playerId, damageType, format);
+                                return format;
+                            }
+
+                            format = getConfig().getString(
+                                    "group-damage-formats." + groupKey + ".damage-formats.default");
+
+                            if (format != null) {
+                                cacheFormat(playerId, damageType, format);
+                                return format;
+                            }
+                        }
+                    }
+                }
+            }
+
+            format = getConfig().getString("group-damage-formats.default.damage-formats." + damageType);
+            if (format != null) {
+                cacheFormat(playerId, damageType, format);
+                return format;
+            }
+
+            format = getConfig().getString("group-damage-formats.default.damage-formats.default");
+            if (format != null) {
+                cacheFormat(playerId, damageType, format);
+                return format;
+            }
+        }
+
+        format = getConfig().getString(damageIndicatorType + "." + damageType);
+        if (format != null) {
+            cacheFormat(playerId, damageType, format);
+            return format;
+        }
+
+        format = getConfig().getString(damageIndicatorType + ".default", "<red>-%.1f ❤</red>");
+        cacheFormat(playerId, damageType, format);
+        return format;
+    }
+
+    /**
+     * Caches a damage format for a player.
+     * 
+     * @param playerId   the player UUID
+     * @param damageType the damage type
+     * @param format     the format string
+     */
+    private void cacheFormat(UUID playerId, String damageType, String format) {
+        damageFormatCache.computeIfAbsent(playerId, k -> new HashMap<>()).put(damageType, format);
+    }
+
+    /**
+     * Refreshes a player's damage format based on their permissions.
+     * Call this when a player's permissions change.
+     * 
+     * @param player the player to refresh damage format for
+     */
+    public void refreshPlayerDamageFormat(Player player) {
+        damageFormatCache.remove(player.getUniqueId());
+        logger.info("Refreshed damage format for player: " + player.getName());
+    }
+
+    /**
+     * Resets a player's combo counter
+     * 
+     * @param playerId the UUID of the player
+     */
+    public void resetPlayerCombo(UUID playerId) {
+        playerCombos.put(playerId, 0);
+        lastComboTime.remove(playerId);
+        lastActionTime.remove(playerId);
+
+        org.bukkit.scheduler.BukkitTask existingTask = decayTasks.remove(playerId);
+        if (existingTask != null) {
+            existingTask.cancel();
+        }
+
+        TextDisplay hologram = activeHolograms.remove(playerId);
+        if (hologram != null && hologram.isValid()) {
+            hologram.remove();
+        }
     }
 }
