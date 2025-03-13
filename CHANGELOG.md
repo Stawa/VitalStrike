@@ -2,7 +2,7 @@
 
 All notable changes to VitalStrike will be documented in this file.
 
-## [1.4.0] - 2024-03-15
+## [1.4.0] - 2025-03-17
 VitalStrike v1.4.0 brings important bug fixes and enhanced damage indicator customization.
 
 ### Added

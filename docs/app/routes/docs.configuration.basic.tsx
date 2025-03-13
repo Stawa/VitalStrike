@@ -71,11 +71,7 @@ export default function BasicConfiguration() {
             title="Basic Plugin Settings"
             filename="config.yml"
             code={`# General Settings
-  enabled: true
-  
-  # Language Settings
-  language: "en"
-  prefix: "&8[&bVitalStrike&8]"`}
+  enabled: true`}
             tip="These settings control the core functionality of the plugin. The prefix is used for all plugin messages."
           />
         </ConfigSection>
