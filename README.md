@@ -4,7 +4,7 @@
 [![Build](https://github.com/Stawa/VitalStrike/actions/workflows/build.yml/badge.svg)](https://github.com/Stawa/VitalStrike/actions/workflows/build.yml)
 [![Release](https://img.shields.io/github/v/release/Stawa/VitalStrike?include_prereleases&style=flat)](https://github.com/Stawa/VitalStrike/releases)
 
-VitalStrike is a powerful and highly customizable Minecraft plugin that enhances combat feedback with dynamic damage indicators, combo systems, and comprehensive statistics tracking.
+VitalStrike is a powerful and highly customizable Minecraft plugin that enhances combat feedback with dynamic damage indicators, combo systems, and comprehensive statistics tracking. With support for permission-based damage format groups and modern sound systems, it provides an immersive combat experience for your server.
 
 ## Documentation
 
@@ -19,13 +19,21 @@ For detailed information about features, installation, and configuration, visit 
 
 ## ✨ Features
 
-- Customizable damage indicators (styles, colors, animations, and directions)
-- Dynamic combo system with multipliers, ranks, and hologram displays
-- Player combat statistics tracking with leaderboards
-- Per-player settings and preferences for a personalized experience
-- Supports all damage types and integrates with modern sound systems
-- Automatic updates reminder, error handling, and bStats usage tracking
-- Easy to configure and use
+### 💫 Customizable Damage Indicators
+
+> Permission-based format groups with multiple styles, gradients, and animations
+
+### ⚔️ Dynamic Combat System
+
+> Advanced combo mechanism with multipliers, ranks, and hologram displays
+
+### 👤 Player Experience
+
+> Personalized settings, detailed combat statistics, and comprehensive leaderboards
+
+### 🔧 Technical Excellence
+
+> Advanced sound integration, robust performance, automatic updates, and easy configuration
 
 ## 🚀 Quick Start
 
@@ -36,14 +44,15 @@ For detailed information about features, installation, and configuration, visit 
 
 ## 📖 Commands
 
-| Command           | Permission              | Description                 | Default |
-| ----------------- | ----------------------- | --------------------------- | ------- |
-| `/vs help`        | vitalstrike.use         | Show the help menu          | true    |
-| `/vs toggle`      | vitalstrike.use         | Toggle damage indicators    | true    |
-| `/vs reload`      | vitalstrike.reload      | Reload plugin configuration | op      |
-| `/vs stats`       | vitalstrike.stats       | View combat statistics      | true    |
-| `/vs leaderboard` | vitalstrike.leaderboard | View server leaderboards    | true    |
-| `/vs hologram`    | vitalstrike.hologram    | Toggle combo holograms      | true    |
+| Command                       | Permission              | Description                    | Default |
+| ----------------------------- | ----------------------- | ------------------------------ | ------- |
+| `/vs help`                    | vitalstrike.use         | Show the help menu             | true    |
+| `/vs toggle [on-off]`         | vitalstrike.toggle      | Toggle damage indicators       | true    |
+| `/vs reload`                  | vitalstrike.reload      | Reload plugin configuration    | op      |
+| `/vs stats`                   | vitalstrike.stats       | View combat statistics         | true    |
+| `/vs leaderboard [type]`      | vitalstrike.leaderboard | View damage/combo leaderboards | true    |
+| `/vs hologram [on-off]`       | vitalstrike.hologram    | Toggle combo holograms         | true    |
+| `/vs vitalawakening [amount]` | vitalstrike.give        | Get Vital Awakening items      | op      |
 
 Aliases: `/vitalstrike`, `/vs`, `/vs lb` (for leaderboard)
 
@@ -52,37 +61,66 @@ Aliases: `/vitalstrike`, `/vs`, `/vs lb` (for leaderboard)
 VitalStrike supports different formats for various types of damage:
 
 ```yaml
-damage-formats:
-  default: "<gradient:#FF6B6B:#FF8787>-%.1f ❤</gradient>"
-  critical: "<bold><gradient:#FF0000:#8B0000>-%.1f ⚡</gradient></bold>"
-  poison: "<gradient:#50C878:#228B22>-%.1f ☠</gradient>"
-  fire: "<gradient:#FFD700:#FF4500>-%.1f 🔥</gradient>"
-  magic: "<gradient:#9400D3:#800080>-%.1f ✨</gradient>"
+simple-damage-formats:
+  default: "<gradient:#FF6B6B:#FF8787>-%.1f ❤</gradient>" # Normal damage
+  critical: "<bold><gradient:#FF0000:#8B0000>-%.1f ⚡</gradient></bold>" # Critical hits
+  poison: "<gradient:#50C878:#228B22>-%.1f ☠</gradient>" # Poison damage
+  fire: "<gradient:#FFD700:#FF4500>-%.1f 🔥</gradient>" # Fire damage
+  magic: "<gradient:#9400D3:#800080>-%.1f ✨</gradient>" # Magic damage
+  heal: "<green>+%.1f ❤</green>" # Healing amount
+  void: "<dark_gray>-%.1f ⬇</dark_gray>" # Void damage
+  wither: "<dark_gray>-%.1f 💀</dark_gray>" # Wither effect
   # ... and many more!
 ```
 
 ## ⚙️ Configuration
 
-### Combo System
+### ✊ Combo System
 
 ```yaml
 combo:
   enabled: true
-  reset-time: 3
+  reset-time: 3 # Time in seconds before combo resets
   multiplier:
     enabled: true
-    base: 1.0
-    per-combo: 0.1
-    max: 3.0
+    base: 1.0 # Base damage multiplier
+    per-combo: 0.1 # Additional multiplier per combo
+    max: 3.0 # Maximum damage multiplier
   decay:
     enabled: true
-    time: 10
-    rate: 1
-    interval: 1
-    minimum: 0
+    time: 10 # Time before decay starts
+    rate: 1 # Combo points lost per interval
+    interval: 1 # Decay check interval
+    minimum: 0 # Minimum combo value
+  display:
+    format: "<bold><gradient:#FF0000:#FFD700>✦ %dx COMBO ✦</gradient></bold>"
+    rank:
+      enabled: true
+      thresholds:
+        D: 0
+        C: 5
+        B: 10
+        A: 15
+        S: 25
+        SS: 40
+        SSS: 60
 ```
 
-### Display Settings
+### 😵 Knockdown System
+
+```yaml
+knockdown-system:
+  enabled: true
+  down-duration: 30 # Duration in seconds
+  revive-duration: 5.0 # Time to revive
+  revive-range: 3.0 # Range for revival
+  downed-health: 20.0 # Health when downed
+  vital-awakening:
+    instant-use: false # Hold to use setting
+    use-duration: 4.0 # Hold duration
+```
+
+### 🖥️ Display Settings
 
 ```yaml
 display:
@@ -108,31 +146,17 @@ display:
 
 ## 🎮 Player Settings
 
-Players can customize their own damage indicators:
+Players can customize their experience with the following settings:
 
-1. Toggle indicators: `/vs toggle`
+1. Toggle damage indicators: `/vs toggle [on|off]`
+2. Toggle combo holograms: `/vs hologram [on|off]`
+3. View personal statistics: `/vs stats`
+4. Check leaderboards: `/vs leaderboard [damage|combo|average]`
+5. Use Vital Awakening items for revival
 
 ## 🔧 API
 
-VitalStrike provides a simple API for developers:
-
-```java
-// Get plugin instance
-VitalStrike plugin = (VitalStrike) Bukkit.getPluginManager().getPlugin("VitalStrike");
-
-// Player management
-boolean isEnabled = plugin.getPlayerManager().isEnabled(player);
-plugin.getPlayerManager().setStyle(player, "<gradient:#FF6B6B:#FF8787>-%.1f ❤</gradient>");
-
-// Statistics access
-PlayerStats playerStats = plugin.getPlayerStats();
-PlayerStats.PlayerStatistics stats = playerStats.getPlayerStatistics(player.getUniqueId());
-
-// Combat statistics
-int highestCombo = stats.getHighestCombo();
-double totalDamage = stats.getTotalDamageDealt();
-double avgDamage = stats.getAverageDamagePerHit();
-```
+VitalStrike provides a comprehensive API for developers, with detailed documentation and examples available in our [JavaDoc documentation](https://stawa.github.io/VitalStrike/javadoc/), which includes complete documentation of all classes, methods, and interfaces available in the VitalStrike API.
 
 ## 📄 License
 
@@ -140,8 +164,9 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 ## 📞 Contact
 
-- Author: Stawa
+- Author: [Stawa](https://github.com/Stawa)
 - Issues: [GitHub Issues](https://github.com/Stawa/VitalStrike/issues)
+- Discord: [VitalStrike Community Server](https://discord.com/invite/b4nxvp8NcH)
 
 ---
 
