@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"stawa.vitalstrike"},{"l":"stawa.vitalstrike.commands"},{"l":"stawa.vitalstrike.items"},{"l":"stawa.vitalstrike.logger"},{"l":"stawa.vitalstrike.systems"}];updateSearchResults();
