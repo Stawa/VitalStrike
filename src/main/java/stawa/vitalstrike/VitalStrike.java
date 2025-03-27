@@ -1,7 +1,8 @@
 package stawa.vitalstrike;
 
-import stawa.vitalstrike.commands.CommandManager;
 import stawa.vitalstrike.logger.*;
+import stawa.vitalstrike.commands.CommandManager;
+import stawa.vitalstrike.systems.KnockdownManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -31,9 +32,13 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -45,7 +50,7 @@ import org.joml.Vector3f;
 
 /**
  * VitalStrike is a dynamic damage indication plugin for Minecraft servers.
- * <p>
+ * 
  * This plugin provides customizable damage indicators with various features
  * including:
  * <ul>
@@ -54,11 +59,22 @@ import org.joml.Vector3f;
  * <li>Player statistics tracking</li>
  * <li>Per-player preferences</li>
  * </ul>
- * </p>
+ * 
+ * The plugin extends JavaPlugin and implements Listener to handle Bukkit events.
+ * It manages core functionality including:
+ * <ul>
+ * <li>Damage indicator display and customization</li>
+ * <li>Combat combo system with multipliers and ranks</li>
+ * <li>Player statistics and leaderboards</li>
+ * <li>Configuration management</li>
+ * <li>Event handling for combat and player interactions</li>
+ * <li>Hologram management for visual feedback</li>
+ * </ul>
+ * 
+ * The plugin requires Paper 1.21.4+ or compatible forks and Java 21 or higher.
  * 
  * @author Stawa
- * @version 1.4.0
- * @see <a href="https://github.com/Stawa/VitalStrike">GitHub Repository</a>
+ * @version 1.5.0
  */
 public class VitalStrike extends JavaPlugin implements Listener {
     private static final long DAMAGE_COOLDOWN = 500;
@@ -120,6 +136,7 @@ public class VitalStrike extends JavaPlugin implements Listener {
     private VitalLogger logger;
     private PlayerManager playerManager;
     private PlayerStats playerStats;
+    private KnockdownManager knockdownManager;
 
     /**
      * Enum representing the direction of movement for the damage indicators.
@@ -174,6 +191,15 @@ public class VitalStrike extends JavaPlugin implements Listener {
     public void onEnable() {
         HelpManager helpManager;
         this.logger = new VitalLogger(this);
+
+        try {
+            this.knockdownManager = new KnockdownManager(this);
+        } catch (Errors.ConfigurationException e) {
+            logger.severe("Failed to initialize knockdown manager: " + e.getMessage());
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
         saveDefaultConfig();
         loadConfig();
         getServer().getPluginManager().registerEvents(this, this);
@@ -181,7 +207,7 @@ public class VitalStrike extends JavaPlugin implements Listener {
         try {
             playerManager = new PlayerManager(this);
         } catch (Errors.DatabaseException e) {
-            logger.severe(" Failed to initialize player manager: " + e.getMessage());
+            logger.severe("Failed to initialize player manager: " + e.getMessage());
         }
 
         try {
@@ -209,6 +235,9 @@ public class VitalStrike extends JavaPlugin implements Listener {
      */
     @Override
     public void onDisable() {
+        if (knockdownManager != null) {
+            knockdownManager.cleanup();
+        }
         for (TextDisplay hologram : activeHolograms.values()) {
             if (hologram != null && hologram.isValid()) {
                 hologram.remove();
@@ -550,6 +579,21 @@ public class VitalStrike extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         playerManager.loadPlayer(event.getPlayer());
+        knockdownManager.handlePlayerJoin(event.getPlayer());
+    }
+
+    /**
+     * Handles block breaking events to prevent downed players from breaking blocks
+     * and to maintain game balance.
+     *
+     * @param event The block break event
+     */
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+        Player player = event.getPlayer();
+        if (knockdownManager.isPlayerDowned(player)) {
+            event.setCancelled(true);
+        }
     }
 
     /**
@@ -559,6 +603,12 @@ public class VitalStrike extends JavaPlugin implements Listener {
      */
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        UUID playerId = player.getUniqueId();
+        TextDisplay hologram = activeHolograms.remove(playerId);
+        if (hologram != null && hologram.isValid()) {
+            hologram.remove();
+        }
         playerManager.unloadPlayer(event.getPlayer());
     }
 
@@ -567,7 +617,7 @@ public class VitalStrike extends JavaPlugin implements Listener {
      * 
      * @param event the entity damage event
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onEntityDamage(EntityDamageEvent event) {
         if (!enabled)
             return;
@@ -578,19 +628,55 @@ public class VitalStrike extends JavaPlugin implements Listener {
         if (!(entity instanceof org.bukkit.entity.LivingEntity))
             return;
 
+        if (entity instanceof Player player) {
+            if (knockdownManager.isPlayerDowned(player)) {
+                event.setCancelled(true);
+                return;
+            }
+
+            double finalDamage = event.getFinalDamage();
+            double currentHealth = player.getHealth();
+
+            if (currentHealth - finalDamage <= 0) {
+                event.setCancelled(true);
+                knockdownManager.handlePlayerDeath(player);
+                return;
+            }
+        }
+
         UUID entityId = entity.getUniqueId();
         long currentTime = System.currentTimeMillis();
 
-        if (event instanceof org.bukkit.event.entity.EntityDamageByEntityEvent entitydamagebyentityevent) {
-            handlePlayerCombos(entitydamagebyentityevent, currentTime);
+        if (event instanceof EntityDamageByEntityEvent entityDamageByEntityEvent) {
+            handlePlayerCombos(entityDamageByEntityEvent, currentTime);
         }
 
-        if (isOnCooldown(entityId, currentTime))
+        if (!isOnCooldown(entityId, currentTime)) {
+            lastDamageTime.put(entityId, currentTime);
+            displayDamageIndicator(entity, event);
+        }
+    }
+
+    /**
+     * Handles player interaction events for using items and interacting with
+     * blocks.
+     * Manages special item usage and prevents downed players from interacting.
+     *
+     * @param event The player interact event
+     */
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        if (!enabled)
             return;
 
-        lastDamageTime.put(entityId, currentTime);
+        Player player = event.getPlayer();
+        if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            knockdownManager.attemptSelfRevive(player);
+        }
 
-        displayDamageIndicator(entity, event);
+        if (knockdownManager.isPlayerDowned(player)) {
+            event.setCancelled(true);
+        }
     }
 
     /**
@@ -877,8 +963,8 @@ public class VitalStrike extends JavaPlugin implements Listener {
         Player damager = null;
         if (event instanceof EntityDamageByEntityEvent damageByEntityEvent) {
             Entity damagerEntity = damageByEntityEvent.getDamager();
-            if (damagerEntity instanceof Player) {
-                damager = (Player) damagerEntity;
+            if (damagerEntity instanceof Player player) {
+                damager = player;
             }
         }
 
@@ -899,37 +985,6 @@ public class VitalStrike extends JavaPlugin implements Listener {
                 .forEach(player -> createDamageDisplay(loc, damageFormat, damage));
 
         playDamageTypeSound(entity, event.getCause(), loc);
-    }
-
-    /**
-     * Gets the damage format string based on damage cause and player permissions.
-     * 
-     * @param cause  the damage cause
-     * @param entity the damaged entity
-     * @return the format string
-     */
-    private String getDamageFormat(EntityDamageEvent.DamageCause cause, Entity entity) {
-        String damageType = cause.name().toLowerCase();
-
-        if ("simple-damage-formats".equals(damageIndicatorType)) {
-            return getSimpleDamageFormat(cause);
-        }
-
-        Player player = null;
-        if (entity instanceof Player) {
-            player = (Player) entity;
-        } else if (entity.getLastDamageCause() instanceof EntityDamageByEntityEvent damageByEntityEvent) {
-            Entity damager = damageByEntityEvent.getDamager();
-            if (damager instanceof Player) {
-                player = (Player) damager;
-            }
-        }
-
-        if (player == null) {
-            return getSimpleDamageFormat(cause);
-        }
-
-        return permissionManager.getDamageFormat(player, damageType, getSimpleDamageFormat(cause));
     }
 
     /**
@@ -957,11 +1012,7 @@ public class VitalStrike extends JavaPlugin implements Listener {
             return false;
         }
 
-        if (entity.getScoreboardTags().contains("nodamage")) {
-            return false;
-        }
-
-        return true;
+        return !entity.getScoreboardTags().contains("nodamage");
     }
 
     /**
@@ -1294,12 +1345,9 @@ public class VitalStrike extends JavaPlugin implements Listener {
     private void createComboHologram(Player player, int combo, Entity target) {
         UUID playerId = player.getUniqueId();
 
-        if (activeHolograms.containsKey(playerId)) {
-            TextDisplay existing = activeHolograms.get(playerId);
-            if (existing != null && existing.isValid()) {
-                existing.remove();
-            }
-            activeHolograms.remove(playerId);
+        TextDisplay existing = activeHolograms.remove(playerId);
+        if (existing != null && existing.isValid()) {
+            existing.remove();
         }
 
         Location loc = target.getLocation().add(0, target.getHeight() + comboHologramHeight, 0);
@@ -1313,12 +1361,15 @@ public class VitalStrike extends JavaPlugin implements Listener {
         hologram.setSeeThrough(true);
         hologram.setShadowed(true);
         hologram.setPersistent(false);
+        hologram.setViewRange(32);
+        hologram.setDefaultBackground(false);
 
         activeHolograms.put(playerId, hologram);
 
         int removalTicks = (int) (comboHologramDuration * 20);
         getServer().getScheduler().runTaskLater(this, () -> {
-            if (hologram.isValid()) {
+            TextDisplay storedHologram = activeHolograms.get(playerId);
+            if (storedHologram != null && storedHologram.equals(hologram) && hologram.isValid()) {
                 hologram.remove();
                 activeHolograms.remove(playerId);
             }
@@ -1449,64 +1500,122 @@ public class VitalStrike extends JavaPlugin implements Listener {
      */
     public String getDamageFormat(Player player, String damageType) {
         UUID playerId = player.getUniqueId();
+
+        String cachedFormat = getFormatFromCache(playerId, damageType);
+        if (cachedFormat != null) {
+            return cachedFormat;
+        }
+
+        String groupFormat = getFormatFromGroups(player, damageType);
+        if (groupFormat != null) {
+            cacheFormat(playerId, damageType, groupFormat);
+            return groupFormat;
+        }
+
+        String typeFormat = getFormatFromIndicatorType(damageType);
+        if (typeFormat != null) {
+            cacheFormat(playerId, damageType, typeFormat);
+            return typeFormat;
+        }
+
+        String defaultFormat = getConfig().getString(damageIndicatorType + ".default", "<red>-%.1f ❤</red>");
+        cacheFormat(playerId, damageType, defaultFormat);
+        return defaultFormat;
+    }
+
+    /**
+     * Gets a damage format from the cache if available.
+     * 
+     * @param playerId   the player UUID
+     * @param damageType the damage type
+     * @return the cached format or null if not found
+     */
+    private String getFormatFromCache(UUID playerId, String damageType) {
         if (damageFormatCache.containsKey(playerId)) {
             Map<String, String> playerFormats = damageFormatCache.get(playerId);
             if (playerFormats.containsKey(damageType)) {
                 return playerFormats.get(damageType);
             }
         }
+        return null;
+    }
 
-        String format = null;
-
-        if (getConfig().contains("group-damage-formats")) {
-            ConfigurationSection groupsSection = getConfig().getConfigurationSection("group-damage-formats");
-            if (groupsSection != null) {
-                for (String groupKey : groupsSection.getKeys(false)) {
-                    if (!groupKey.equals("default")) {
-                        String permission = "vitalstrike.group." + groupKey;
-                        if (player.hasPermission(permission)) {
-                            format = getConfig().getString(
-                                    "group-damage-formats." + groupKey + ".damage-formats." + damageType);
-
-                            if (format != null) {
-                                cacheFormat(playerId, damageType, format);
-                                return format;
-                            }
-
-                            format = getConfig().getString(
-                                    "group-damage-formats." + groupKey + ".damage-formats.default");
-
-                            if (format != null) {
-                                cacheFormat(playerId, damageType, format);
-                                return format;
-                            }
-                        }
-                    }
-                }
-            }
-
-            format = getConfig().getString("group-damage-formats.default.damage-formats." + damageType);
-            if (format != null) {
-                cacheFormat(playerId, damageType, format);
-                return format;
-            }
-
-            format = getConfig().getString("group-damage-formats.default.damage-formats.default");
-            if (format != null) {
-                cacheFormat(playerId, damageType, format);
-                return format;
-            }
+    /**
+     * Gets a damage format based on player's permission groups.
+     * 
+     * @param player     the player
+     * @param damageType the damage type
+     * @return the format string or null if not found
+     */
+    private String getFormatFromGroups(Player player, String damageType) {
+        if (!getConfig().contains("group-damage-formats")) {
+            return null;
         }
 
-        format = getConfig().getString(damageIndicatorType + "." + damageType);
+        ConfigurationSection groupsSection = getConfig().getConfigurationSection("group-damage-formats");
+        if (groupsSection == null) {
+            return null;
+        }
+
+        String format = findFormatFromPlayerGroups(player, damageType, groupsSection);
         if (format != null) {
-            cacheFormat(playerId, damageType, format);
             return format;
         }
 
-        format = getConfig().getString(damageIndicatorType + ".default", "<red>-%.1f ❤</red>");
-        cacheFormat(playerId, damageType, format);
-        return format;
+        return findFormatFromDefaultGroup(damageType);
+    }
+
+    /**
+     * Finds a format from player's permission groups.
+     * 
+     * @param player        the player
+     * @param damageType    the damage type
+     * @param groupsSection the configuration section for groups
+     * @return the format string or null if not found
+     */
+    private String findFormatFromPlayerGroups(Player player, String damageType, ConfigurationSection groupsSection) {
+        for (String groupKey : groupsSection.getKeys(false)) {
+            if (!groupKey.equals("default") && player.hasPermission("vitalstrike.group." + groupKey)) {
+                String format = getConfig().getString(
+                        "group-damage-formats." + groupKey + ".damage-formats." + damageType);
+                if (format != null) {
+                    return format;
+                }
+
+                format = getConfig().getString(
+                        "group-damage-formats." + groupKey + ".damage-formats.default");
+                if (format != null) {
+                    return format;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Finds a format from the default group.
+     * 
+     * @param damageType the damage type
+     * @return the format string or null if not found
+     */
+    private String findFormatFromDefaultGroup(String damageType) {
+        String format = getConfig().getString("group-damage-formats.default.damage-formats." + damageType);
+        if (format != null) {
+            return format;
+        }
+
+        return getConfig().getString("group-damage-formats.default.damage-formats.default");
+    }
+
+    /**
+     * Gets a damage format from the configured damage indicator type.
+     * 
+     * @param damageType the damage type
+     * @return the format string or null if not found
+     */
+    private String getFormatFromIndicatorType(String damageType) {
+        return getConfig().getString(damageIndicatorType + "." + damageType);
     }
 
     /**

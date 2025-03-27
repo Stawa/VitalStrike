@@ -215,6 +215,27 @@ combo:
     format: "<gradient:red:gold><bold>COMBO STREAK!</bold></gradient>"
     height: 2.0
 
+knockdown-system:
+  enabled: true
+  down-duration: 30
+  revive-duration: 5.0
+  revive-range: 3.0
+  downed-health: 20.0
+  vital-awakening:
+    instant-use: false # Set to true for instant use, false for hold-to-use
+    use-duration: 4.0 # Time in seconds to hold right-click when instant-use is false
+  effects:
+    down:
+      slowness: 255
+      blindness: 1
+    messages:
+      self-revived: "<green>You used Vital Awakening to revive yourself!"
+      downed: "<red>You have been knocked down! Wait for help or death in %time% seconds"
+      reviving: "<green>Being revived by %player%... (%progress%%)"
+      revived: "<green>You have been revived by %player%!"
+      revive-failed: "<red>Revive interrupted!"
+      cannot-revive: "<red>Cannot revive this player!"
+
 # Display Settings
 display:
   duration: 1.5 # How long damage/heal numbers stay visible (in seconds)
@@ -282,6 +303,9 @@ help-menu:
     help:
       command: "/vs help [section]"
       description: "Show this help menu or a specific section"
+    vitalawakening:
+      command: "/vs vitalawakening [amount]"
+      description: "Get Vital Awakening revival items"
   sections:
     combos:
       title: "<gold><bold>Combo System Help</bold></gold>"

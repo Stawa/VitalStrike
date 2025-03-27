@@ -16,7 +16,7 @@ import java.util.function.ToDoubleFunction;
 
 /**
  * Manages player statistics for the VitalStrike plugin.
- * <p>
+ * 
  * This class handles the storage and retrieval of player combat statistics
  * including:
  * <ul>
@@ -26,23 +26,23 @@ import java.util.function.ToDoubleFunction;
  * <li>Average damage per hit</li>
  * </ul>
  * Statistics are persisted to a YAML file and loaded on plugin startup.
- * </p>
  * 
  * @author Stawa
  * @version 1.4.0
  */
 public class PlayerStats {
     private static final String STATS_FILE = "stats.yml";
-    private VitalLogger logger;
-    private final Map<UUID, PlayerStatistics> playerStats;
     private final File statsFile;
+    private final Map<UUID, PlayerStatistics> playerStats;
     private final YamlConfiguration statsConfig;
+    private VitalLogger logger;
 
     /**
      * Creates a new PlayerStats instance.
      * 
      * @param plugin the VitalStrike plugin instance
-     * @throws DatabaseException
+     * @throws DatabaseException If there is an error accessing or updating the
+     *                           database
      */
     public PlayerStats(VitalStrike plugin) throws DatabaseException {
         this.logger = new VitalLogger(plugin);
@@ -153,8 +153,8 @@ public class PlayerStats {
     /**
      * Saves all player statistics to the stats file.
      * 
-     * @throws DatabaseException if there's an error saving the stats file
-     * @throws IOException       if there's an error writing to the file
+     * @throws DatabaseException If there is an error accessing or updating the
+     *                           database if there's an error saving the stats file
      */
     public void saveAllStats() throws DatabaseException {
         for (Map.Entry<UUID, PlayerStatistics> entry : playerStats.entrySet()) {

@@ -8,8 +8,6 @@
  * 
  * <h2>Quick Links</h2>
  * <ul>
- * <li><a href="overview-summary.html">Overview</a></li>
- * <li><a href="wiki/index.html">Wiki</a></li>
  * <li><a href="https://github.com/Stawa/VitalStrike">GitHub Repository</a></li>
  * </ul>
  * 
@@ -29,6 +27,6 @@
  * </ul>
  * 
  * @author Stawa
- * @version 1.4.0
+ * @version 1.5.0
  */
 package stawa.vitalstrike;

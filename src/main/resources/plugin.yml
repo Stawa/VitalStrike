@@ -16,9 +16,11 @@ commands:
       §e/vs stats §7- View your combat statistics
       §e/vs leaderboard [damage|combo|average] §7- View top players leaderboard
       §e/vs hologram [on|off] §7- Toggle combo hologram display
+      §e/vs vitalawakening [amount] §7- Give Vital Awakening items
     aliases: [vs]
     permission: vitalstrike.use
     permission-message: §cYou don't have permission to use VitalStrike commands!
+
 
 permissions:
   vitalstrike.admin.permissions:
@@ -26,6 +28,9 @@ permissions:
     default: op
   vitalstrike.reload:
     description: Allows reloading the plugin configuration
+    default: op
+  vitalstrike.give:
+    description: Allows giving Vital Awakening items
     default: op
   vitalstrike.use:
     description: Allows using VitalStrike commands

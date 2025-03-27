@@ -26,28 +26,32 @@ public class HelpManager {
      * @param sender the command sender
      */
     public void sendHelpMenu(CommandSender sender) {
-        sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                config.getString("help-menu.header",
-                        "<dark_gray><strikethrough>                    </strikethrough>")));
+        String header = config.getString("help-menu.header",
+                "<dark_gray><strikethrough>                    </strikethrough>");
+        String title = config.getString("help-menu.title", "<gold><bold>VitalStrike Commands</bold></gold>");
+        String footer = config.getString("help-menu.footer",
+                "<dark_gray><strikethrough>                    </strikethrough>");
 
-        sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                config.getString("help-menu.title", "<gold><bold>VitalStrike Commands</bold></gold>")));
+        sender.sendMessage(MiniMessage.miniMessage().deserialize(header));
+        sender.sendMessage(MiniMessage.miniMessage().deserialize(title));
 
         ConfigurationSection commandsSection = config.getConfigurationSection("help-menu.commands");
         if (commandsSection != null) {
             for (String key : commandsSection.getKeys(false)) {
-                if (sender.hasPermission("vitalstrike." + key)) {
-                    String command = commandsSection.getString(key + ".command", "");
-                    String description = commandsSection.getString(key + ".description", "");
-                    sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                            "<yellow>" + command + " <gray>- " + description));
+                if (key.equals("help") || sender.hasPermission("vitalstrike." + key)
+                        || sender.hasPermission("vitalstrike.admin")) {
+                    String command = commandsSection.getString(key + ".command");
+                    String description = commandsSection.getString(key + ".description");
+
+                    if (command != null && description != null) {
+                        sender.sendMessage(MiniMessage.miniMessage().deserialize(
+                                "<yellow>" + command + " <gray>- " + description));
+                    }
                 }
             }
         }
 
-        sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                config.getString("help-menu.footer",
-                        "<dark_gray><strikethrough>                    </strikethrough>")));
+        sender.sendMessage(MiniMessage.miniMessage().deserialize(footer));
     }
 
     /**
@@ -66,8 +70,7 @@ public class HelpManager {
         }
 
         sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                config.getString("help-menu.header",
-                        "<dark_gray><strikethrough>                    </strikethrough>")));
+                config.getString("help-menu.header")));
 
         String title = config.getString(sectionPath + ".title", "<gold><bold>" + section + " Help</bold></gold>");
         sender.sendMessage(MiniMessage.miniMessage().deserialize(title));
@@ -81,7 +84,6 @@ public class HelpManager {
         }
 
         sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                config.getString("help-menu.footer",
-                        "<dark_gray><strikethrough>                    </strikethrough>")));
+                config.getString("help-menu.footer")));
     }
 }

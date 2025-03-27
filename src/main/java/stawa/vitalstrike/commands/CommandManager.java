@@ -1,5 +1,8 @@
 package stawa.vitalstrike.commands;
 
+import java.util.*;
+import java.util.function.Function;
+
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -13,13 +16,12 @@ import stawa.vitalstrike.PlayerStats;
 import stawa.vitalstrike.VitalStrike;
 import stawa.vitalstrike.logger.VitalLogger;
 
-import java.util.*;
-import java.util.function.Function;
-
 /**
  * Manages all commands for the VitalStrike plugin.
  */
 public class CommandManager {
+    private static final String CMD_VITAL_AWAKENING = "vitalawakening";
+    private static final String CMD_VA = "va";
     private static final String CMD_HOLOGRAM = "hologram";
     private static final String CMD_LEADERBOARD = "leaderboard";
     private static final String CMD_LEADERBOARD_SHORT = "lb";
@@ -33,6 +35,7 @@ public class CommandManager {
     private final PlayerManager playerManager;
     private final PlayerStats playerStats;
     private final HelpManager helpManager;
+    private final GiveItemCommand giveItemCommand;
 
     /**
      * Constructs a new CommandManager.
@@ -50,6 +53,7 @@ public class CommandManager {
         this.playerManager = playerManager;
         this.playerStats = playerStats;
         this.helpManager = helpManager;
+        this.giveItemCommand = new GiveItemCommand(plugin);
     }
 
     /**
@@ -62,7 +66,7 @@ public class CommandManager {
      * @return true if the command was handled, false otherwise
      */
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!command.getName().equalsIgnoreCase("vitalstrike")) {
+        if (!command.getName().equalsIgnoreCase("vitalstrike") && !command.getName().equalsIgnoreCase("vs")) {
             return false;
         }
 
@@ -91,6 +95,9 @@ public class CommandManager {
                     return handleHologramCommand(sender, args);
                 case CMD_PERMISSIONS:
                     return handlePermissionsCommand(sender, args);
+                case CMD_VITAL_AWAKENING, CMD_VA:
+                    return giveItemCommand.onCommand(sender, command, label,
+                            args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
                 default:
                     return false;
             }
@@ -735,6 +742,10 @@ public class CommandManager {
             completions.add(CMD_HOLOGRAM);
         if (sender.hasPermission("vitalstrike.admin.permissions"))
             completions.add(CMD_PERMISSIONS);
+        if (sender.hasPermission("vitalstrike.vitalawakening")) {
+            completions.add(CMD_VITAL_AWAKENING);
+            completions.add(CMD_VA);
+        }
 
         return completions.stream()
                 .filter(s -> s.toLowerCase().startsWith(arg.toLowerCase()))
@@ -752,8 +763,7 @@ public class CommandManager {
         List<String> completions = new ArrayList<>();
 
         switch (firstArg.toLowerCase()) {
-            case CMD_TOGGLE:
-            case CMD_HOLOGRAM:
+            case CMD_TOGGLE, CMD_HOLOGRAM:
                 completions.addAll(Arrays.asList("on", "off"));
                 break;
             case CMD_LEADERBOARD, CMD_LEADERBOARD_SHORT:
@@ -761,6 +771,11 @@ public class CommandManager {
                 break;
             case CMD_PERMISSIONS:
                 completions.addAll(Arrays.asList("add", "remove", "list"));
+                break;
+            case CMD_VITAL_AWAKENING, CMD_VA:
+                for (int i = 1; i <= 64; i++) {
+                    completions.add(String.valueOf(i));
+                }
                 break;
             case "help":
                 ConfigurationSection helpSections = plugin.getConfig().getConfigurationSection("help-menu.sections");
