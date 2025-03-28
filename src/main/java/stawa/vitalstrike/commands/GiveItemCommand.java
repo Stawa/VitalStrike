@@ -40,7 +40,7 @@ public class GiveItemCommand implements CommandExecutor {
 
     /**
      * Executes the give command, providing Vital Awakening items to players.
-     * Usage: /givevital [amount]
+     * Usage: /vs vitalawakening [amount]
      *
      * @param sender  The command sender (must be a player)
      * @param command The command being executed

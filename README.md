@@ -6,9 +6,10 @@
 
 VitalStrike is a powerful and highly customizable Minecraft plugin that enhances combat feedback with dynamic damage indicators, combo systems, and comprehensive statistics tracking. With support for permission-based damage format groups and modern sound systems, it provides an immersive combat experience for your server.
 
-## Documentation
+## Documentation & API
 
-For detailed information about features, installation, and configuration, visit our documentation at [https://vitalstrike.vercel.app/](https://vitalstrike.vercel.app/)
+For features, installation, and configuration information, visit our main website at [https://vitalstrike.vercel.app/](https://vitalstrike.vercel.app/)
+For developers, we provide a comprehensive API with detailed documentation and examples available in our [JavaDoc Documentation](https://stawa.github.io/VitalStrike/javadoc/), which includes complete documentation of all classes, methods, and interfaces available in the VitalStrike API.
 
 ---
 
@@ -41,6 +42,47 @@ For detailed information about features, installation, and configuration, visit 
 2. Place it in your server's `plugins` folder
 3. Restart your server
 4. Configure the plugin in `plugins/VitalStrike/config.yml`
+
+### 🧪 Development Build Guide
+
+Want to explore the cutting-edge features? Follow these steps to build from source:
+
+<details>
+<summary>📦 Build Instructions</summary>
+
+1. **Clone the Repository**
+
+   ```bash
+   git clone https://github.com/Stawa/VitalStrike.git
+   ```
+
+2. **Enter Project Directory**
+
+   ```bash
+   cd VitalStrike
+   ```
+
+3. **Compile with Maven**
+
+   ```bash
+   mvn clean package
+   ```
+
+4. **Locate the Build**
+   > Find your compiled JAR at:
+   > `target/VitalStrike-{version}.jar`
+
+</details>
+
+#### 📋 Prerequisites
+
+- Java Development Kit (JDK) 21 or newer
+- Apache Maven build tool
+- Git version control
+
+> 💎 **Pro Tip:** Use an IDE like IntelliJ IDEA or Eclipse for a smoother development experience!
+
+⚠️ **Important:** Development builds are experimental and may contain unstable features. Not recommended for production environments.
 
 ## 📖 Commands
 
@@ -77,6 +119,9 @@ simple-damage-formats:
 
 ### ✊ Combo System
 
+<details>
+<summary>Click to View</summary>
+
 ```yaml
 combo:
   enabled: true
@@ -106,7 +151,12 @@ combo:
         SSS: 60
 ```
 
+</details>
+
 ### 😵 Knockdown System
+
+<details>
+<summary>Click to View</summary>
 
 ```yaml
 knockdown-system:
@@ -120,7 +170,12 @@ knockdown-system:
     use-duration: 4.0 # Hold duration
 ```
 
+</details>
+
 ### 🖥️ Display Settings
+
+<details>
+<summary>Click to View</summary>
 
 ```yaml
 display:
@@ -137,12 +192,17 @@ display:
     float-curve: 0.02
 ```
 
+</details>
+
 ### 🔄 Animation Directions
 
+<details>
+<summary>Click to View</summary>
 - `down`: Indicators float downward (default)
 - `up`: Indicators float upward
 - `left`: Indicators float to the left
 - `right`: Indicators float to the right
+</details>
 
 ## 🎮 Player Settings
 
@@ -153,10 +213,6 @@ Players can customize their experience with the following settings:
 3. View personal statistics: `/vs stats`
 4. Check leaderboards: `/vs leaderboard [damage|combo|average]`
 5. Use Vital Awakening items for revival
-
-## 🔧 API
-
-VitalStrike provides a comprehensive API for developers, with detailed documentation and examples available in our [JavaDoc documentation](https://stawa.github.io/VitalStrike/javadoc/), which includes complete documentation of all classes, methods, and interfaces available in the VitalStrike API.
 
 ## 📄 License
 
