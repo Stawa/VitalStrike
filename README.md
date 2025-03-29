@@ -4,7 +4,7 @@
 [![Build](https://github.com/Stawa/VitalStrike/actions/workflows/build.yml/badge.svg)](https://github.com/Stawa/VitalStrike/actions/workflows/build.yml)
 [![Release](https://img.shields.io/github/v/release/Stawa/VitalStrike?include_prereleases&style=flat)](https://github.com/Stawa/VitalStrike/releases)
 
-VitalStrike is a powerful and highly customizable Minecraft plugin that enhances combat feedback with dynamic damage indicators, combo systems, and comprehensive statistics tracking. With support for permission-based damage format groups and modern sound systems, it provides an immersive combat experience for your server.
+VitalStrike is a Minecraft plugin that enhances combat by introducing dynamic damage indications, combo multipliers, and a knockdown mechanism. It has leaderboards, customisable damage formats, sound effects, and world dimension controls. With permission-based formatting and extensive customisation, VitalStrike boosts your server's PvP experience.
 
 ## Documentation & API
 
@@ -35,6 +35,10 @@ For developers, we provide a comprehensive API with detailed documentation and e
 ### 🔧 Technical Excellence
 
 > Advanced sound integration, robust performance, automatic updates, and easy configuration
+
+### 🌍 World Compatibility
+
+> Flexible dimension control for Nether, End, and Overworld with WorldGuard integration
 
 ## 🚀 Quick Start
 
@@ -199,10 +203,12 @@ display:
 
 <details>
 <summary>Click to View</summary>
+
 - `down`: Indicators float downward (default)
 - `up`: Indicators float upward
 - `left`: Indicators float to the left
 - `right`: Indicators float to the right
+
 </details>
 
 ## 🎮 Player Settings
@@ -224,6 +230,7 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 - Author: [Stawa](https://github.com/Stawa)
 - Issues: [GitHub Issues](https://github.com/Stawa/VitalStrike/issues)
 - Discord: [VitalStrike Community Server](https://discord.com/invite/b4nxvp8NcH)
+> I do not accept DMs. Please join the Discord server for support and discussions.
 
 ---
 
