@@ -86,15 +86,16 @@ Want to explore the cutting-edge features? Follow these steps to build from sour
 
 ## 📖 Commands
 
-| Command                       | Permission              | Description                    | Default |
-| ----------------------------- | ----------------------- | ------------------------------ | ------- |
-| `/vs help`                    | vitalstrike.use         | Show the help menu             | true    |
-| `/vs toggle [on-off]`         | vitalstrike.toggle      | Toggle damage indicators       | true    |
-| `/vs reload`                  | vitalstrike.reload      | Reload plugin configuration    | op      |
-| `/vs stats`                   | vitalstrike.stats       | View combat statistics         | true    |
-| `/vs leaderboard [type]`      | vitalstrike.leaderboard | View damage/combo leaderboards | true    |
-| `/vs hologram [on-off]`       | vitalstrike.hologram    | Toggle combo holograms         | true    |
-| `/vs vitalawakening [amount]` | vitalstrike.give        | Get Vital Awakening items      | op      |
+| Command                                            | Permission              | Description                    | Default |
+| -------------------------------------------------- | ----------------------- | ------------------------------ | ------- |
+| `/vs help`                                         | vitalstrike.use         | Show the help menu             | true    |
+| `/vs toggle [on-off]`                              | vitalstrike.toggle      | Toggle damage indicators       | true    |
+| `/vs reload`                                       | vitalstrike.reload      | Reload plugin configuration    | op      |
+| `/vs stats`                                        | vitalstrike.stats       | View combat statistics         | true    |
+| `/vs leaderboard [type]`                           | vitalstrike.leaderboard | View damage/combo leaderboards | true    |
+| `/vs hologram [on-off]`                            | vitalstrike.hologram    | Toggle combo holograms         | true    |
+| `/vs vitalawakening [amount]`                      | vitalstrike.give        | Get Vital Awakening items      | op      |
+| `/vs perm <add-remove-list> <player> [permission]` | vitalstrike.admin       | Manage player permissions      | op      |
 
 Aliases: `/vitalstrike`, `/vs`, `/vs lb` (for leaderboard)
 
