@@ -4,6 +4,7 @@ main: stawa.vitalstrike.VitalStrike
 api-version: "1.21"
 author: stawa
 description: A plugin that displays damage indicators when entities or players take damage
+softdepend: [WorldGuard]
 
 commands:
   vitalstrike:
@@ -20,7 +21,6 @@ commands:
     aliases: [vs]
     permission: vitalstrike.use
     permission-message: §cYou don't have permission to use VitalStrike commands!
-
 
 permissions:
   vitalstrike.admin.permissions:

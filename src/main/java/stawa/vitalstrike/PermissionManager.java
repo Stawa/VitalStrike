@@ -126,66 +126,119 @@ public class PermissionManager {
         String damageIndicatorType = plugin.getConfig().getString("damage-indicator", "simple-damage-formats");
 
         if ("simple-damage-formats".equals(damageIndicatorType)) {
-            String format = plugin.getConfig().getString("simple-damage-formats." + damageType);
-            if (format != null) {
-                return format;
-            }
+            return getSimpleDamageFormat(damageType, defaultFormat);
+        }
 
-            format = plugin.getConfig().getString("simple-damage-formats.default");
-            if (format != null) {
-                return format;
-            }
+        return getGroupBasedDamageFormat(player, damageType, defaultFormat);
+    }
 
+    /**
+     * Gets the damage format using simple format configuration.
+     * 
+     * @param damageType    the type of damage
+     * @param defaultFormat the default format to use if no simple format is found
+     * @return the formatted damage string
+     */
+    private String getSimpleDamageFormat(String damageType, String defaultFormat) {
+        String format = plugin.getConfig().getString("simple-damage-formats." + damageType);
+        if (format != null) {
+            return format;
+        }
+
+        format = plugin.getConfig().getString("simple-damage-formats.default");
+        return format != null ? format : defaultFormat;
+    }
+
+    /**
+     * Gets the damage format using group-based configuration.
+     * 
+     * @param player        the player to check permissions for
+     * @param damageType    the type of damage
+     * @param defaultFormat the default format to use if no group format is found
+     * @return the formatted damage string
+     */
+    private String getGroupBasedDamageFormat(Player player, String damageType, String defaultFormat) {
+        ConfigurationSection groupsSection = plugin.getConfig().getConfigurationSection("group-damage-formats");
+        if (groupsSection == null) {
             return defaultFormat;
         }
 
-        ConfigurationSection groupsSection = plugin.getConfig().getConfigurationSection("group-damage-formats");
-        if (groupsSection != null) {
-            for (String groupKey : groupsSection.getKeys(false)) {
-                if (!groupKey.equals("default")) {
-                    String permission = "vitalstrike.group." + groupKey;
-
-                    boolean hasPermission = false;
-                    if (player instanceof Player) {
-                        hasPermission = hasExplicitPermission(player, permission);
-                    }
-
-                    if (hasPermission) {
-                        String format = plugin.getConfig().getString(
-                                "group-damage-formats." + groupKey + ".damage-formats." + damageType);
-
-                        if (format != null) {
-                            return format;
-                        }
-
-                        format = plugin.getConfig().getString(
-                                "group-damage-formats." + groupKey + ".damage-formats.default");
-
-                        if (format != null) {
-                            return format;
-                        }
-                    }
-                }
-            }
-
-            boolean useSimpleFormats = plugin.getConfig().getBoolean("group-damage-formats.default.use-simple-formats",
-                    false);
-
-            if (!useSimpleFormats) {
-                String format = plugin.getConfig()
-                        .getString("group-damage-formats.default.damage-formats." + damageType);
-                if (format != null) {
-                    return format;
-                }
-
-                format = plugin.getConfig().getString("group-damage-formats.default.damage-formats.default");
-                if (format != null) {
-                    return format;
-                }
-            }
+        String groupFormat = findGroupFormat(player, damageType, groupsSection);
+        if (groupFormat != null) {
+            return groupFormat;
         }
 
-        return defaultFormat;
+        return getDefaultGroupFormat(damageType, defaultFormat);
+    }
+
+    /**
+     * Searches for a matching format in non-default groups.
+     * 
+     * @param player        the player to check permissions for
+     * @param damageType    the type of damage
+     * @param groupsSection the configuration section containing group settings
+     * @return the format string if found, null otherwise
+     */
+    private String findGroupFormat(Player player, String damageType, ConfigurationSection groupsSection) {
+        for (String groupKey : groupsSection.getKeys(false)) {
+            if (groupKey.equals(DEFAULT_GROUP)) {
+                continue;
+            }
+
+            String format = getFormatForGroup(player, groupKey, damageType);
+            if (format != null) {
+                return format;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Gets the damage format for a specific group if the player has permission.
+     * 
+     * @param player     the player to check permissions for
+     * @param groupKey   the group identifier
+     * @param damageType the type of damage
+     * @return the format string if found and permitted, null otherwise
+     */
+    private String getFormatForGroup(Player player, String groupKey, String damageType) {
+        String permission = "vitalstrike.group." + groupKey;
+        if (!hasExplicitPermission(player, permission)) {
+            return null;
+        }
+
+        String format = plugin.getConfig().getString(
+                "group-damage-formats." + groupKey + ".damage-formats." + damageType);
+        if (format != null) {
+            return format;
+        }
+
+        return plugin.getConfig().getString(
+                "group-damage-formats." + groupKey + ".damage-formats.default");
+    }
+
+    /**
+     * Gets the default group's damage format.
+     * 
+     * @param damageType    the type of damage
+     * @param defaultFormat the default format to use if no default group format is
+     *                      found
+     * @return the formatted damage string
+     */
+    private String getDefaultGroupFormat(String damageType, String defaultFormat) {
+        boolean useSimpleFormats = plugin.getConfig().getBoolean("group-damage-formats.default.use-simple-formats",
+                false);
+        if (useSimpleFormats) {
+            return defaultFormat;
+        }
+
+        String format = plugin.getConfig().getString("group-damage-formats.default.damage-formats." + damageType);
+        if (format != null) {
+            return format;
+        }
+
+        format = plugin.getConfig().getString("group-damage-formats.default.damage-formats.default");
+        return format != null ? format : defaultFormat;
     }
 
     /**
@@ -197,8 +250,7 @@ public class PermissionManager {
      * @return true if the player has the permission explicitly assigned
      */
     private boolean hasExplicitPermission(Player player, String permission) {
-        if (plugin instanceof VitalStrike) {
-            VitalStrike vs = (VitalStrike) plugin;
+        if (plugin instanceof VitalStrike vs) {
             PlayerManager playerManager = vs.getPlayerManager();
             if (playerManager != null) {
                 String path = "players." + player.getUniqueId() + ".permissions";

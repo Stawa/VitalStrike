@@ -12,6 +12,26 @@ database:
   enabled: true
   file: "playerdata.yml"
 
+# World Settings
+world-settings:
+  enabled: true # Master switch for world-based control
+  disabled-worlds:
+    - "example_world"
+    - "minigames_world"
+  # Dimension-specific settings
+  dimensions:
+    overworld:
+      enabled: true
+      damage-multiplier: 1.0 # 0% damage multiplier in overworld
+    nether:
+      enabled: true
+      damage-multiplier: 1.2 # 20% more damage in nether
+    end:
+      enabled: true
+      damage-multiplier: 1.1 # 10% more damage in end
+  # If WorldGuard is present, respect PvP regions
+  respect-worldguard-pvp: true
+
 # Color Formats
 # You can use either:
 # 1. MiniMessage format: <color>text</color>

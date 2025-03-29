@@ -73,9 +73,22 @@ public class Errors {
     }
 
     /**
+     * Base class for exceptions with a specific error code
+     */
+    private abstract static class CodedVitalStrikeException extends VitalStrikeException {
+        protected CodedVitalStrikeException(String message, ErrorCode errorCode) {
+            super(message, errorCode);
+        }
+
+        protected CodedVitalStrikeException(String message, Throwable cause, ErrorCode errorCode) {
+            super(message, cause, errorCode);
+        }
+    }
+
+    /**
      * Exception for database-related errors
      */
-    public static class DatabaseException extends VitalStrikeException {
+    public static class DatabaseException extends CodedVitalStrikeException {
         /**
          * Creates a new DatabaseException with the specified message
          * 
@@ -128,23 +141,12 @@ public class Errors {
         public ConfigurationException(String message, Throwable cause) {
             super(message, cause, ErrorCode.CONFIG_ERROR);
         }
-
-        /**
-         * Creates a new ConfigurationException with the specified message and error
-         * code
-         * 
-         * @param message           the error message
-         * @param specificErrorCode the specific error code for this exception
-         */
-        public ConfigurationException(String message, ErrorCode specificErrorCode) {
-            super(message, specificErrorCode);
-        }
     }
 
     /**
      * Exception for player-related errors
      */
-    public static class PlayerException extends VitalStrikeException {
+    public static class PlayerException extends CodedVitalStrikeException {
         /**
          * The name of the player involved in the error.
          */
@@ -229,7 +231,7 @@ public class Errors {
     /**
      * Exception for update-related errors
      */
-    public static class UpdateException extends VitalStrikeException {
+    public static class UpdateException extends CodedVitalStrikeException {
         /**
          * The current version of the plugin.
          */
@@ -306,7 +308,8 @@ public class Errors {
     }
 
     /**
-     * Enum representing different types of errors that can occur in VitalStrike
+     * Enum representing different types of errors that can occur in VitalStrike.
+     * Each error type has a unique numeric code and default message.
      */
     public enum ErrorCode {
         /** Represents an unknown or unspecified error with code 1000 */
@@ -336,7 +339,14 @@ public class Errors {
         /** Represents an update operation failure with code 9000 */
         UPDATE_ERROR(9000, "Update operation failed");
 
+        /**
+         * The numeric error code
+         */
         private final int code;
+
+        /**
+         * The default message for this error code
+         */
         private final String defaultMessage;
 
         ErrorCode(int code, String defaultMessage) {

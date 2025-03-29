@@ -3,6 +3,7 @@ package stawa.vitalstrike;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.World;
 
 import stawa.vitalstrike.Errors.ConfigurationException;
 import stawa.vitalstrike.Errors.DatabaseException;
@@ -141,13 +142,28 @@ public class PlayerManager {
     }
 
     /**
+     * Checks if VitalStrike features are enabled in the specified world
+     * 
+     * @param world the world to check
+     * @return true if features are enabled in this world
+     */
+    public boolean isWorldEnabled(World world) {
+        if (!plugin.getConfig().getBoolean("world-settings.enabled", true)) {
+            return true;
+        }
+
+        List<String> disabledWorlds = plugin.getConfig().getStringList("world-settings.disabled-worlds");
+        return !disabledWorlds.contains(world.getName());
+    }
+
+    /**
      * Gets the player's enabled status
      * 
      * @param player the player to check
      * @return true if damage indicators are enabled for the player
      */
     public boolean isEnabled(Player player) {
-        return getPlayerSetting(player, true);
+        return getPlayerSetting(player, true) && isWorldEnabled(player.getWorld());
     }
 
     /**
@@ -159,7 +175,7 @@ public class PlayerManager {
     public void setEnabled(Player player, boolean enabled) {
         boolean previousState = getPlayerSetting(player, true);
         if (enabled && !previousState && plugin instanceof VitalStrike) {
-            VitalStrike vs = (VitalStrike) plugin;
+            VitalStrike vs = plugin;
             vs.resetPlayerCombo(player.getUniqueId());
         }
         setPlayerSetting(player, enabled);

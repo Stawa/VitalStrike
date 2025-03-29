@@ -3,6 +3,8 @@ package stawa.vitalstrike;
 import stawa.vitalstrike.logger.*;
 import stawa.vitalstrike.commands.CommandManager;
 import stawa.vitalstrike.systems.KnockdownManager;
+import stawa.vitalstrike.world.DimensionManager;
+import stawa.vitalstrike.world.WorldGuardUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -60,7 +62,8 @@ import org.joml.Vector3f;
  * <li>Per-player preferences</li>
  * </ul>
  * 
- * The plugin extends JavaPlugin and implements Listener to handle Bukkit events.
+ * The plugin extends JavaPlugin and implements Listener to handle Bukkit
+ * events.
  * It manages core functionality including:
  * <ul>
  * <li>Damage indicator display and customization</li>
@@ -137,6 +140,7 @@ public class VitalStrike extends JavaPlugin implements Listener {
     private PlayerManager playerManager;
     private PlayerStats playerStats;
     private KnockdownManager knockdownManager;
+    private DimensionManager dimensionManager;
 
     /**
      * Enum representing the direction of movement for the damage indicators.
@@ -191,6 +195,8 @@ public class VitalStrike extends JavaPlugin implements Listener {
     public void onEnable() {
         HelpManager helpManager;
         this.logger = new VitalLogger(this);
+        dimensionManager = new DimensionManager(this);
+        WorldGuardUtil.init(this);
 
         try {
             this.knockdownManager = new KnockdownManager(this);
@@ -268,6 +274,7 @@ public class VitalStrike extends JavaPlugin implements Listener {
         reloadConfig();
         loadConfig();
         loadDamageTypeSounds();
+        dimensionManager.reload();
     }
 
     /**
@@ -622,11 +629,19 @@ public class VitalStrike extends JavaPlugin implements Listener {
         if (!enabled)
             return;
 
-        reloadDisplaySettings();
-
         Entity entity = event.getEntity();
-        if (!(entity instanceof org.bukkit.entity.LivingEntity))
+        if (!(entity instanceof LivingEntity))
             return;
+
+        boolean worldSettingsEnabled = getConfig().getBoolean("world-settings.enabled", true);
+        double damageMultiplier = 1.0;
+
+        if (worldSettingsEnabled) {
+            List<String> disabledWorlds = getConfig().getStringList("world-settings.disabled-worlds");
+            if (!disabledWorlds.contains(entity.getWorld().getName()) && dimensionManager.isDimensionEnabled(entity)) {
+                damageMultiplier = dimensionManager.getDimensionMultiplier(entity);
+            }
+        }
 
         if (entity instanceof Player player) {
             if (knockdownManager.isPlayerDowned(player)) {
@@ -649,6 +664,9 @@ public class VitalStrike extends JavaPlugin implements Listener {
 
         if (event instanceof EntityDamageByEntityEvent entityDamageByEntityEvent) {
             handlePlayerCombos(entityDamageByEntityEvent, currentTime);
+            double originalDamage = event.getDamage();
+            double modifiedDamage = originalDamage * damageMultiplier;
+            event.setDamage(modifiedDamage);
         }
 
         if (!isOnCooldown(entityId, currentTime)) {
@@ -884,7 +902,7 @@ public class VitalStrike extends JavaPlugin implements Listener {
             return;
 
         try {
-            String soundName = getConfig().getString("combo.effects.sound.combo-up", "ENTITY_EXPERIENCE_ORB_PICKUP");
+            String soundName = getConfig().getString("combo.effects.sound.combo-up", "entity.experience_orb.pickup");
             Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase()));
             if (sound == null) {
                 logger.warning("Invalid sound name in config: " + soundName);
@@ -969,8 +987,8 @@ public class VitalStrike extends JavaPlugin implements Listener {
         }
 
         String damageType = event.getCause().name().toLowerCase();
-
         String damageFormat;
+
         if (damager != null && playerManager.isEnabled(damager)) {
             damageFormat = permissionManager.getDamageFormat(damager, damageType,
                     getSimpleDamageFormat(event.getCause()));

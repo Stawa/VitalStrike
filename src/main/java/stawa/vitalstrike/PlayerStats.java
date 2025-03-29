@@ -28,7 +28,7 @@ import java.util.function.ToDoubleFunction;
  * Statistics are persisted to a YAML file and loaded on plugin startup.
  * 
  * @author Stawa
- * @version 1.4.0
+ * @version 1.5.0
  */
 public class PlayerStats {
     private static final String STATS_FILE = "stats.yml";
