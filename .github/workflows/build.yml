@@ -2,6 +2,9 @@ name: Build
 on:
   push:
     branches: ["main"]
+    paths:
+      - "src/main/java/**"
+      - "pom.xml"
   pull_request:
     branches: ["main"]
   release:
