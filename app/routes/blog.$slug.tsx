@@ -1,10 +1,11 @@
-import { useLoaderData, Await } from "@remix-run/react";
+import { useLoaderData, Await, Link } from "@remix-run/react";
 import { type LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { loader as changelogLoader } from "./CHANGELOG";
 import type { BlogPost } from "~/types/blog";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { BlogPostSkeleton } from "~/components/BlogSkeleton";
 import { marked } from "marked";
+import { FaArrowLeft, FaCalendarAlt, FaUser } from "react-icons/fa";
 
 export async function loader({ params }: LoaderFunctionArgs) {
   const response = await changelogLoader();
@@ -53,114 +54,113 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
 export default function BlogPost() {
   const { post } = useLoaderData<typeof loader>();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-background to-gray-50 dark:from-background dark:to-gray-900/50 text-foreground antialiased">
       <div className="max-w-4xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
         <article className="relative">
           <Suspense fallback={<BlogPostSkeleton />}>
             <Await resolve={post}>
               {(resolvedPost) => (
                 <>
-                  {/* Enhanced Header */}
-                  <header className="mb-12">
-                    {/* Version Badge */}
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="inline-flex items-center gap-2 bg-primary/10 hover:bg-primary/15 transition-colors text-primary py-1.5 rounded-full text-sm font-medium group">
-                        <svg
-                          className="w-4 h-4 group-hover:rotate-12 transition-transform"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                  {/* Animated background elements */}
+                  <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+                    <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/5 rounded-full animate-pulse-slow" />
+                    <div className="absolute -bottom-32 -left-20 w-80 h-80 bg-primary/10 rounded-full animate-float" />
+
+                    {/* Particle effect - only render on client side */}
+                    {isClient && (
+                      <div className="absolute inset-0">
+                        {[...Array(15)].map((_, i) => (
+                          <div
+                            key={i}
+                            className="absolute rounded-full bg-primary/20 animate-float-random"
+                            style={{
+                              width: `${Math.random() * 6 + 2}px`,
+                              height: `${Math.random() * 6 + 2}px`,
+                              top: `${Math.random() * 100}%`,
+                              left: `${Math.random() * 100}%`,
+                              animationDuration: `${Math.random() * 10 + 10}s`,
+                              animationDelay: `${Math.random() * 5}s`,
+                            }}
                           />
-                        </svg>
-                        <span>{resolvedPost.version}</span>
+                        ))}
                       </div>
-                      <time className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                        {resolvedPost.date}
-                      </time>
+                    )}
+                  </div>
+
+                  {/* Enhanced Header with Timeline-like design */}
+                  <header className="mb-12 relative">
+                    {/* Meta Info */}
+                    <div className="flex flex-wrap items-center gap-4 mb-6">
+                      <div className="flex items-center gap-4 text-gray-500 dark:text-gray-400 text-sm">
+                        <div className="flex items-center gap-1.5 group">
+                          <FaCalendarAlt className="w-3.5 h-3.5 transition-colors group-hover:text-primary" />
+                          <time className="font-medium transition-colors group-hover:text-primary">
+                            {resolvedPost.date}
+                          </time>
+                        </div>
+                        <div className="flex items-center gap-1.5 group">
+                          <FaUser className="w-3.5 h-3.5 transition-colors group-hover:text-primary" />
+                          <span className="font-medium text-gray-700 dark:text-gray-300 transition-colors group-hover:text-primary">
+                            {resolvedPost.author}
+                          </span>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Title and Description */}
                     <div className="space-y-4 mb-8">
-                      <h1 className="text-4xl sm:text-5xl font-bold text-foreground leading-tight">
+                      <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white leading-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white">
                         VitalStrike {resolvedPost.version}
                       </h1>
-                      <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-3xl">
+                      <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 leading-relaxed max-w-3xl">
                         {resolvedPost.description}
                       </p>
                     </div>
-
-                    {/* Author Card */}
-                    <div className="inline-flex items-center gap-4 rounded-lg bg-gradient-to-r from-primary/5 via-primary/10 to-transparent hover:from-primary/10 hover:via-primary/15 transition-colors">
-                      <div className="relative">
-                        <div className="h-11 w-11 rounded-full bg-gradient-to-br from-primary to-primary-foreground flex items-center justify-center ring-[3px] ring-background">
-                          <span className="font-medium text-background">
-                            {resolvedPost.author[0]}
-                          </span>
-                        </div>
-                        <div
-                          className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-background flex items-center justify-center ring-2 ring-primary/20"
-                          style={{ backgroundColor: "#3b82f6" }}
-                        >
-                          <svg
-                            className="w-3 h-3 text-primary"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                          </svg>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="font-medium text-foreground">
-                          {resolvedPost.author}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Plugin Developer
-                        </div>
-                      </div>
-                    </div>
                   </header>
 
-                  {/* Divider */}
-                  <div
-                    className="border-t border-border mb-8"
-                    aria-hidden="true"
-                  />
+                  {/* Divider with timeline dot */}
+                  <div className="relative flex items-center my-10">
+                    <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
+                    <div className="mx-4 w-4 h-4 rounded-full bg-primary-500 dark:bg-primary-400 shadow-md shadow-primary/30 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-white dark:bg-gray-900"></div>
+                    </div>
+                    <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
+                  </div>
 
                   {/* Content with enhanced card effect */}
                   <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary-foreground/5 to-transparent rounded-xl transition-opacity group-hover:opacity-75" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-transparent rounded-xl opacity-50 group-hover:opacity-75 transition-opacity duration-500" />
                     <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] rounded-xl opacity-25" />
+
                     <div
-                      className="relative bg-background/90 backdrop-blur-sm rounded-xl prose prose-lg dark:prose-invert max-w-none
+                      className="relative p-8 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200/50 dark:border-gray-800/50 prose prose-lg dark:prose-invert max-w-none
                         prose-headings:scroll-mt-28 
                         prose-headings:font-display 
                         prose-headings:font-bold 
                         prose-a:text-primary 
                         hover:prose-a:text-primary/80 
-                        prose-pre:bg-muted/50 
+                        prose-pre:bg-gray-100/80 dark:prose-pre:bg-gray-800/80
                         prose-pre:border 
-                        prose-pre:border-border 
+                        prose-pre:border-gray-200 dark:prose-pre:border-gray-700
                         prose-h1:text-3xl
                         prose-h1:font-bold
-                        prose-h1:text-foreground
+                        prose-h1:text-gray-900 dark:prose-h1:text-white
                         prose-h2:text-xl
                         prose-h2:font-semibold
-                        prose-h2:text-foreground/90
-                        prose-p:text-muted-foreground
+                        prose-h2:text-gray-800 dark:prose-h2:text-gray-100
+                        prose-p:text-gray-600 dark:prose-p:text-gray-300
                         prose-p:leading-relaxed
-                        prose-strong:text-foreground
+                        prose-strong:text-gray-900 dark:prose-strong:text-white
                         prose-strong:font-semibold
                         prose-ul:space-y-2
-                        prose-li:text-muted-foreground
+                        prose-li:text-gray-600 dark:prose-li:text-gray-300
                         prose-li:leading-relaxed
                         [&>h1:first-child]:mt-0
                         [&>h2]:mt-8
@@ -182,6 +182,17 @@ export default function BlogPost() {
                         __html: marked(resolvedPost.changes),
                       }}
                     />
+                  </div>
+
+                  {/* Footer navigation */}
+                  <div className="mt-16 pt-8 border-t border-gray-200 dark:border-gray-800">
+                    <Link
+                      to="/blog"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors border border-primary-200 dark:border-primary-800/50"
+                    >
+                      <FaArrowLeft className="h-4 w-4" />
+                      <span className="font-medium">Back to all updates</span>
+                    </Link>
                   </div>
                 </>
               )}

@@ -3,6 +3,11 @@ import { useHighlightCode } from "~/hooks/prism";
 import { DocsNavigation } from "~/components/DocsNavigation";
 import { ConfigSection, ConfigBlock } from "~/components/ConfigSection";
 import { TableOfContents } from "~/components/TableOfContents";
+import { useState, useEffect } from "react";
+import { FaInfoCircle, FaCog, FaMedal, FaClock, FaBolt } from "react-icons/fa";
+import { GiHolosphere } from "react-icons/gi";
+import { IoSparklesSharp } from "react-icons/io5";
+import BackToTop from "~/components/BackToTop";
 
 export const meta: MetaFunction = () => {
   const title = "VitalStrike Documentation - Combo System Configuration";
@@ -34,6 +39,11 @@ export const meta: MetaFunction = () => {
 
 export default function ComboConfiguration() {
   useHighlightCode();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const tableItems = [
     { id: "core-settings", label: "Core Settings", icon: "⚙️" },
@@ -45,54 +55,123 @@ export default function ComboConfiguration() {
   ];
 
   return (
-    <div className="max-w-full mx-auto px-4 py-8">
-      {/* Page Header */}
-      <div className="text-center mb-12">
-        <span className="text-sm font-medium text-primary-600 dark:text-primary-400 uppercase tracking-wider">
-          Configuration Guide
-        </span>
-        <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white mt-2 mb-4">
-          Combo System Configuration
-        </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-          Configure VitalStrike's dynamic combo system with ranks, multipliers,
-          and visual effects
-        </p>
+    <div className="min-h-screen bg-gradient-to-b from-background to-gray-50 dark:from-background dark:to-gray-900/50 text-foreground antialiased">
+      {/* Hero Section with animated background */}
+      <div className="relative overflow-hidden">
+        <div className="relative z-10 pt-16 pb-8">
+          <div className="text-center px-4 md:px-6 lg:px-8 py-8 md:py-12 relative">
+            {/* Animated background elements */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/5 rounded-full animate-pulse-slow" />
+              <div className="absolute -bottom-32 -left-20 w-80 h-80 bg-primary/10 rounded-full animate-float" />
+              <div className="absolute top-1/2 left-1/4 w-40 h-40 bg-primary/5 rounded-full animate-float-delayed" />
+
+              {/* Particle effect - only render on client side */}
+              {isClient && (
+                <div className="absolute inset-0">
+                  {[...Array(20)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute rounded-full bg-primary/20 animate-float-random"
+                      style={{
+                        width: `${Math.random() * 6 + 2}px`,
+                        height: `${Math.random() * 6 + 2}px`,
+                        top: `${Math.random() * 100}%`,
+                        left: `${Math.random() * 100}%`,
+                        animationDuration: `${Math.random() * 10 + 10}s`,
+                        animationDelay: `${Math.random() * 5}s`,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="mb-6 inline-flex bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-800/30 px-4 py-2 rounded-full shadow-sm border border-primary-200/50 dark:border-primary-700/50">
+              <span className="text-primary-700 dark:text-primary-300 font-medium text-sm">
+                Configuration Guide
+              </span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white">
+              Combo{" "}
+              <span className="text-primary-600 dark:text-primary-400">
+                System
+              </span>
+            </h1>
+            <p className="mt-4 text-lg md:text-xl leading-8 text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              Configure VitalStrike's dynamic combo system with ranks,
+              multipliers, and visual effects
+            </p>
+          </div>
+        </div>
       </div>
 
-      <TableOfContents items={tableItems} />
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-12">
+        <TableOfContents items={tableItems} />
 
-      {/* Configuration Sections */}
-      <div className="space-y-10">
-        {/* Core Settings Section */}
-        <ConfigSection
-          id="core-settings"
-          title="Core Settings"
-          icon="⚙️"
-          description="Basic combo system configuration"
-        >
-          <ConfigBlock
-            title="Basic Combo Settings"
-            filename="config.yml"
-            code={`# Combo System Settings
+        <div className="space-y-16">
+          <ConfigSection
+            id="core-settings"
+            title="Core Settings"
+            icon={<FaCog className="text-xl" />}
+            description="Basic combo system configuration"
+            className="scroll-mt-24"
+            iconBg="bg-gradient-to-br from-blue-500 to-cyan-500"
+          >
+            <div className="mb-6 text-gray-600 dark:text-gray-400">
+              <p>
+                The core settings control the basic functionality of the combo
+                system. You can enable or disable the system and configure how
+                long a player's combo will persist after their last hit.
+              </p>
+            </div>
+
+            <ConfigBlock
+              title="Basic Combo Settings"
+              filename="config.yml"
+              code={`# Combo System Settings
 combo:
   enabled: true
   reset-time: 3 # Time in seconds before combo resets when no hits are made`}
-            tip="The combo system tracks consecutive hits on entities. The reset-time determines how long (in seconds) a player can go without landing a hit before their combo resets to zero."
-          />
-        </ConfigSection>
+              tip="The combo system tracks consecutive hits on entities. The reset-time determines how long (in seconds) a player can go without landing a hit before their combo resets to zero."
+              className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-blue-200 dark:border-blue-800/40 shadow-md"
+            />
 
-        {/* Combo Ranks Section */}
-        <ConfigSection
-          id="combo-ranks"
-          title="Combo Ranks"
-          icon="🏅"
-          description="Configure combo rank thresholds and appearance"
-        >
-          <ConfigBlock
-            title="Rank Configuration"
-            filename="config.yml"
-            code={`# Combo Ranks
+            <div className="mt-6 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40">
+              <h4 className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2 flex items-center">
+                <FaInfoCircle className="w-5 h-5 mr-2" />
+                How Combos Work
+              </h4>
+              <p className="text-sm text-blue-700 dark:text-blue-400">
+                When a player hits an entity, their combo count increases by
+                one. If they don't land another hit within the reset-time, their
+                combo resets to zero. Higher combos can unlock better ranks,
+                increased damage, and special visual effects.
+              </p>
+            </div>
+          </ConfigSection>
+
+          <ConfigSection
+            id="combo-ranks"
+            title="Combo Ranks"
+            icon={<FaMedal className="text-xl" />}
+            description="Configure combo rank thresholds and appearance"
+            className="scroll-mt-24"
+            iconBg="bg-gradient-to-br from-yellow-500 to-amber-500"
+          >
+            <div className="mb-6 text-gray-600 dark:text-gray-400">
+              <p>
+                Combo ranks provide visual feedback to players as they build
+                higher combos. Each rank has a minimum combo threshold and
+                custom gradient colors, creating a progression system that
+                rewards skilled players.
+              </p>
+            </div>
+
+            <ConfigBlock
+              title="Rank Configuration"
+              filename="config.yml"
+              code={`# Combo Ranks
 combo:
   display:
     rank:
@@ -118,21 +197,77 @@ combo:
         S: "<gradient:#FF69B4:#FF1493>" # Pink gradient
         SS: "<gradient:#9400D3:#8A2BE2>" # Purple gradient
         SSS: "<gradient:#FF0000:#FF4500>" # Red-orange gradient`}
-            tip="Ranks provide visual feedback to players as they build higher combos. Each rank has a minimum combo threshold and custom gradient colors."
-          />
-        </ConfigSection>
+              tip="Ranks provide visual feedback to players as they build higher combos. Each rank has a minimum combo threshold and custom gradient colors."
+              className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-yellow-200 dark:border-yellow-800/40 shadow-md"
+            />
 
-        {/* Combo Decay Section */}
-        <ConfigSection
-          id="combo-decay"
-          title="Combo Decay"
-          icon="⏱️"
-          description="Configure how combos decay over time"
-        >
-          <ConfigBlock
-            title="Decay Settings"
-            filename="config.yml"
-            code={`# Combo Decay Settings
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800/40">
+                <h4 className="font-medium text-yellow-800 dark:text-yellow-300 mb-2">
+                  Beginner Ranks
+                </h4>
+                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                  <li>
+                    <span className="text-gray-500">D Rank:</span> 0-4 hits
+                  </li>
+                  <li>
+                    <span className="text-green-500">C Rank:</span> 5-9 hits
+                  </li>
+                  <li>
+                    <span className="text-cyan-500">B Rank:</span> 10-14 hits
+                  </li>
+                </ul>
+              </div>
+              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800/40">
+                <h4 className="font-medium text-yellow-800 dark:text-yellow-300 mb-2">
+                  Advanced Ranks
+                </h4>
+                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                  <li>
+                    <span className="text-amber-500">A Rank:</span> 15-24 hits
+                  </li>
+                  <li>
+                    <span className="text-pink-500">S Rank:</span> 25-39 hits
+                  </li>
+                </ul>
+              </div>
+              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800/40">
+                <h4 className="font-medium text-yellow-800 dark:text-yellow-300 mb-2">
+                  Master Ranks
+                </h4>
+                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                  <li>
+                    <span className="text-purple-500">SS Rank:</span> 40-59 hits
+                  </li>
+                  <li>
+                    <span className="text-red-500">SSS Rank:</span> 60+ hits
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </ConfigSection>
+
+          <ConfigSection
+            id="combo-decay"
+            title="Combo Decay"
+            icon={<FaClock className="text-xl" />}
+            description="Configure how combos decay over time"
+            className="scroll-mt-24"
+            iconBg="bg-gradient-to-br from-red-500 to-orange-500"
+          >
+            <div className="mb-6 text-gray-600 dark:text-gray-400">
+              <p>
+                Combo decay gradually reduces a player's combo count when they
+                haven't attacked for a while. This prevents players from
+                maintaining high combos indefinitely without combat activity,
+                adding a strategic element to combat.
+              </p>
+            </div>
+
+            <ConfigBlock
+              title="Decay Settings"
+              filename="config.yml"
+              code={`# Combo Decay Settings
 combo:
   decay:
     enabled: false
@@ -140,21 +275,45 @@ combo:
     rate: 1 # How many combo points lost per decay interval
     interval: 1 # How often (in seconds) to decay combo
     minimum: 0 # Minimum combo value after decay`}
-            tip="Combo decay gradually reduces a player's combo count when they haven't attacked for a while. This prevents players from maintaining high combos indefinitely without combat activity."
-          />
-        </ConfigSection>
+              tip="Combo decay gradually reduces a player's combo count when they haven't attacked for a while. This prevents players from maintaining high combos indefinitely without combat activity."
+              className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-red-200 dark:border-red-800/40 shadow-md"
+            />
 
-        {/* Multipliers Section */}
-        <ConfigSection
-          id="multipliers"
-          title="Damage Multipliers"
-          icon="✖️"
-          description="Configure how combos affect damage output"
-        >
-          <ConfigBlock
-            title="Multiplier Settings"
-            filename="config.yml"
-            code={`# Damage Multiplier Settings
+            <div className="mt-6 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40">
+              <h4 className="text-sm font-medium text-red-800 dark:text-red-300 mb-2 flex items-center">
+                <FaInfoCircle className="w-5 h-5 mr-2" />
+                Decay vs Reset
+              </h4>
+              <p className="text-sm text-red-700 dark:text-red-400">
+                While the reset-time immediately sets combo to zero after
+                inactivity, decay gradually reduces it over time. For example,
+                with decay enabled, a 50-combo might decrease to 45, then 40,
+                etc., rather than instantly dropping to 0.
+              </p>
+            </div>
+          </ConfigSection>
+
+          <ConfigSection
+            id="multipliers"
+            title="Damage Multipliers"
+            icon={<FaBolt className="text-xl" />}
+            description="Configure how combos affect damage output"
+            className="scroll-mt-24"
+            iconBg="bg-gradient-to-br from-purple-500 to-indigo-500"
+          >
+            <div className="mb-6 text-gray-600 dark:text-gray-400">
+              <p>
+                Damage multipliers increase the damage dealt based on combo
+                count. This rewards players for maintaining high combos by
+                making their attacks more powerful, creating a satisfying
+                progression system during combat.
+              </p>
+            </div>
+
+            <ConfigBlock
+              title="Multiplier Settings"
+              filename="config.yml"
+              code={`# Damage Multiplier Settings
 combo:
   multiplier:
     enabled: false
@@ -169,21 +328,57 @@ combo:
       S: 2.2
       SS: 2.6
       SSS: 3.0`}
-            tip="Damage multipliers increase the damage dealt based on combo count. You can set a per-combo increment or define specific multipliers for each rank."
-          />
-        </ConfigSection>
+              tip="Damage multipliers increase the damage dealt based on combo count. You can set a per-combo increment or define specific multipliers for each rank."
+              className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-purple-200 dark:border-purple-800/40 shadow-md"
+            />
 
-        {/* Visual Effects Section */}
-        <ConfigSection
-          id="visual-effects"
-          title="Visual Effects"
-          icon="✨"
-          description="Configure visual and audio effects for combos"
-        >
-          <ConfigBlock
-            title="Effects Configuration"
-            filename="config.yml"
-            code={`# Visual Effects
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+              <div className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm rounded-lg p-4 border border-purple-200 dark:border-purple-800/40 shadow-sm">
+                <h4 className="font-medium text-purple-800 dark:text-purple-300 mb-2">
+                  Per-Combo Scaling
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  With <code>per-combo: 0.1</code>, each combo point adds 10%
+                  damage. A 5-combo would deal 1.5x damage (base 1.0 + 5 × 0.1),
+                  while a 10-combo would deal 2.0x damage, up to the maximum
+                  multiplier.
+                </p>
+              </div>
+              <div className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm rounded-lg p-4 border border-purple-200 dark:border-purple-800/40 shadow-sm">
+                <h4 className="font-medium text-purple-800 dark:text-purple-300 mb-2">
+                  Rank-Based Scaling
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Alternatively, you can set specific multipliers for each rank.
+                  This creates distinct power tiers rather than a smooth
+                  progression, making rank-ups feel more impactful and
+                  rewarding.
+                </p>
+              </div>
+            </div>
+          </ConfigSection>
+
+          <ConfigSection
+            id="visual-effects"
+            title="Visual Effects"
+            icon={<IoSparklesSharp className="text-xl" />}
+            description="Configure visual and audio effects for combos"
+            className="scroll-mt-24"
+            iconBg="bg-gradient-to-br from-pink-500 to-rose-500"
+          >
+            <div className="mb-6 text-gray-600 dark:text-gray-400">
+              <p>
+                Visual effects enhance the combo experience with sounds and
+                particles. These trigger when players increase their combo or
+                reach new rank milestones, providing satisfying feedback that
+                makes combat more engaging.
+              </p>
+            </div>
+
+            <ConfigBlock
+              title="Effects Configuration"
+              filename="config.yml"
+              code={`# Visual Effects
 combo:
   effects:
     enabled: true
@@ -197,21 +392,68 @@ combo:
       enabled: true
       type: "CRIT" # Particle effect type
       count: 10 # Number of particles`}
-            tip="Visual effects enhance the combo experience with sounds and particles. These trigger when players increase their combo or reach new rank milestones."
-          />
-        </ConfigSection>
+              tip="Visual effects enhance the combo experience with sounds and particles. These trigger when players increase their combo or reach new rank milestones."
+              className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-pink-200 dark:border-pink-800/40 shadow-md"
+            />
 
-        {/* Combo Holograms Section */}
-        <ConfigSection
-          id="hologram"
-          title="Combo Holograms"
-          icon="🔮"
-          description="Configure floating combo streak holograms"
-        >
-          <ConfigBlock
-            title="Hologram Settings"
-            filename="config.yml"
-            code={`# Combo Display Settings
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-lg p-4 border border-pink-200 dark:border-pink-800/40">
+                <h4 className="font-medium text-pink-800 dark:text-pink-300 mb-2">
+                  Sound Effects
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                  Sound effects provide audio feedback for combo actions:
+                </p>
+                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                  <li>
+                    <span className="font-medium">combo-up:</span> Plays when
+                    combo increases
+                  </li>
+                  <li>
+                    <span className="font-medium">combo-milestone:</span> Plays
+                    when reaching a new rank
+                  </li>
+                </ul>
+              </div>
+              <div className="bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-lg p-4 border border-pink-200 dark:border-pink-800/40">
+                <h4 className="font-medium text-pink-800 dark:text-pink-300 mb-2">
+                  Particle Effects
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                  Common particle types include:
+                </p>
+                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                  <li>CRIT - Small critical hit particles</li>
+                  <li>FLAME - Fire particles</li>
+                  <li>HEART - Heart particles</li>
+                  <li>SPELL_WITCH - Purple magic particles</li>
+                  <li>TOTEM - Colorful celebration particles</li>
+                </ul>
+              </div>
+            </div>
+          </ConfigSection>
+
+          <ConfigSection
+            id="hologram"
+            title="Combo Holograms"
+            icon={<GiHolosphere className="text-xl" />}
+            description="Configure floating combo streak holograms"
+            className="scroll-mt-24"
+            iconBg="bg-gradient-to-br from-teal-500 to-emerald-500"
+          >
+            <div className="mb-6 text-gray-600 dark:text-gray-400">
+              <p>
+                Combo holograms are floating text displays that appear above
+                players when they achieve impressive combo streaks. These make
+                accomplishments visible to nearby players, adding a social
+                element to the combat system.
+              </p>
+            </div>
+
+            <ConfigBlock
+              title="Hologram Settings"
+              filename="config.yml"
+              code={`# Combo Display Settings
 combo:
   display:
     format: "<bold><gradient:#FF0000:#FFD700>✦ %dx COMBO ✦</gradient></bold>"
@@ -224,23 +466,49 @@ combo:
     duration: 3.0
     format: "<gradient:red:gold><bold>COMBO STREAK!</bold></gradient>"
     height: 2.0`}
-            tip="Combo holograms are floating text displays that appear above players when they achieve impressive combo streaks, making their accomplishment visible to nearby players."
-          />
-        </ConfigSection>
+              tip="Combo holograms are floating text displays that appear above players when they achieve impressive combo streaks, making their accomplishment visible to nearby players."
+              className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-teal-200 dark:border-teal-800/40 shadow-md"
+            />
 
-        {/* Navigation Footer */}
+            <div className="mt-6 p-4 rounded-lg bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800/40">
+              <h4 className="text-sm font-medium text-teal-800 dark:text-teal-300 mb-2 flex items-center">
+                <FaInfoCircle className="w-5 h-5 mr-2" />
+                Format Variables
+              </h4>
+              <p className="text-sm text-teal-700 dark:text-teal-400">
+                In the display format,{" "}
+                <code className="px-1 py-0.5 bg-teal-100 dark:bg-teal-900/50 rounded">
+                  %d
+                </code>{" "}
+                is replaced with the combo count,
+                <code className="px-1 py-0.5 bg-teal-100 dark:bg-teal-900/50 rounded">
+                  %.1f
+                </code>{" "}
+                is replaced with the damage multiplier (with one decimal place),
+                and{" "}
+                <code className="px-1 py-0.5 bg-teal-100 dark:bg-teal-900/50 rounded">
+                  %.1fs
+                </code>{" "}
+                shows the time remaining before decay (in seconds).
+              </p>
+            </div>
+          </ConfigSection>
+        </div>
+
         <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-800">
           <DocsNavigation
             previousPage={{
-              title: "Configuration Overview",
-              href: "/docs/configuration",
+              title: "Damage Indicators",
+              href: "/docs/configuration/damage",
             }}
             nextPage={{
-              title: "Damage Indicators Configuration",
-              href: "/docs/configuration/damage",
+              title: "Display Settings",
+              href: "/docs/configuration/display",
             }}
           />
         </div>
+        {/* Back to top button */}
+        <BackToTop />
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ import { getCookie, setCookie } from "~/hooks/cookie";
 
 export function useTheme() {
   const [mounted, setMounted] = useState(false);
-  const [theme, setTheme] = useState("system"); // Default to system on server
+  const [theme, setTheme] = useState("system");
 
   useEffect(() => {
     const savedTheme = getCookie("theme");
@@ -18,7 +18,7 @@ export function useTheme() {
       (theme === "system" &&
         typeof window !== "undefined" &&
         window.matchMedia("(prefers-color-scheme: dark)").matches)
-    : false; // Default to light theme during SSR
+    : false;
 
   useEffect(() => {
     if (!mounted) return;

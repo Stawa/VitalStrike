@@ -3,6 +3,15 @@ import { useHighlightCode } from "~/hooks/prism";
 import { DocsNavigation } from "~/components/DocsNavigation";
 import { ConfigSection, ConfigBlock } from "~/components/ConfigSection";
 import { TableOfContents } from "~/components/TableOfContents";
+import { useState, useEffect } from "react";
+import {
+  FaInfoCircle,
+  FaCommentAlt,
+  FaPalette,
+  FaQuestionCircle,
+  FaTerminal,
+} from "react-icons/fa";
+import BackToTop from "~/components/BackToTop";
 
 export const meta: MetaFunction = () => {
   const title = "VitalStrike Documentation - Messages Configuration";
@@ -34,6 +43,11 @@ export const meta: MetaFunction = () => {
 
 export default function MessagesConfiguration() {
   useHighlightCode();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const tableItems = [
     { id: "system-messages", label: "System Messages", icon: "💬" },
@@ -43,52 +57,144 @@ export default function MessagesConfiguration() {
   ];
 
   return (
-    <div className="max-w-full mx-auto px-4 py-8">
-      <div className="text-center mb-12">
-        <span className="text-sm font-medium text-primary-600 dark:text-primary-400 uppercase tracking-wider">
-          Configuration Guide
-        </span>
-        <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white mt-2 mb-4">
-          Messages Configuration
-        </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-          Configure system messages, help menus, and text formatting
-        </p>
+    <div className="min-h-screen bg-gradient-to-b from-background to-gray-50 dark:from-background dark:to-gray-900/50 text-foreground antialiased">
+      {/* Hero Section with animated background */}
+      <div className="relative overflow-hidden">
+        <div className="relative z-10 pt-16 pb-8">
+          <div className="text-center px-4 md:px-6 lg:px-8 py-8 md:py-12 relative">
+            {/* Animated background elements */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/5 rounded-full animate-pulse-slow" />
+              <div className="absolute -bottom-32 -left-20 w-80 h-80 bg-primary/10 rounded-full animate-float" />
+              <div className="absolute top-1/2 left-1/4 w-40 h-40 bg-primary/5 rounded-full animate-float-delayed" />
+
+              {/* Particle effect - only render on client side */}
+              {isClient && (
+                <div className="absolute inset-0">
+                  {[...Array(20)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute rounded-full bg-primary/20 animate-float-random"
+                      style={{
+                        width: `${Math.random() * 6 + 2}px`,
+                        height: `${Math.random() * 6 + 2}px`,
+                        top: `${Math.random() * 100}%`,
+                        left: `${Math.random() * 100}%`,
+                        animationDuration: `${Math.random() * 10 + 10}s`,
+                        animationDelay: `${Math.random() * 5}s`,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="mb-6 inline-flex bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-800/30 px-4 py-2 rounded-full shadow-sm border border-primary-200/50 dark:border-primary-700/50">
+              <span className="text-primary-700 dark:text-primary-300 font-medium text-sm">
+                Configuration Guide
+              </span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white">
+              Messages{" "}
+              <span className="text-primary-600 dark:text-primary-400">
+                Configuration
+              </span>
+            </h1>
+            <p className="mt-4 text-lg md:text-xl leading-8 text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              Configure system messages, help menus, and text formatting for
+              your server
+            </p>
+          </div>
+        </div>
       </div>
 
-      <TableOfContents items={tableItems} />
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-12">
+        <TableOfContents items={tableItems} />
 
-      <div className="space-y-10">
-        <ConfigSection
-          id="system-messages"
-          title="System Messages"
-          icon="💬"
-          description="Configure basic system messages"
-        >
-          <ConfigBlock
-            title="Basic Messages Configuration"
-            filename="config.yml"
-            code={`messages:
+        <div className="space-y-16">
+          <ConfigSection
+            id="system-messages"
+            title="System Messages"
+            icon={<FaCommentAlt className="text-xl" />}
+            description="Configure basic system messages"
+            className="scroll-mt-24"
+            iconBg="bg-gradient-to-br from-blue-500 to-indigo-500"
+          >
+            <div className="mb-6 text-gray-600 dark:text-gray-400">
+              <p>
+                System messages are displayed to players when they interact with
+                the plugin's commands and features. These messages can be fully
+                customized to match your server's style and tone.
+              </p>
+            </div>
+
+            <ConfigBlock
+              title="Basic Messages Configuration"
+              filename="config.yml"
+              code={`messages:
   no-permission: "<red>You don't have permission to use this command!"
   enabled-personal: "<green>VitalStrike damage indicators enabled for you!"
   disabled-personal: "<red>VitalStrike damage indicators disabled for you!"
   already-enabled: "<yellow>VitalStrike damage indicators are already enabled for you!"
   already-disabled: "<yellow>VitalStrike damage indicators are already disabled for you!"
   config-reloaded: "<green>Configuration reloaded successfully!"`}
-            tip="System messages are displayed to players when they interact with the plugin's commands and features."
-          />
-        </ConfigSection>
+              tip="System messages are displayed to players when they interact with the plugin's commands and features."
+              className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-blue-200 dark:border-blue-800/40 shadow-md"
+            />
 
-        <ConfigSection
-          id="color-formats"
-          title="Color Formats"
-          icon="🎨"
-          description="Available color and formatting options"
-        >
-          <ConfigBlock
-            title="Color Format Guide"
-            filename="config.yml"
-            code={`# Color Formats Available:
+            <div className="mt-6 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40">
+              <h4 className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2 flex items-center">
+                <FaInfoCircle className="w-5 h-5 mr-2" />
+                Message Variables
+              </h4>
+              <p className="text-sm text-blue-700 dark:text-blue-400">
+                Some messages support variables that are replaced with dynamic
+                content:
+              </p>
+              <ul className="mt-2 text-sm text-blue-700 dark:text-blue-400 space-y-1">
+                <li>
+                  <code className="px-1 py-0.5 bg-blue-100 dark:bg-blue-900/50 rounded">
+                    %player%
+                  </code>{" "}
+                  - Player's name
+                </li>
+                <li>
+                  <code className="px-1 py-0.5 bg-blue-100 dark:bg-blue-900/50 rounded">
+                    %damage%
+                  </code>{" "}
+                  - Damage amount
+                </li>
+                <li>
+                  <code className="px-1 py-0.5 bg-blue-100 dark:bg-blue-900/50 rounded">
+                    %combo%
+                  </code>{" "}
+                  - Combo count
+                </li>
+              </ul>
+            </div>
+          </ConfigSection>
+
+          <ConfigSection
+            id="color-formats"
+            title="Color Formats"
+            icon={<FaPalette className="text-xl" />}
+            description="Available color and formatting options"
+            className="scroll-mt-24"
+            iconBg="bg-gradient-to-br from-pink-500 to-rose-500"
+          >
+            <div className="mb-6 text-gray-600 dark:text-gray-400">
+              <p>
+                VitalStrike supports a wide range of color and formatting
+                options for all text displayed by the plugin. These formats can
+                be used in any message configuration to create visually
+                appealing and informative text.
+              </p>
+            </div>
+
+            <ConfigBlock
+              title="Color Format Guide"
+              filename="config.yml"
+              code={`# Color Formats Available:
 # Basic Colors:
 # <red>, <dark_red> - Red variants
 # <blue>, <dark_blue> - Blue variants
@@ -108,20 +214,127 @@ export default function MessagesConfiguration() {
 
 # Gradients:
 # <gradient:color1:color2>text</gradient>`}
-            tip="Use these color codes and formatting options to customize any message in the plugin."
-          />
-        </ConfigSection>
+              tip="Use these color codes and formatting options to customize any message in the plugin."
+              className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-pink-200 dark:border-pink-800/40 shadow-md"
+            />
 
-        <ConfigSection
-          id="help-sections"
-          title="Help Sections"
-          icon="❔"
-          description="Configure help menu sections"
-        >
-          <ConfigBlock
-            title="Help Sections Configuration"
-            filename="config.yml"
-            code={`help-menu:
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+              <div className="bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-lg p-4 border border-pink-200 dark:border-pink-800/40">
+                <h4 className="font-medium text-pink-800 dark:text-pink-300 mb-2">
+                  Basic Colors
+                </h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 rounded-full bg-red-500"></div>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      &lt;red&gt;
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 rounded-full bg-blue-500"></div>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      &lt;blue&gt;
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 rounded-full bg-green-500"></div>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      &lt;green&gt;
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 rounded-full bg-yellow-500"></div>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      &lt;yellow&gt;
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 rounded-full bg-purple-500"></div>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      &lt;purple&gt;
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 rounded-full bg-gray-500"></div>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      &lt;gray&gt;
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-lg p-4 border border-pink-200 dark:border-pink-800/40">
+                <h4 className="font-medium text-pink-800 dark:text-pink-300 mb-2">
+                  Text Formatting
+                </h4>
+                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+                  <li>
+                    <span className="font-bold">&lt;bold&gt;</span> - Bold text
+                  </li>
+                  <li>
+                    <span className="italic">&lt;italic&gt;</span> - Italic text
+                  </li>
+                  <li>
+                    <span className="underline">&lt;underlined&gt;</span> -
+                    Underlined
+                  </li>
+                  <li>
+                    <span className="line-through">&lt;strikethrough&gt;</span>{" "}
+                    - Strikethrough
+                  </li>
+                  <li>
+                    <span className="font-mono">&lt;obfuscated&gt;</span> -
+                    Obfuscated
+                  </li>
+                </ul>
+              </div>
+              <div className="bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-lg p-4 border border-pink-200 dark:border-pink-800/40">
+                <h4 className="font-medium text-pink-800 dark:text-pink-300 mb-2">
+                  Advanced Formatting
+                </h4>
+                <div className="space-y-2">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                      Gradients:
+                    </p>
+                    <div className="h-6 rounded bg-gradient-to-r from-red-500 to-yellow-500"></div>
+                    <p className="text-xs mt-1 text-gray-500 dark:text-gray-500">
+                      &lt;gradient:red:yellow&gt;Text&lt;/gradient&gt;
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                      Combined:
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      &lt;bold&gt;&lt;gradient:blue:aqua&gt;Text&lt;/gradient&gt;&lt;/bold&gt;
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ConfigSection>
+
+          <ConfigSection
+            id="help-sections"
+            title="Help Sections"
+            icon={<FaQuestionCircle className="text-xl" />}
+            description="Configure help menu sections"
+            className="scroll-mt-24"
+            iconBg="bg-gradient-to-br from-green-500 to-emerald-500"
+          >
+            <div className="mb-6 text-gray-600 dark:text-gray-400">
+              <p>
+                Help sections provide detailed information about different
+                aspects of the plugin. These sections can be accessed through
+                the help command and provide players with guidance on how to use
+                the plugin's features.
+              </p>
+            </div>
+
+            <ConfigBlock
+              title="Help Sections Configuration"
+              filename="config.yml"
+              code={`help-menu:
   sections:
     combos:
       title: "<gold><bold>Combo System Help</bold></gold>"
@@ -139,20 +352,82 @@ export default function MessagesConfiguration() {
         5: "<yellow>vitalstrike.leaderboard - View leaderboards"
         6: "<yellow>vitalstrike.hologram - Toggle holograms"
         7: "<yellow>vitalstrike.admin.permissions - Manage permissions"`}
-            tip="Help sections provide detailed information about different aspects of the plugin."
-          />
-        </ConfigSection>
+              tip="Help sections provide detailed information about different aspects of the plugin."
+              className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-green-200 dark:border-green-800/40 shadow-md"
+            />
 
-        <ConfigSection
-          id="command-help"
-          title="Command Help"
-          icon="📝"
-          description="Configure command descriptions and usage"
-        >
-          <ConfigBlock
-            title="Command Help Configuration"
-            filename="config.yml"
-            code={`help-menu:
+            <div className="mt-6 p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/40">
+              <h4 className="text-sm font-medium text-green-800 dark:text-green-300 mb-2 flex items-center">
+                <FaInfoCircle className="w-5 h-5 mr-2" />
+                Creating Custom Help Sections
+              </h4>
+              <p className="text-sm text-green-700 dark:text-green-400">
+                You can create additional help sections by adding new entries
+                under the <code>sections</code> key. Each section needs a unique
+                identifier, a title, and numbered content entries. Players can
+                access these sections with <code>/vs help [section-name]</code>.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+              <div className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm rounded-lg p-4 border border-green-200 dark:border-green-800/40 shadow-sm">
+                <h4 className="font-medium text-green-800 dark:text-green-300 mb-2">
+                  Section Structure
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Each help section consists of:
+                </p>
+                <ul className="mt-2 text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                  <li>
+                    <code>title</code> - The section heading
+                  </li>
+                  <li>
+                    <code>content</code> - Numbered list of help entries
+                  </li>
+                </ul>
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                  The content entries are displayed in numerical order.
+                </p>
+              </div>
+              <div className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm rounded-lg p-4 border border-green-200 dark:border-green-800/40 shadow-sm">
+                <h4 className="font-medium text-green-800 dark:text-green-300 mb-2">
+                  Example Help Section
+                </h4>
+                <div className="bg-gray-100 dark:bg-gray-800 rounded p-3 text-sm">
+                  <p className="font-bold text-amber-600 dark:text-amber-400">
+                    Combo System Help
+                  </p>
+                  <ul className="mt-1 space-y-1 text-yellow-600 dark:text-yellow-400">
+                    <li>Combos increase when you hit enemies in succession</li>
+                    <li>Higher combos give damage multipliers</li>
+                    <li>Combos decay after a period of inactivity</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </ConfigSection>
+
+          <ConfigSection
+            id="command-help"
+            title="Command Help"
+            icon={<FaTerminal className="text-xl" />}
+            description="Configure command descriptions and usage"
+            className="scroll-mt-24"
+            iconBg="bg-gradient-to-br from-purple-500 to-indigo-500"
+          >
+            <div className="mb-6 text-gray-600 dark:text-gray-400">
+              <p>
+                Command help provides information about available commands and
+                their usage. This section allows you to customize how commands
+                are displayed in the help menu, including their syntax and
+                descriptions.
+              </p>
+            </div>
+
+            <ConfigBlock
+              title="Command Help Configuration"
+              filename="config.yml"
+              code={`help-menu:
   commands:
     toggle:
       command: "/vs toggle [on|off]"
@@ -175,22 +450,98 @@ export default function MessagesConfiguration() {
     help:
       command: "/vs help [section]"
       description: "Show this help menu or a specific section"`}
-            tip="Command help provides information about available commands and their usage."
-          />
-        </ConfigSection>
-      </div>
+              tip="Command help provides information about available commands and their usage."
+              className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-purple-200 dark:border-purple-800/40 shadow-md"
+            />
 
-      <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-800">
-        <DocsNavigation
-          previousPage={{
-            title: "Display Settings",
-            href: "/docs/configuration/display",
-          }}
-          nextPage={{
-            title: "Permissions",
-            href: "/docs/configuration/permissions",
-          }}
-        />
+            <div className="mt-6 p-4 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800/40">
+              <h4 className="text-sm font-medium text-purple-800 dark:text-purple-300 mb-2 flex items-center">
+                <FaInfoCircle className="w-5 h-5 mr-2" />
+                Command Syntax Conventions
+              </h4>
+              <p className="text-sm text-purple-700 dark:text-purple-400">
+                When writing command syntax:
+              </p>
+              <ul className="mt-2 text-sm text-purple-700 dark:text-purple-400 space-y-1">
+                <li>
+                  <code className="px-1 py-0.5 bg-purple-100 dark:bg-purple-900/50 rounded">
+                    [argument]
+                  </code>{" "}
+                  - Optional argument
+                </li>
+                <li>
+                  <code className="px-1 py-0.5 bg-purple-100 dark:bg-purple-900/50 rounded">
+                    &lt;argument&gt;
+                  </code>{" "}
+                  - Required argument
+                </li>
+                <li>
+                  <code className="px-1 py-0.5 bg-purple-100 dark:bg-purple-900/50 rounded">
+                    [a|b|c]
+                  </code>{" "}
+                  - Choose one of these options
+                </li>
+              </ul>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800/40">
+                <h4 className="font-medium text-purple-800 dark:text-purple-300 mb-2">
+                  Command Structure
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Each command entry consists of:
+                </p>
+                <ul className="mt-2 text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                  <li>
+                    <code>command</code> - The command syntax
+                  </li>
+                  <li>
+                    <code>description</code> - What the command does
+                  </li>
+                </ul>
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                  These are displayed when a player uses <code>/vs help</code>.
+                </p>
+              </div>
+              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800/40">
+                <h4 className="font-medium text-purple-800 dark:text-purple-300 mb-2">
+                  Example Command Display
+                </h4>
+                <div className="bg-gray-100 dark:bg-gray-800 rounded p-3 text-sm">
+                  <p className="text-yellow-600 dark:text-yellow-400 font-mono">
+                    /vs toggle [on|off]
+                  </p>
+                  <p className="text-white dark:text-gray-300 mt-1">
+                    Toggle damage indicators on or off
+                  </p>
+                  <div className="mt-2 border-t border-gray-300 dark:border-gray-700 pt-2"></div>
+                  <p className="text-yellow-600 dark:text-yellow-400 font-mono">
+                    /vs stats
+                  </p>
+                  <p className="text-white dark:text-gray-300 mt-1">
+                    View your combat statistics
+                  </p>
+                </div>
+              </div>
+            </div>
+          </ConfigSection>
+        </div>
+
+        <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-800">
+          <DocsNavigation
+            previousPage={{
+              title: "Display Settings",
+              href: "/docs/configuration/display",
+            }}
+            nextPage={{
+              title: "Permissions",
+              href: "/docs/configuration/permissions",
+            }}
+          />
+        </div>
+        {/* Back to top button */}
+        <BackToTop />
       </div>
     </div>
   );

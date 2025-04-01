@@ -1,55 +1,20 @@
 import { Link } from "@remix-run/react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useTheme } from "~/hooks/useThemes";
-import { useLatestVersion } from "~/hooks/useLatestVersion";
 
 export function Navigation() {
   const { toggleTheme, isDarkMode } = useTheme();
-  const { version, loading } = useLatestVersion();
   const [isOpen, setIsOpen] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        buttonRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        !buttonRef.current.contains(event.target as Node)
-      ) {
-        setIsDropdownOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   const links = [
     { name: "Documentation", href: "/docs" },
     { name: "Blog", href: "/blog" },
-  ];
-
-  const downloadLinks = [
-    {
-      name: loading ? "Paper" : `Paper (v${version})`,
-      href: "https://hangar.papermc.io/Stawa/VitalStrike",
-    },
-    {
-      name: loading ? "Modrinth" : `Modrinth (v${version})`,
-      href: "https://modrinth.com/plugin/vitalstrike/",
-    },
-    {
-      name: loading ? "GitHub" : `GitHub (v${version})`,
-      href: "https://github.com/Stawa/VitalStrike/releases",
-    },
+    { name: "Downloads", href: "/downloads" },
   ];
 
   return (
@@ -80,71 +45,6 @@ export function Navigation() {
                   {link.name}
                 </Link>
               ))}
-              <div className="relative inline-flex items-center h-full">
-                <button
-                  ref={buttonRef}
-                  className="inline-flex items-center px-1 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  aria-expanded={isDropdownOpen}
-                  aria-haspopup="true"
-                >
-                  Downloads
-                  <svg
-                    className={`ml-2 h-4 w-4 transition-transform duration-200 ${
-                      isDropdownOpen ? "rotate-180" : ""
-                    }`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </button>
-
-                {isDropdownOpen && (
-                  <div
-                    ref={dropdownRef}
-                    className="absolute left-1/2 z-10 top-full pt-2 w-56 -translate-x-1/2 transform"
-                    role="menu"
-                  >
-                    <div className="rounded-lg bg-white/90 dark:bg-dark-bg/90 shadow-lg border border-gray-200/20 dark:border-gray-700/30 backdrop-blur-md">
-                      <div className="p-1.5">
-                        {downloadLinks.map((link) => (
-                          <a
-                            key={link.name}
-                            href={link.href}
-                            className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-gray-800/60 rounded-md transition-all duration-200 group"
-                            role="menuitem"
-                            onClick={() => setIsDropdownOpen(false)}
-                          >
-                            <span className="flex-1 font-medium group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
-                              {link.name}
-                            </span>
-                            <svg
-                              className="h-4 w-4 text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                              />
-                            </svg>
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
           <div className="flex items-center">
@@ -209,28 +109,11 @@ export function Navigation() {
               {link.name}
             </Link>
           ))}
-          <div className="border-t border-gray-200/80 dark:border-dark-border mt-2 pt-2">
-            <div className="px-3 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300">
-              Downloads
-            </div>
-            {downloadLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                className="block rounded-lg px-6 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-primary-600 dark:text-gray-300 dark:hover:bg-gray-800/50 dark:hover:text-primary-400 transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                {link.name}
-              </a>
-            ))}
-          </div>
         </div>
       </div>
     </nav>
   );
 }
-
-// Icon components remain the same
 
 function GitHubIcon({ className }: Readonly<{ className?: string }>) {
   return (

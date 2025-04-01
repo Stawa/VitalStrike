@@ -6,7 +6,6 @@ import { BlogPost } from "~/types/blog";
 export const loader: LoaderFunction = async ({ request }) => {
   const baseUrl = getDomainUrl(request);
 
-  // Static pages
   const staticPages = [
     "",
     "/blog",

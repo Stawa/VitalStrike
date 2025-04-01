@@ -11,7 +11,7 @@ export async function loader() {
 export const meta: MetaFunction = () => {
   const title = "VitalStrike - Dynamic Combat Feedback for Minecraft";
   const description =
-    "Transform Minecraft combat with customizable damage indicators, hit effects, and combat analytics. Perfect for PvP and RPG servers.";
+    "Enhance your Minecraft PvP with dynamic damage indicators, combo multipliers, knockdowns, and leaderboards. Perfect for boosting your server's combat experience.";
 
   return [
     { rel: "icon", href: "/icon.png", type: "image/png" },
@@ -29,7 +29,7 @@ export const meta: MetaFunction = () => {
     {
       name: "keywords",
       content:
-        "minecraft, plugin, combat, damage indicators, pvp, rpg, server plugin",
+        "minecraft, plugin, combat, damage indicators, pvp, combo multipliers, knockdowns, leaderboards, server plugin",
     },
     { name: "theme-color", content: "#4f46e5" },
     { name: "application-name", content: "VitalStrike" },
@@ -75,16 +75,17 @@ export default function Index() {
 
             {/* Hero Content */}
             <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-400 dark:from-primary-400 dark:to-primary-300">
-              Transform Minecraft Combat
+              Elevate Minecraft Combat
               <br />
               <span className="text-gray-900 dark:text-white">
-                With Dynamic Feedback
+                With Dynamic PvP Features
               </span>
             </h1>
 
             <p className="mt-6 max-w-3xl mx-auto text-xl text-gray-600 dark:text-gray-300">
-              Engage players with customizable damage indicators, hit effects,
-              and combat analytics. Perfect for PvP and RPG servers.
+              Enhance your server with damage indicators, combo multipliers,
+              knockdown mechanics, and competitive leaderboards. Perfect for
+              PvP-focused gameplay.
             </p>
 
             {/* CTA Buttons */}
@@ -180,41 +181,84 @@ export default function Index() {
 
             {/* Code Block */}
             <div className="order-1 lg:order-0 relative rounded-xl bg-white/80 dark:bg-dark-bg/80 shadow-xl ring-1 ring-gray-900/10 dark:ring-gray-100/10 backdrop-blur overflow-hidden">
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-r from-primary-600/5 to-primary-400/5 dark:from-primary-400/5 dark:to-primary-300/5 rounded-lg">
-                <div className="w-full h-full backdrop-blur-sm rounded-lg" />
-              </div>
-              <div className="relative rounded-xl bg-white/80 dark:bg-dark-bg/80 shadow-xl ring-1 ring-gray-900/10 dark:ring-gray-100/10 backdrop-blur overflow-hidden">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200/80 dark:border-dark-border">
-                  <div className="flex space-x-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                    <div className="w-3 h-3 rounded-full bg-green-500" />
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+              {/* Background gradient effect */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary-50/30 to-transparent dark:from-primary-900/10 dark:to-transparent"></div>
+
+              {/* Code editor header */}
+              <div className="relative flex items-center justify-between px-4 py-3 border-b border-gray-200/80 dark:border-gray-700/50">
+                <div className="flex space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                </div>
+                <div className="flex items-center">
+                  <div className="px-3 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-800 rounded-md text-gray-600 dark:text-gray-400">
                     config.yml
                   </div>
                 </div>
-                <div className="p-4 overflow-x-auto">
-                  <pre className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words">
-                    <code className="language-yaml inline-block min-w-full">{`# VitalStrike Configuration
-damage-indicators:
+              </div>
+
+              {/* Code content with improved scrolling */}
+              <div className="relative max-h-[450px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                {/* Actual code with syntax highlighting */}
+                <pre className="pl-12 text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words font-mono leading-5">
+                  <code className="language-yaml inline-block min-w-full">{`# VitalStrike Configuration
+damage-indicator: "simple-damage-formats"
+simple-damage-formats:
+  default: "<gradient:#FF6B6B:#FF8787>-%.1f ❤</gradient>"
+  critical: "<bold><gradient:#FF0000:#8B0000>-%.1f ⚡</gradient></bold>"
+  fire: "<gradient:#FFD700:#FF4500>-%.1f 🔥</gradient>"
+
+combo:
   enabled: true
-  format: "&c-{damage}❤"
-  duration: 1.5
-  animation: "bounce"
+  reset-time: 3
+  multiplier:
+    enabled: true
+    base: 1.0
+    per-combo: 0.1
+    max: 3.0
+  display:
+    format: "<bold><gradient:#FF0000:#FFD700>✦ %dx COMBO ✦</gradient></bold>"
+    rank:
+      enabled: true
+      thresholds:
+        D: 0
+        C: 5
+        B: 10
+        A: 15
+        S: 25
+        SS: 40
+        SSS: 60
 
-combat-effects:
-  hit-sound: "entity.player.attack.strong"
-  particles: "crit"
-  screen-shake: true
+knockdown-system:
+  enabled: true
+  down-duration: 30
+  revive-duration: 5.0
+  revive-range: 3.0
+  vital-awakening:
+    instant-use: false
+    use-duration: 4.0`}</code>
+                </pre>
+              </div>
 
-statistics:
-  track-damage: true
-  track-kills: true
-  save-interval: 300 # seconds
-# More configuration options available...`}</code>
-                  </pre>
-                </div>
+              {/* Footer with copy button */}
+              <div className="relative px-4 py-2 border-t border-gray-200/80 dark:border-gray-700/50 flex justify-end">
+                <button className="flex items-center space-x-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <span>Copy code</span>
+                </button>
               </div>
             </div>
           </div>
@@ -228,60 +272,59 @@ const features = [
   {
     title: "Dynamic Damage Indicators",
     description:
-      "Real-time visual feedback for damage dealt and received, with customizable colors and animations.",
+      "Visualize damage with customizable formats, gradients, and animations. Support for all damage types with unique icons and colors.",
     icon: <DamageIcon />,
   },
   {
-    title: "Combat Analytics",
+    title: "Combo System",
     description:
-      "Detailed statistics and insights about player combat performance and server-wide trends.",
+      "Track consecutive hits with a ranking system from D to SSS. Apply increasing damage multipliers based on combo streaks.",
     icon: <AnalyticsIcon />,
   },
   {
-    title: "Custom Effects",
+    title: "Knockdown Mechanics",
     description:
-      "Create unique hit effects, particles, and sounds to match your server's theme.",
+      "Players can be downed instead of killed, allowing teammates to revive them with Vital Awakening items or abilities.",
     icon: <EffectsIcon />,
   },
   {
-    title: "Performance Optimized",
+    title: "Competitive Leaderboards",
     description:
-      "Built with efficiency in mind, ensuring smooth gameplay even with many players.",
+      "Track and display top players by damage dealt, highest combos, and average damage with customizable formatting.",
     icon: <PerformanceIcon />,
   },
   {
-    title: "Easy Configuration",
+    title: "World & Dimension Controls",
     description:
-      "Simple YAML configuration with hot-reload support for quick customization.",
+      "Configure different damage multipliers per dimension and disable features in specific worlds. WorldGuard integration for PvP regions.",
     icon: <ConfigIcon />,
   },
   {
-    title: "API Integration",
+    title: "Permission-Based Formatting",
     description:
-      "Comprehensive API for developers to extend and customize functionality.",
+      "Assign unique damage indicator styles to different player groups with permission-based formatting system.",
     icon: <ApiIcon />,
   },
 ];
 
 const configFeatures = [
   {
-    title: "Damage Indicators",
+    title: "Extensive Customization",
     description:
-      "Customize the format, duration, and animation of damage indicators.",
+      "Configure every aspect from damage indicator styles to combo ranks with support for gradients, animations, and custom icons.",
   },
   {
-    title: "Combat Effects",
+    title: "Revival System",
     description:
-      "Configure hit sounds, particles, and screen shake to enhance the combat experience.",
+      "Set up knockdown mechanics with configurable revival durations, effects, and the Vital Awakening item system.",
   },
   {
-    title: "Statistics",
+    title: "Performance Optimized",
     description:
-      "Track damage, kills, and other metrics to gain insights into player performance.",
+      "Fine-tune display settings, animation speeds, and world-specific configurations for optimal server performance.",
   },
 ];
 
-// Icons Components
 function DamageIcon() {
   return (
     <svg

@@ -15,8 +15,8 @@ export function Footer() {
               </span>
             </div>
             <p className="text-base text-gray-600 dark:text-gray-400 max-w-md">
-              Transform your Minecraft server's combat experience with
-              customizable damage indicators, effects, and analytics.
+              VitalStrike enhances Minecraft PvP with damage indicators, combo
+              multipliers, knockdowns, and leaderboards!
             </p>
             <div className="flex space-x-4">
               <a
@@ -45,7 +45,7 @@ export function Footer() {
             <div className="md:grid md:grid-cols-2 md:gap-8">
               <div>
                 <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Product
+                  Quick Links
                 </h3>
                 <ul className="mt-4 space-y-3">
                   <li>
@@ -74,7 +74,7 @@ export function Footer() {
                   </li>
                   <li>
                     <Link
-                      to="/docs/api"
+                      to="https://stawa.github.io/VitalStrike/javadoc"
                       className="text-base text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors"
                     >
                       API Reference
@@ -95,6 +95,16 @@ export function Footer() {
                       rel="noopener noreferrer"
                     >
                       Issue Tracker
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="https://discord.gg/b4nxvp8NcH"
+                      className="text-base text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Discord Community
                     </a>
                   </li>
                 </ul>
@@ -128,29 +138,6 @@ export function Footer() {
                       className="text-base text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors"
                     >
                       Changelog
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-              <div className="mt-12 md:mt-0">
-                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Legal
-                </h3>
-                <ul className="mt-4 space-y-3">
-                  <li>
-                    <Link
-                      to="/privacy"
-                      className="text-base text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors"
-                    >
-                      Privacy Policy
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      to="/terms"
-                      className="text-base text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors"
-                    >
-                      Terms of Service
                     </Link>
                   </li>
                 </ul>

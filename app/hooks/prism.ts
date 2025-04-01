@@ -1,8 +1,7 @@
 import { useEffect } from "react";
-import "prismjs/themes/prism.css"; // Add the base Prism CSS
-import "prismjs/themes/prism-tomorrow.css"; // Optional: dark theme
+import "prismjs/themes/prism.css";
+import "prismjs/themes/prism-tomorrow.css";
 
-// Add custom styles to remove background
 const customStyles = `
   code[class*="language-"],
   pre[class*="language-"] {
@@ -11,11 +10,9 @@ const customStyles = `
   }
 `;
 
-// Dynamic imports for Prism languages
 const loadPrism = async () => {
   const Prism = await import("prismjs");
 
-  // Add custom styles to document
   if (!document.querySelector("#prism-custom-styles")) {
     const styleSheet = document.createElement("style");
     styleSheet.id = "prism-custom-styles";
@@ -23,7 +20,6 @@ const loadPrism = async () => {
     document.head.appendChild(styleSheet);
   }
 
-  // Dynamically import language support
   await Promise.all([
     import("prismjs/components/prism-yaml"),
     import("prismjs/components/prism-javascript"),
@@ -48,7 +44,6 @@ export const useHighlightCode = () => {
   }, []);
 };
 
-// If you want a component-based approach
 export const PrismHighlight = () => {
   useHighlightCode();
   return null;

@@ -16,3 +16,29 @@ body {
   color: var(--foreground);
   background: var(--background);
 }
+
+@layer utilities {
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .draggable-scroll {
+    cursor: grab;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .draggable-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .draggable-scroll.dragging {
+    cursor: grabbing;
+    user-select: none;
+  }
+
+  .snap-center {
+    scroll-snap-align: center;
+  }
+}

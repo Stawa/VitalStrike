@@ -2,7 +2,7 @@ import type { Config } from "tailwindcss";
 
 export default {
   content: ["./app/**/{**,.client,.server}/**/*.{js,jsx,ts,tsx}"],
-  darkMode: 'class',
+  darkMode: "class",
   theme: {
     extend: {
       fontFamily: {
@@ -35,10 +35,52 @@ export default {
           surface: "#1e293b",
           border: "#334155",
         },
+        animation: {
+          "pulse-slow": "pulse 8s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+          float: "float 12s ease-in-out infinite",
+          "float-delayed": "float 12s ease-in-out 2s infinite",
+          "float-random": "float-y 15s ease-in-out infinite",
+          "gradient-x": "gradient-x 15s ease infinite",
+          "ping-slow": "ping 3s cubic-bezier(0, 0, 0.2, 1) infinite",
+        },
+        keyframes: {
+          float: {
+            "0%, 100%": { transform: "translateY(0)" },
+            "50%": { transform: "translateY(-20px)" },
+          },
+          "float-y": {
+            "0%, 100%": { transform: "translateY(0)" },
+            "50%": { transform: "translateY(-30px)" },
+          },
+          "gradient-x": {
+            "0%, 100%": {
+              "background-size": "200% 200%",
+              "background-position": "left center",
+            },
+            "50%": {
+              "background-size": "200% 200%",
+              "background-position": "right center",
+            },
+          },
+        },
+        scale: {
+          "98": "0.98",
+        },
       },
       maxWidth: {
-        '8xl': '90rem',
+        "8xl": "90rem",
       },
+    },
+    backdropFilter: {
+      none: "none",
+      blur: "blur(4px)",
+    },
+    zIndex: {
+      sidebar: "40",
+      "sidebar-toggle": "50",
+    },
+    transitionProperty: {
+      sidebar: "transform, opacity",
     },
   },
   plugins: [require("@tailwindcss/typography")],
