@@ -261,7 +261,7 @@ export default function GettingStarted() {
                 step: 4,
                 title: "Download Resource Pack",
                 content:
-                  "Accept the resource pack prompt when joining the server for the best visual experience. Or download manually from https://github.com/Stawa/VitalAwakening.",
+                  "Accept the resource pack prompt when joining the server for the best visual experience. Or download manually from https://github.com/Stawa/VitalAwakening",
                 icon: "📦",
                 color: "from-orange-500/10 to-orange-600/10",
                 borderColor: "border-orange-200 dark:border-orange-800/40",
