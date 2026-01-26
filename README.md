@@ -1,236 +1,88 @@
 # VitalStrike
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.4-brightgreen.svg)](https://www.minecraft.net/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-v1.21+-brightgreen.svg)](https://www.minecraft.net/)
 [![Build](https://github.com/Stawa/VitalStrike/actions/workflows/build.yml/badge.svg)](https://github.com/Stawa/VitalStrike/actions/workflows/build.yml)
 [![Release](https://img.shields.io/github/v/release/Stawa/VitalStrike?include_prereleases&style=flat)](https://github.com/Stawa/VitalStrike/releases)
 
-VitalStrike is a Minecraft plugin that enhances combat by introducing dynamic damage indications, combo multipliers, and a knockdown mechanism. It has leaderboards, customisable damage formats, sound effects, and world dimension controls. With permission-based formatting and extensive customisation, VitalStrike boosts your server's PvP experience.
+VitalStrike is a comprehensive combat enhancement plugin for Minecraft servers, designed to introduce dynamic damage indicators, combo systems, and knockdown mechanics. It offers extensive customization options, including per-world settings, permission-based damage formatting, and performance-optimized rendering using display entities.
 
-## Documentation & API
+> [!IMPORTANT]
+> Certain updates include adjustments that are incompatible with previous configuration files.
+> Before updating, back up your config and delete the existing config file so it can be regenerated.
 
-For features, installation, and configuration information, visit our main website at [https://vitalstrike.vercel.app/](https://vitalstrike.vercel.app/)
-For developers, we provide a comprehensive API with detailed documentation and examples available in our [JavaDoc Documentation](https://stawa.github.io/VitalStrike/javadoc/), which includes complete documentation of all classes, methods, and interfaces available in the VitalStrike API.
+## Documentation
 
----
+- **Website:** [vitalstrike.vercel.app](https://vitalstrike.vercel.app/)
+- **JavaDoc:** [API Documentation](https://stawa.github.io/VitalStrike/javadoc/)
 
-## ⚡ Requirements
+## Requirements
 
-- Java 21 or higher
-- Paper 1.21.4+ or compatible forks
+- **Java:** 21 or higher
+- **Server Software:** Paper 1.21.4+ (or compatible forks)
 
-## ✨ Features
+## Features
 
-### 💫 Customizable Damage Indicators
+- **Dynamic Damage Indicators:** Highly customizable damage numbers with support for gradients, animations, and permission-based styles.
+- **Combat Combo System:** Advanced combo tracking with damage multipliers, rank progression, and visual feedback including holograms.
+- **Knockdown Mechanics:** Implements a downed state for players with revival mechanics, custom items, and configurable durations.
+- **World Management:** Granular control over plugin activation and damage multipliers across different dimensions (Overworld, Nether, End) and WorldGuard regions.
+- **Performance Optimized:** Utilizes packet-based display entities and a smart damage merging system to maintain server performance under heavy load.
+- **Leaderboards & Statistics:** Built-in tracking for damage dealt, combo streaks, and other combat metrics.
 
-> Permission-based format groups with multiple styles, gradients, and animations
+## Installation
 
-### ⚔️ Dynamic Combat System
+1. Download the latest release from the [Releases Page](https://github.com/Stawa/VitalStrike/releases).
+2. Place the JAR file into your server's `plugins` directory.
+3. Restart the server to generate the default configuration files.
+4. Edit `plugins/VitalStrike/config.yml` to customize the plugin to your needs.
 
-> Advanced combo mechanism with multipliers, ranks, and hologram displays
+## Commands and Permissions
 
-### 👤 Player Experience
+| Command                       | Permission                | Description                             |
+| :---------------------------- | :------------------------ | :-------------------------------------- |
+| `/vs help`                    | `vitalstrike.use`         | Displays the help menu.                 |
+| `/vs toggle [on/off]`         | `vitalstrike.toggle`      | Toggles damage indicators for the user. |
+| `/vs reload`                  | `vitalstrike.reload`      | Reloads the plugin configuration.       |
+| `/vs stats`                   | `vitalstrike.stats`       | Views personal combat statistics.       |
+| `/vs leaderboard [type]`      | `vitalstrike.leaderboard` | Displays the specified leaderboard.     |
+| `/vs hologram [on/off]`       | `vitalstrike.hologram`    | Toggles combo holograms.                |
+| `/vs vitalawakening [amount]` | `vitalstrike.give`        | Spawns Vital Awakening items.           |
+| `/vs perm <action> <player>`  | `vitalstrike.admin`       | Manages player permissions.             |
 
-> Personalized settings, detailed combat statistics, and comprehensive leaderboards
+**Aliases:** `/vitalstrike`, `/vs`
 
-### 🔧 Technical Excellence
+## Configuration
 
-> Advanced sound integration, robust performance, automatic updates, and easy configuration
+VitalStrike is designed to be fully configurable. The main configuration file `config.yml` allows you to adjust:
 
-### 🌍 World Compatibility
+- **Display Settings:** Animation speed, offsets, and durations.
+- **Damage Formats:** Define unique text formats for different damage sources (e.g., Fire, Poison, Critical).
+- **Combo System:** Configure multipliers, decay rates, and rank thresholds.
+- **Knockdown Settings:** Adjust downed health, revival time, and penalties.
 
-> Flexible dimension control for Nether, End, and Overworld with WorldGuard integration
+Refer to the [Documentation](https://vitalstrike.vercel.app/) for detailed configuration guides.
 
-## 🚀 Quick Start
+## Building from Source
 
-1. Download the latest version of VitalStrike
-2. Place it in your server's `plugins` folder
-3. Restart your server
-4. Configure the plugin in `plugins/VitalStrike/config.yml`
+To build the project locally, ensure you have JDK 21 installed.
+This project uses Gradle (Wrapper), so no global Gradle installation is required.
 
-### 🧪 Development Build Guide
-
-Want to explore the cutting-edge features? Follow these steps to build from source:
-
-<details>
-<summary>📦 Build Instructions</summary>
-
-1. **Clone the Repository**
-
-   ```bash
-   git clone https://github.com/Stawa/VitalStrike.git
-   ```
-
-2. **Enter Project Directory**
-
-   ```bash
-   cd VitalStrike
-   ```
-
-3. **Compile with Maven**
-
-   ```bash
-   mvn clean package
-   ```
-
-4. **Locate the Build**
-   > Find your compiled JAR at:
-   > `target/VitalStrike-{version}.jar`
-
-</details>
-
-#### 📋 Prerequisites
-
-- Java Development Kit (JDK) 21 or newer
-- Apache Maven build tool
-- Git version control
-
-> 💎 **Pro Tip:** Use an IDE like IntelliJ IDEA or Eclipse for a smoother development experience!
-
-⚠️ **Important:** Development builds are experimental and may contain unstable features. Not recommended for production environments.
-
-## 📖 Commands
-
-| Command                                            | Permission              | Description                    | Default |
-| -------------------------------------------------- | ----------------------- | ------------------------------ | ------- |
-| `/vs help`                                         | vitalstrike.use         | Show the help menu             | true    |
-| `/vs toggle [on-off]`                              | vitalstrike.toggle      | Toggle damage indicators       | true    |
-| `/vs reload`                                       | vitalstrike.reload      | Reload plugin configuration    | op      |
-| `/vs stats`                                        | vitalstrike.stats       | View combat statistics         | true    |
-| `/vs leaderboard [type]`                           | vitalstrike.leaderboard | View damage/combo leaderboards | true    |
-| `/vs hologram [on-off]`                            | vitalstrike.hologram    | Toggle combo holograms         | true    |
-| `/vs vitalawakening [amount]`                      | vitalstrike.give        | Get Vital Awakening items      | op      |
-| `/vs perm <add-remove-list> <player> [permission]` | vitalstrike.admin       | Manage player permissions      | op      |
-
-Aliases: `/vitalstrike`, `/vs`, `/vs lb` (for leaderboard)
-
-## 🎨 Damage Formats
-
-VitalStrike supports different formats for various types of damage:
-
-```yaml
-simple-damage-formats:
-  default: "<gradient:#FF6B6B:#FF8787>-%.1f ❤</gradient>" # Normal damage
-  critical: "<bold><gradient:#FF0000:#8B0000>-%.1f ⚡</gradient></bold>" # Critical hits
-  poison: "<gradient:#50C878:#228B22>-%.1f ☠</gradient>" # Poison damage
-  fire: "<gradient:#FFD700:#FF4500>-%.1f 🔥</gradient>" # Fire damage
-  magic: "<gradient:#9400D3:#800080>-%.1f ✨</gradient>" # Magic damage
-  heal: "<green>+%.1f ❤</green>" # Healing amount
-  void: "<dark_gray>-%.1f ⬇</dark_gray>" # Void damage
-  wither: "<dark_gray>-%.1f 💀</dark_gray>" # Wither effect
-  # ... and many more!
+```bash
+git clone https://github.com/Stawa/VitalStrike.git
+cd VitalStrike
+./gradlew build
 ```
 
-## ⚙️ Configuration
+The compiled JAR will be located in the `build/libs/` directory.
 
-### ✊ Combo System
+## Support & Feedback
 
-<details>
-<summary>Click to View</summary>
+VitalStrike is developed and maintained by a single developer, so support may take a while—but all feedback is welcome. If you have any questions, encounter any issues, or wish to suggest new features, reach out to us using the channels listed below.
 
-```yaml
-combo:
-  enabled: true
-  reset-time: 3 # Time in seconds before combo resets
-  multiplier:
-    enabled: true
-    base: 1.0 # Base damage multiplier
-    per-combo: 0.1 # Additional multiplier per combo
-    max: 3.0 # Maximum damage multiplier
-  decay:
-    enabled: true
-    time: 10 # Time before decay starts
-    rate: 1 # Combo points lost per interval
-    interval: 1 # Decay check interval
-    minimum: 0 # Minimum combo value
-  display:
-    format: "<bold><gradient:#FF0000:#FFD700>✦ %dx COMBO ✦</gradient></bold>"
-    rank:
-      enabled: true
-      thresholds:
-        D: 0
-        C: 5
-        B: 10
-        A: 15
-        S: 25
-        SS: 40
-        SSS: 60
-```
+- **Issues:** [GitHub Issues](https://github.com/Stawa/VitalStrike/issues)
+- **Community & Help:** [Discord Server](https://discord.com/invite/b4nxvp8NcH)
 
-</details>
-
-### 😵 Knockdown System
-
-<details>
-<summary>Click to View</summary>
-
-```yaml
-knockdown-system:
-  enabled: true
-  down-duration: 30 # Duration in seconds
-  revive-duration: 5.0 # Time to revive
-  revive-range: 3.0 # Range for revival
-  downed-health: 20.0 # Health when downed
-  vital-awakening:
-    instant-use: false # Hold to use setting
-    use-duration: 4.0 # Hold duration
-```
-
-</details>
-
-### 🖥️ Display Settings
-
-<details>
-<summary>Click to View</summary>
-
-```yaml
-display:
-  duration: 1.5
-  position:
-    y: -0.2
-    x: -0.5
-    random-offset: -1
-    direction: "down"
-  animation:
-    fade-in: 0.25
-    fade-out: 0.25
-    float-speed: 0.03
-    float-curve: 0.02
-```
-
-</details>
-
-### 🔄 Animation Directions
-
-<details>
-<summary>Click to View</summary>
-
-- `down`: Indicators float downward (default)
-- `up`: Indicators float upward
-- `left`: Indicators float to the left
-- `right`: Indicators float to the right
-
-</details>
-
-## 🎮 Player Settings
-
-Players can customize their experience with the following settings:
-
-1. Toggle damage indicators: `/vs toggle [on|off]`
-2. Toggle combo holograms: `/vs hologram [on|off]`
-3. View personal statistics: `/vs stats`
-4. Check leaderboards: `/vs leaderboard [damage|combo|average]`
-5. Use Vital Awakening items for revival
-
-## 📄 License
-
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
-
-## 📞 Contact
-
-- Author: [Stawa](https://github.com/Stawa)
-- Issues: [GitHub Issues](https://github.com/Stawa/VitalStrike/issues)
-- Discord: [VitalStrike Community Server](https://discord.com/invite/b4nxvp8NcH)
-> I do not accept DMs. Please join the Discord server for support and discussions.
+This project is licensed under the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for details.
 
 ---
 

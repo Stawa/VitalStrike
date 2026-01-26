@@ -1,0 +1,78 @@
+/*
+ * VitalStrike build.gradle
+ */
+
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'com.diffplug.spotless' version '8.1.0'
+    id "com.gradleup.shadow" version "9.3.1"
+}
+
+group = 'stawa'
+version = '1.5.0-SNAPSHOT'
+description = 'VitalStrike'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+        vendor = JvmVendorSpec.ADOPTIUM
+    }
+}
+
+repositories {
+    mavenLocal()
+
+    maven {
+        url = uri('https://repo.papermc.io/repository/maven-public/')
+    }
+
+    maven {
+        url = uri('https://maven.enginehub.org/repo/')
+    }
+
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly libs.io.papermc.paper.paper.api
+    compileOnly libs.com.sk89q.worldguard.worldguard.bukkit
+}
+
+tasks.build {
+    finalizedBy 'deployToTestServer'
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+}
+
+spotless {
+    java {
+        googleJavaFormat()
+        target 'src/**/*.java'
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(Javadoc).configureEach {
+    failOnError = false
+    options.encoding = 'UTF-8'
+}
+
+
+tasks.register('deployToTestServer', Copy) {
+    dependsOn build
+    from(layout.buildDirectory.file("libs/${project.name}-${project.version}.jar"))
+    into 'test/plugins'
+}

@@ -1,0 +1,50 @@
+# Help Menu Settings
+help-menu:
+  header: "<dark_gray><strikethrough>                    </strikethrough>"
+  title: "<gold><bold>VitalStrike Commands</bold></gold>"
+  footer: "<dark_gray><strikethrough>                    </strikethrough>"
+  commands:
+    toggle:
+      command: "/vs toggle [on|off]"
+      description: "Toggle damage indicators on or off"
+    reload:
+      command: "/vs reload"
+      description: "Reload the plugin configuration"
+    stats:
+      command: "/vs stats"
+      description: "View your combat statistics"
+    leaderboard:
+      command: "/vs lb [damage|combo|average]"
+      description: "View the damage leaderboards"
+    hologram:
+      command: "/vs hologram [on|off]"
+      description: "Toggle combo holograms on or off"
+    permissions:
+      command: "/vs perm <add|remove|list> <player> [permission]"
+      description: "Manage player permissions"
+    help:
+      command: "/vs help [section]"
+      description: "Show this help menu or a specific section"
+    vitalawakening:
+      command: "/vs vitalawakening [amount]"
+      description: "Get Vital Awakening revival items"
+    resourcepack:
+      command: "/vs resourcepack"
+      description: "Load the custom resource pack"
+  sections:
+    combos:
+      title: "<gold><bold>Combo System Help</bold></gold>"
+      content:
+        1: "<yellow>Combos increase when you hit enemies in succession"
+        2: "<yellow>Higher combos give damage multipliers"
+        3: "<yellow>Combos decay after a period of inactivity"
+    permissions:
+      title: "<gold><bold>Permissions Help</bold></gold>"
+      content:
+        1: "<yellow>vitalstrike.use - Basic plugin usage"
+        2: "<yellow>vitalstrike.toggle - Toggle indicators"
+        3: "<yellow>vitalstrike.reload - Reload configuration"
+        4: "<yellow>vitalstrike.stats - View statistics"
+        5: "<yellow>vitalstrike.leaderboard - View leaderboards"
+        6: "<yellow>vitalstrike.hologram - Toggle holograms"
+        7: "<yellow>vitalstrike.admin.permissions - Manage permissions"

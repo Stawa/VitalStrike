@@ -1,5 +1,5 @@
 name: VitalStrike
-version: "${project.version}"
+version: "1.5.0-SNAPSHOT"
 main: stawa.vitalstrike.VitalStrike
 api-version: "1.21"
 author: stawa
@@ -18,6 +18,7 @@ commands:
       §e/vs leaderboard [damage|combo|average] §7- View top players leaderboard
       §e/vs hologram [on|off] §7- Toggle combo hologram display
       §e/vs vitalawakening [amount] §7- Give Vital Awakening items
+      §e/vs resourcepack §7- Load the custom resource pack
     aliases: [vs]
     permission: vitalstrike.use
     permission-message: §cYou don't have permission to use VitalStrike commands!
@@ -46,4 +47,7 @@ permissions:
     default: true
   vitalstrike.hologram:
     description: Allows toggling combo hologram display
+    default: true
+  vitalstrike.resourcepack:
+    description: Allows players to use the resource pack command
     default: true
