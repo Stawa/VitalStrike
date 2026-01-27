@@ -3,6 +3,8 @@
 [![Minecraft](https://img.shields.io/badge/Minecraft-v1.21+-brightgreen.svg)](https://www.minecraft.net/)
 [![Build](https://github.com/Stawa/VitalStrike/actions/workflows/build.yml/badge.svg)](https://github.com/Stawa/VitalStrike/actions/workflows/build.yml)
 [![Release](https://img.shields.io/github/v/release/Stawa/VitalStrike?include_prereleases&style=flat)](https://github.com/Stawa/VitalStrike/releases)
+[![Discord](https://img.shields.io/discord/1334869596196311101?logo=discord&logoColor=white&style=flat)](https://discord.com/invite/b4nxvp8NcH)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-yellow?logo=buymeacoffee&logoColor=white&style=flat)](https://buymeacoffee.com/stawa)
 
 VitalStrike is a comprehensive combat enhancement plugin for Minecraft servers, designed to introduce dynamic damage indicators, combo systems, and knockdown mechanics. It offers extensive customization options, including per-world settings, permission-based damage formatting, and performance-optimized rendering using display entities.
 
@@ -18,7 +20,10 @@ VitalStrike is a comprehensive combat enhancement plugin for Minecraft servers, 
 ## Requirements
 
 - **Java:** 21 or higher
-- **Server Software:** Paper 1.21.4+ (or compatible forks)
+- **Server Software:**
+  - [Paper](https://papermc.io) (Tested and Recommended)
+  - [Spigot](https://www.spigotmc.org) (Untested, may work)
+  - [Bukkit](https://getbukkit.org) (Untested, may work)
 
 ## Features
 
@@ -81,6 +86,7 @@ VitalStrike is developed and maintained by a single developer, so support may ta
 
 - **Issues:** [GitHub Issues](https://github.com/Stawa/VitalStrike/issues)
 - **Community & Help:** [Discord Server](https://discord.com/invite/b4nxvp8NcH)
+- **Buy Me a Coffee:** [Support VitalStrike](https://buymeacoffee.com/stawa)
 
 This project is licensed under the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for details.
 
