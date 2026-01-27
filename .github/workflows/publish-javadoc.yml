@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - "src/main/java/**"
-      - "pom.xml"
+      - "build.gradle"
 
 jobs:
   publish:
@@ -21,4 +21,4 @@ jobs:
           javadoc-branch: javadoc
           java-version: 21
           target-folder: javadoc
-          project: maven
+          project: gradle
