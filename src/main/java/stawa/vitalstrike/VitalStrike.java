@@ -72,7 +72,7 @@ public class VitalStrike extends JavaPlugin {
   public void onEnable() {
     this.logger = new VitalLogger(this);
 
-    String version = getDescription().getVersion();
+    String version = getPluginMeta().getVersion();
     if (version.contains("SNAPSHOT")) {
       logger.warning("You are running a SNAPSHOT version of VitalStrike ({}).", version);
       logger.warning("This version may contain bugs or be unstable.");
