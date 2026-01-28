@@ -1,46 +1,34 @@
 # Contributing to VitalStrike
 
-Thanks for your interest in contributing to VitalStrike! This guide will help you get started.
+We appreciate your desire to support VitalStrike. Community members are welcome to contribute to the project's development. Your efforts are appreciated whether you are enhancing documentation, implementing new features, or addressing issues.
 
 ## How to Contribute
 
-1. Fork the repository
-2. Create your branch (`git checkout -b feature/your-feature`)
-3. Make your changes
-4. Test your changes:
-   - Test with the latest Paper/Spigot version
-   - Ensure config.yml changes are documented
-   - Check if your changes work with the combo system
-5. Submit a pull request
+Please take the following actions in order to ensure a smooth collaboration process:
 
-## Examples of Contributions
-
-- Add new damage indicator formats
-- Improve combo system features
-- Add new particle effects
-- Optimize performance
-- Fix bugs
-- Improve documentation
+1.  **Fork the Repository**: Create a fork of the VitalStrike repository to your own GitHub account.
+2.  **Create a Branch**: Create a new branch for your specific feature or fix (e.g., `git checkout -b feature/new-damage-indicator`).
+3.  **Implement Changes**: Make your code changes or improvements.
+4.  **Test Your Changes**:
+    - Verify your changes on a local server (Paper 1.21.4+ recommended).
+    - Ensure the combo system functions correctly.
+    - Validate that any changes to `config.yml` are properly handled.
+5.  **Submit a Pull Request**: Submit a Pull Request (PR) to the main repository describing your changes in detail.
 
 ## Reporting Issues
 
-When reporting issues, please include:
+If you encounter a bug or have a suggestion, please use the GitHub Issues tracker. When reporting an issue, please provide the following details:
 
-- What happened
-- What you expected to happen
-- Server version (e.g., Paper 1.21.4)
-- VitalStrike version
-- Config file (if relevant)
-- Error messages (if any)
+- **Description**: A clear description of the issue or behavior.
+- **Expected Behavior**: What you expected to happen.
+- **Environment**: The server version and VitalStrike version you are using.
+- **Logs**: Any relevant error logs or console output.
 
-## Questions?
+## Community & Support
 
-Join our Discord community:
+If you have questions or need assistance, feel free to join our community channels:
 
-- Discord DM: stawa
-- Discord Server: [VitalStrike Community Server](https://discord.com/invite/b4nxvp8NcH)
+- **Discord Server**: [VitalStrike Community Server](https://discord.com/invite/b4nxvp8NcH)
+- **Contact**: `stawa` (Discord)
 
-You can also:
-
-- Open a GitHub issue
-- Start a GitHub discussion
+We look forward to your contributions.
