@@ -72,6 +72,14 @@ public class VitalStrike extends JavaPlugin {
   public void onEnable() {
     this.logger = new VitalLogger(this);
 
+    String version = getDescription().getVersion();
+    if (version.contains("SNAPSHOT")) {
+      logger.warning("You are running a SNAPSHOT version of VitalStrike ({}).", version);
+      logger.warning("This version may contain bugs or be unstable.");
+      logger.warning(
+          "If you encounter any issues, please report them on GitHub Issues or our Discord server.");
+    }
+
     saveDefaultConfig();
     this.configManager = new ConfigManager(this, getLogger());
 
