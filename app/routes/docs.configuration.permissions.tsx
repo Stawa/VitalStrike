@@ -3,19 +3,21 @@ import { useHighlightCode } from "~/hooks/prism";
 import { DocsNavigation } from "~/components/DocsNavigation";
 import { ConfigSection, ConfigBlock } from "~/components/ConfigSection";
 import { TableOfContents } from "~/components/TableOfContents";
-import { useState, useEffect } from "react";
 import {
+  FaCrosshairs,
+  FaFire,
   FaInfoCircle,
-  FaUsers,
+  FaTint,
   FaUserCog,
   FaUserLock,
+  FaUsers,
+  FaWater,
 } from "react-icons/fa";
 import BackToTop from "~/components/BackToTop";
 
 export const meta: MetaFunction = () => {
   const title = "VitalStrike Documentation - Permissions Configuration";
-  const description =
-    "Configure permissions and permission groups for VitalStrike plugin.";
+  const description = "Configure permissions and permission groups for VitalStrike plugin.";
 
   return [
     { rel: "icon", href: "/icon.png", type: "image/png" },
@@ -42,70 +44,31 @@ export const meta: MetaFunction = () => {
 
 export default function PermissionsConfiguration() {
   useHighlightCode();
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const tableItems = [
-    { id: "group-formats", label: "Group Permissions", icon: "👥" },
-    { id: "plugin-permissions", label: "Plugin Permissions", icon: "🔑" },
-    { id: "permission-commands", label: "Permission Commands", icon: "⌨️" },
+    { id: "group-permissions", label: "Group Permissions", icon: <FaUsers /> },
+    { id: "plugin-permissions", label: "Plugin Permissions", icon: <FaUserLock /> },
+    { id: "permission-commands", label: "Permission Commands", icon: <FaUserCog /> },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-gray-50 dark:from-background dark:to-gray-900/50 text-foreground antialiased">
-      {/* Hero Section with animated background */}
-      <div className="relative overflow-hidden">
-        <div className="relative z-10 pt-16 pb-8">
-          <div className="text-center px-4 md:px-6 lg:px-8 py-8 md:py-12 relative">
-            {/* Animated background elements */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/5 rounded-full animate-pulse-slow" />
-              <div className="absolute -bottom-32 -left-20 w-80 h-80 bg-primary/10 rounded-full animate-float" />
-              <div className="absolute top-1/2 left-1/4 w-40 h-40 bg-primary/5 rounded-full animate-float-delayed" />
-
-              {/* Particle effect - only render on client side */}
-              {isClient && (
-                <div className="absolute inset-0">
-                  {[...Array(20)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="absolute rounded-full bg-primary/20 animate-float-random"
-                      style={{
-                        width: `${Math.random() * 6 + 2}px`,
-                        height: `${Math.random() * 6 + 2}px`,
-                        top: `${Math.random() * 100}%`,
-                        left: `${Math.random() * 100}%`,
-                        animationDuration: `${Math.random() * 10 + 10}s`,
-                        animationDelay: `${Math.random() * 5}s`,
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="mb-6 inline-flex bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-800/30 px-4 py-2 rounded-full shadow-sm border border-primary-200/50 dark:border-primary-700/50">
-              <span className="text-primary-700 dark:text-primary-300 font-medium text-sm">
-                Configuration Guide
-              </span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white">
-              Permissions{" "}
-              <span className="text-primary-600 dark:text-primary-400">
-                Configuration
-              </span>
-            </h1>
-            <p className="mt-4 text-lg md:text-xl leading-8 text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Configure permissions and permission groups for your server
-            </p>
+    <div className="text-foreground antialiased">
+      <div className="mx-auto max-w-5xl">
+        <header className="py-12 md:py-16 text-center">
+          <div className="inline-flex items-center rounded-full border border-gray-200/70 bg-white/70 px-3 py-1 text-sm font-medium text-gray-700 shadow-sm backdrop-blur-sm dark:border-gray-800/70 dark:bg-gray-900/50 dark:text-gray-200">
+            Configuration
           </div>
-        </div>
-      </div>
 
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-12">
+          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+            Permissions{" "}
+            <span className="text-primary-600 dark:text-primary-400">Configuration</span>
+          </h1>
+
+          <p className="mt-4 max-w-2xl mx-auto text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:text-lg">
+            Configure permissions and permission groups for your server.
+          </p>
+        </header>
+
         <TableOfContents items={tableItems} />
 
         <div className="space-y-16">
@@ -115,14 +78,12 @@ export default function PermissionsConfiguration() {
             icon={<FaUsers className="text-xl" />}
             description="Permission groups for damage formats"
             className="scroll-mt-24"
-            iconBg="bg-gradient-to-br from-pink-500 to-rose-500"
           >
             <div className="mb-6 text-gray-600 dark:text-gray-400">
               <p>
-                Group permissions allow you to assign different damage indicator
-                formats to different player groups. This feature enables you to
-                create visually distinct damage indicators for different ranks
-                or classes on your server.
+                Group permissions allow you to assign different damage indicator formats to
+                different player groups. This feature enables you to create visually distinct damage
+                indicators for different ranks or classes on your server.
               </p>
             </div>
 
@@ -154,11 +115,10 @@ export default function PermissionsConfiguration() {
                 Creating Custom Groups
               </h4>
               <p className="text-sm text-pink-700 dark:text-pink-400">
-                You can create as many custom groups as you need by adding new
-                entries to the <code>group-damage-formats</code> section. Each
-                group needs a unique identifier, a permission node, and custom
-                damage formats. Players with the corresponding permission will
-                see damage indicators in the specified format.
+                You can create as many custom groups as you need by adding new entries to the{" "}
+                <code>group-damage-formats</code> section. Each group needs a unique identifier, a
+                permission node, and custom damage formats. Players with the corresponding
+                permission will see damage indicators in the specified format.
               </p>
             </div>
 
@@ -176,15 +136,20 @@ export default function PermissionsConfiguration() {
                   </p>
                   <div className="bg-gray-100 dark:bg-gray-800 rounded p-3">
                     <p className="text-sm text-blue-500 dark:text-blue-400">
-                      Normal damage: <span className="font-bold">-10.5 💧</span>
+                      Normal damage:{" "}
+                      <span className="font-bold inline-flex items-center gap-1">
+                        -10.5 <FaTint className="text-sm" />
+                      </span>
                     </p>
                     <p className="text-sm text-blue-700 dark:text-blue-300 font-bold">
-                      Critical damage: <span>-15.0 🌊</span>
+                      Critical damage:{" "}
+                      <span className="inline-flex items-center gap-1">
+                        -15.0 <FaWater className="text-sm" />
+                      </span>
                     </p>
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-500">
-                    Players with the water group permission will see blue-themed
-                    damage indicators.
+                    Players with the water group permission will see blue-themed damage indicators.
                   </p>
                 </div>
               </div>
@@ -201,15 +166,21 @@ export default function PermissionsConfiguration() {
                   </p>
                   <div className="bg-gray-100 dark:bg-gray-800 rounded p-3">
                     <p className="text-sm text-orange-500 dark:text-orange-400">
-                      Normal damage: <span className="font-bold">-10.5 🔥</span>
+                      Normal damage:{" "}
+                      <span className="font-bold inline-flex items-center gap-1">
+                        -10.5 <FaFire className="text-sm" />
+                      </span>
                     </p>
                     <p className="text-sm text-red-700 dark:text-red-400 font-bold">
-                      Critical damage: <span>-15.0 ⚔</span>
+                      Critical damage:{" "}
+                      <span className="inline-flex items-center gap-1">
+                        -15.0 <FaCrosshairs className="text-sm" />
+                      </span>
                     </p>
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-500">
-                    Players with the fire group permission will see
-                    red/orange-themed damage indicators.
+                    Players with the fire group permission will see red/orange-themed damage
+                    indicators.
                   </p>
                 </div>
               </div>
@@ -222,13 +193,12 @@ export default function PermissionsConfiguration() {
             icon={<FaUserCog className="text-xl" />}
             description="Core permissions for VitalStrike functionality"
             className="scroll-mt-24"
-            iconBg="bg-gradient-to-br from-amber-500 to-yellow-500"
           >
             <div className="mb-6 text-gray-600 dark:text-gray-400">
               <p>
-                VitalStrike uses a permission-based system to control access to
-                various features. Some permissions are granted by default to all
-                players, while others are restricted to server operators.
+                VitalStrike uses a permission-based system to control access to various features.
+                Some permissions are granted by default to all players, while others are restricted
+                to server operators.
               </p>
             </div>
 
@@ -259,6 +229,9 @@ export default function PermissionsConfiguration() {
     default: true
   vitalstrike.hologram:
     description: Allows toggling combo hologram display
+    default: true
+  vitalstrike.resourcepack:
+    description: Allows players to use the resource pack command
     default: true`}
               tip="Permissions control access to plugin features and commands"
               className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-amber-200 dark:border-amber-800/40 shadow-md"
@@ -270,10 +243,9 @@ export default function PermissionsConfiguration() {
                 Default Permissions
               </h4>
               <p className="text-sm text-amber-700 dark:text-amber-400">
-                Most basic features like viewing statistics and toggling
-                indicators are enabled by default for all players.
-                Administrative permissions like managing other players'
-                permissions and reloading the plugin are restricted to server
+                Most basic features like viewing statistics and toggling indicators are enabled by
+                default for all players. Administrative permissions like managing other
+                players&apos; permissions and reloading the plugin are restricted to server
                 operators by default.
               </p>
             </div>
@@ -339,6 +311,12 @@ export default function PermissionsConfiguration() {
                     </span>
                     <span>Toggle combo holograms</span>
                   </li>
+                  <li className="flex items-start">
+                    <span className="font-mono bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.5 rounded text-xs mr-2 mt-0.5">
+                      vitalstrike.resourcepack
+                    </span>
+                    <span>Use the resource pack command</span>
+                  </li>
                 </ul>
               </div>
             </div>
@@ -350,13 +328,12 @@ export default function PermissionsConfiguration() {
             icon={<FaUserLock className="text-xl" />}
             description="Commands for managing permissions"
             className="scroll-mt-24"
-            iconBg="bg-gradient-to-br from-green-500 to-emerald-500"
           >
             <div className="mb-6 text-gray-600 dark:text-gray-400">
               <p>
-                VitalStrike provides commands for managing player permissions
-                directly in-game. These commands allow administrators to grant
-                or revoke permissions without editing configuration files.
+                VitalStrike provides commands for managing player permissions directly in-game.
+                These commands allow administrators to grant or revoke permissions without editing
+                configuration files.
               </p>
             </div>
 
@@ -382,11 +359,9 @@ export default function PermissionsConfiguration() {
                 Permission Storage
               </h4>
               <p className="text-sm text-green-700 dark:text-green-400">
-                Permissions granted through these commands are stored in the
-                plugin's database file (playerdata.yml). They will persist
-                across server restarts. For more permanent permission
-                management, consider using a dedicated permissions plugin like
-                LuckPerms.
+                Permissions granted through these commands are stored in the plugin&apos;s database
+                file (playerdata.yml). They will persist across server restarts. For more permanent
+                permission management, consider using a dedicated permissions plugin like LuckPerms.
               </p>
             </div>
 
@@ -404,8 +379,8 @@ export default function PermissionsConfiguration() {
                       /vs perm add Steve vitalstrike.group.fire
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                      This gives Steve the fire group permission, changing their
-                      damage indicator format.
+                      This gives Steve the fire group permission, changing their damage indicator
+                      format.
                     </p>
                   </div>
 
@@ -417,7 +392,7 @@ export default function PermissionsConfiguration() {
                       /vs perm remove Alex vitalstrike.hologram
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                      This removes Alex's ability to toggle combo holograms.
+                      This removes Alex&apos;s ability to toggle combo holograms.
                     </p>
                   </div>
 
@@ -429,8 +404,7 @@ export default function PermissionsConfiguration() {
                       /vs perm list Steve
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                      This shows all VitalStrike permissions that Steve
-                      currently has.
+                      This shows all VitalStrike permissions that Steve currently has.
                     </p>
                   </div>
                 </div>

@@ -2,7 +2,7 @@ import type { MetaFunction } from "@remix-run/node";
 import { useHighlightCode } from "~/hooks/prism";
 import { DocsNavigation } from "~/components/DocsNavigation";
 import { TableOfContents } from "~/components/TableOfContents";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   FaTerminal,
   FaToggleOn,
@@ -10,6 +10,7 @@ import {
   FaTools,
   FaSearch,
   FaCopy,
+  FaTimes,
 } from "react-icons/fa";
 import BackToTop from "~/components/BackToTop";
 
@@ -30,19 +31,14 @@ export const meta: MetaFunction = () => {
 
 export default function CommandsPage() {
   useHighlightCode();
-  const [isClient, setIsClient] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [copiedCommand, setCopiedCommand] = useState<string | null>(null);
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
   const tableItems = [
-    { id: "basic-commands", label: "Basic Commands", icon: "⌨️" },
-    { id: "toggle-commands", label: "Toggle Commands", icon: "🔄" },
-    { id: "stats-commands", label: "Statistics Commands", icon: "📊" },
-    { id: "admin-commands", label: "Admin Commands", icon: "🛠️" },
+    { id: "basic-commands", label: "Basic Commands", icon: <FaTerminal /> },
+    { id: "toggle-commands", label: "Toggle Commands", icon: <FaToggleOn /> },
+    { id: "stats-commands", label: "Statistics Commands", icon: <FaChartBar /> },
+    { id: "admin-commands", label: "Admin Commands", icon: <FaTools /> },
   ];
 
   const commandSections = [
@@ -51,19 +47,16 @@ export default function CommandsPage() {
       title: "Basic Commands",
       description: "Essential commands for using VitalStrike",
       icon: <FaTerminal className="text-xl" />,
-      color: "from-blue-500/20 to-indigo-500/20",
-      borderColor: "border-blue-200 dark:border-blue-800/40",
-      iconBg: "bg-gradient-to-br from-blue-500 to-indigo-500",
       commands: [
         {
-          command: "/vs help",
-          description: "Show the help menu",
+          command: "/vs help [section]",
+          description: "Show the help menu or a specific section",
           permission: "vitalstrike.use",
         },
         {
-          command: "/vs version",
-          description: "Show plugin version information",
-          permission: "vitalstrike.use",
+          command: "/vs resourcepack",
+          description: "Load the custom resource pack",
+          permission: "vitalstrike.resourcepack",
         },
       ],
     },
@@ -72,9 +65,6 @@ export default function CommandsPage() {
       title: "Toggle Commands",
       description: "Commands to toggle plugin features",
       icon: <FaToggleOn className="text-xl" />,
-      color: "from-green-500/20 to-emerald-500/20",
-      borderColor: "border-green-200 dark:border-green-800/40",
-      iconBg: "bg-gradient-to-br from-green-500 to-emerald-500",
       commands: [
         {
           command: "/vs toggle [on|off]",
@@ -93,9 +83,6 @@ export default function CommandsPage() {
       title: "Statistics Commands",
       description: "Commands to view statistics and leaderboards",
       icon: <FaChartBar className="text-xl" />,
-      color: "from-purple-500/20 to-pink-500/20",
-      borderColor: "border-purple-200 dark:border-purple-800/40",
-      iconBg: "bg-gradient-to-br from-purple-500 to-pink-500",
       commands: [
         {
           command: "/vs stats",
@@ -107,6 +94,11 @@ export default function CommandsPage() {
           description: "View top players leaderboard",
           permission: "vitalstrike.leaderboard",
         },
+        {
+          command: "/vs lb [damage|combo|average]",
+          description: "Alias for /vs leaderboard",
+          permission: "vitalstrike.leaderboard",
+        },
       ],
     },
     {
@@ -114,9 +106,6 @@ export default function CommandsPage() {
       title: "Admin Commands",
       description: "Administrative commands for managing the plugin",
       icon: <FaTools className="text-xl" />,
-      color: "from-amber-500/20 to-orange-500/20",
-      borderColor: "border-amber-200 dark:border-amber-800/40",
-      iconBg: "bg-gradient-to-br from-amber-500 to-orange-500",
       commands: [
         {
           command: "/vs reload",
@@ -129,7 +118,7 @@ export default function CommandsPage() {
           permission: "vitalstrike.give",
         },
         {
-          command: "/vs perm [add|remove|list]",
+          command: "/vs perm <add|remove|list> <player> [permission]",
           description: "Manage player permissions",
           permission: "vitalstrike.admin.permissions",
         },
@@ -144,9 +133,7 @@ export default function CommandsPage() {
           commands: section.commands.filter(
             (cmd) =>
               cmd.command.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              cmd.description
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase()) ||
+              cmd.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
               cmd.permission.toLowerCase().includes(searchTerm.toLowerCase())
           ),
         }))
@@ -160,67 +147,24 @@ export default function CommandsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-gray-50 dark:from-background dark:to-gray-900/50 text-foreground antialiased">
-      {/* Hero Section with animated background */}
-      <div className="relative overflow-hidden">
-        <div className="relative z-10 pt-16 pb-8">
-          <div className="text-center px-4 md:px-6 lg:px-8 py-8 md:py-12 relative">
-            {/* Animated background elements */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/5 rounded-full animate-pulse-slow" />
-              <div className="absolute -bottom-32 -left-20 w-80 h-80 bg-primary/10 rounded-full animate-float" />
-              <div className="absolute top-1/2 left-1/4 w-40 h-40 bg-primary/5 rounded-full animate-float-delayed" />
-
-              {/* Particle effect - only render on client side */}
-              {isClient && (
-                <div className="absolute inset-0">
-                  {[...Array(20)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="absolute rounded-full bg-primary/20 animate-float-random"
-                      style={{
-                        width: `${Math.random() * 6 + 2}px`,
-                        height: `${Math.random() * 6 + 2}px`,
-                        top: `${Math.random() * 100}%`,
-                        left: `${Math.random() * 100}%`,
-                        animationDuration: `${Math.random() * 10 + 10}s`,
-                        animationDelay: `${Math.random() * 5}s`,
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="mb-6 inline-flex bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-800/30 px-4 py-2 rounded-full shadow-sm border border-primary-200/50 dark:border-primary-700/50">
-              <span className="text-primary-700 dark:text-primary-300 font-medium text-sm">
-                Command Reference
-              </span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white">
-              VitalStrike{" "}
-              <span className="text-primary-600 dark:text-primary-400">
-                Commands
-              </span>
-            </h1>
-            <p className="mt-4 text-lg md:text-xl leading-8 text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Complete list of commands and their usage in VitalStrike
-            </p>
+    <div className="text-foreground antialiased">
+      <div className="mx-auto max-w-5xl">
+        <header className="py-12 md:py-16 text-center">
+          <div className="inline-flex items-center rounded-full border border-gray-200/70 bg-white/70 px-3 py-1 text-sm font-medium text-gray-700 shadow-sm backdrop-blur-sm dark:border-gray-800/70 dark:bg-gray-900/50 dark:text-gray-200">
+            Command Reference
           </div>
-        </div>
-      </div>
 
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-12">
+          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+            VitalStrike <span className="text-primary-600 dark:text-primary-400">Commands</span>
+          </h1>
+
+          <p className="mt-4 max-w-2xl mx-auto text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:text-lg">
+            Complete list of commands and their usage in VitalStrike.
+          </p>
+        </header>
+
         {/* Search and Table of Contents */}
         <div className="mb-12">
-          <div className="relative flex items-center mb-8">
-            <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
-            <h2 className="flex-shrink-0 mx-4 text-2xl font-bold text-gray-900 dark:text-white">
-              Command Reference
-            </h2>
-            <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
-          </div>
-
           {/* Search Bar */}
           <div className="mb-8 relative">
             <div className="relative">
@@ -229,15 +173,16 @@ export default function CommandsPage() {
                 placeholder="Search commands..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-3 pl-12 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+                className="w-full rounded-xl border border-gray-200/70 bg-white/70 px-4 py-3 pl-12 text-gray-900 shadow-sm backdrop-blur-sm transition-colors focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-800/70 dark:bg-gray-900/50 dark:text-white"
               />
-              <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <FaSearch className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm("")}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                  aria-label="Clear search"
                 >
-                  ✕
+                  <FaTimes className="text-sm" />
                 </button>
               )}
             </div>
@@ -253,9 +198,7 @@ export default function CommandsPage() {
               <div className="relative flex items-center mb-8">
                 <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
                 <div className="flex items-center flex-shrink-0 mx-4">
-                  <div
-                    className={`${section.iconBg} p-2 rounded-lg mr-3 text-white shadow-md`}
-                  >
+                  <div className="mr-3 inline-flex h-10 w-10 items-center justify-center rounded-lg border border-primary/15 bg-primary/10 text-primary-700 shadow-sm dark:text-primary-300">
                     {section.icon}
                   </div>
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -265,25 +208,15 @@ export default function CommandsPage() {
                 <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
               </div>
 
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                {section.description}
-              </p>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">{section.description}</p>
 
               <div className="grid gap-4">
-                {section.commands.map((cmd, idx) => (
+                {section.commands.map((cmd) => (
                   <div
-                    key={idx}
-                    className={`group relative overflow-hidden rounded-xl bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm p-5 shadow-sm hover:shadow-md transition-all duration-300 border ${section.borderColor}`}
+                    key={cmd.command}
+                    className="group rounded-xl bg-white/70 dark:bg-gray-900/50 backdrop-blur-sm p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-200/70 dark:border-gray-800/70 hover:border-primary/30"
                   >
-                    {/* Gradient background that appears on hover */}
-                    <div
-                      className={`absolute inset-0 bg-gradient-to-br ${section.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
-                    ></div>
-
-                    {/* Grid pattern background */}
-                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] opacity-0 group-hover:opacity-25 transition-opacity duration-500" />
-
-                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between">
                       <div className="mb-3 md:mb-0">
                         <div className="flex items-center">
                           <div className="font-mono text-base font-medium text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-md">
@@ -295,17 +228,13 @@ export default function CommandsPage() {
                             title="Copy command"
                           >
                             {copiedCommand === cmd.command ? (
-                              <span className="text-green-500 text-sm">
-                                Copied!
-                              </span>
+                              <span className="text-green-500 text-sm">Copied!</span>
                             ) : (
                               <FaCopy size={14} />
                             )}
                           </button>
                         </div>
-                        <p className="mt-2 text-gray-600 dark:text-gray-400">
-                          {cmd.description}
-                        </p>
+                        <p className="mt-2 text-gray-600 dark:text-gray-400">{cmd.description}</p>
                       </div>
                       <div className="md:text-right">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 dark:bg-primary-900/50 text-primary-800 dark:text-primary-300">
@@ -313,9 +242,6 @@ export default function CommandsPage() {
                         </span>
                       </div>
                     </div>
-
-                    {/* Decorative corner accent */}
-                    <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-white/20 dark:bg-white/5 rounded-tl-xl transform rotate-45 group-hover:bg-primary-500/20 transition-colors duration-300"></div>
                   </div>
                 ))}
               </div>
@@ -331,7 +257,7 @@ export default function CommandsPage() {
                 No commands found
               </h3>
               <p className="text-gray-600 dark:text-gray-400">
-                Try adjusting your search term to find what you're looking for.
+                Try adjusting your search term to find what you&apos;re looking for.
               </p>
             </div>
           )}
@@ -345,8 +271,8 @@ export default function CommandsPage() {
               href: "/docs/configuration",
             }}
             nextPage={{
-              title: "API Reference",
-              href: "/docs/api",
+              title: "Downloads",
+              href: "/downloads",
             }}
           />
         </div>

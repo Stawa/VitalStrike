@@ -39,14 +39,16 @@ function Document({
         <Meta />
         <Links />
       </head>
-      <body className="min-h-screen bg-white dark:bg-dark-bg text-gray-900 dark:text-gray-100 antialiased flex flex-col">
-        {/* Added relative positioning and z-index to ensure proper stacking */}
-        <div className="relative z-50">
+      <body className="min-h-screen bg-white dark:bg-dark-bg text-gray-900 dark:text-gray-100 antialiased flex flex-col selection:bg-primary-500 selection:text-white">
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <div className="absolute inset-0 bg-grid-slate-900 [mask-image:linear-gradient(to_bottom,white,transparent)] dark:bg-grid-slate-400 dark:[mask-image:linear-gradient(to_bottom,white,transparent)]" />
+        </div>
+        <div className="relative z-10 flex flex-col min-h-screen">
           <WIPBanner />
           <Navigation />
+          <div className="flex-1 flex flex-col w-full">{children}</div>
+          <Footer />
         </div>
-        {children}
-        <Footer />
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -61,7 +63,7 @@ export default function App() {
 
   return (
     <Document>
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col flex-1 w-full">
         <div className="flex flex-1">
           {isDocsPage && (
             <>
@@ -79,13 +81,15 @@ export default function App() {
               </button>
 
               {/* Mobile Sidebar Overlay */}
-              <div
+              <button
+                type="button"
                 className={`fixed inset-0 z-[55] xl:hidden bg-black/20 backdrop-blur-sm transition-opacity duration-300 ${
                   isSidebarOpen
                     ? "opacity-100 pointer-events-auto"
                     : "opacity-0 pointer-events-none"
                 }`}
                 onClick={() => setIsSidebarOpen(false)}
+                aria-label="Close Sidebar"
               />
 
               {/* Mobile Sidebar */}

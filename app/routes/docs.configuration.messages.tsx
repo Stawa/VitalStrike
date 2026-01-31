@@ -3,7 +3,6 @@ import { useHighlightCode } from "~/hooks/prism";
 import { DocsNavigation } from "~/components/DocsNavigation";
 import { ConfigSection, ConfigBlock } from "~/components/ConfigSection";
 import { TableOfContents } from "~/components/TableOfContents";
-import { useState, useEffect } from "react";
 import {
   FaInfoCircle,
   FaCommentAlt,
@@ -15,8 +14,7 @@ import BackToTop from "~/components/BackToTop";
 
 export const meta: MetaFunction = () => {
   const title = "VitalStrike Documentation - Messages Configuration";
-  const description =
-    "Configure system messages, help menus, and text formatting in VitalStrike.";
+  const description = "Configure system messages, help menus, and text formatting in VitalStrike.";
 
   return [
     { rel: "icon", href: "/icon.png", type: "image/png" },
@@ -43,72 +41,31 @@ export const meta: MetaFunction = () => {
 
 export default function MessagesConfiguration() {
   useHighlightCode();
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const tableItems = [
-    { id: "system-messages", label: "System Messages", icon: "💬" },
-    { id: "color-formats", label: "Color Formats", icon: "🎨" },
-    { id: "help-sections", label: "Help Sections", icon: "❔" },
-    { id: "command-help", label: "Command Help", icon: "📝" },
+    { id: "system-messages", label: "System Messages", icon: <FaCommentAlt /> },
+    { id: "color-formats", label: "Color Formats", icon: <FaPalette /> },
+    { id: "help-sections", label: "Help Sections", icon: <FaQuestionCircle /> },
+    { id: "command-help", label: "Command Help", icon: <FaTerminal /> },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-gray-50 dark:from-background dark:to-gray-900/50 text-foreground antialiased">
-      {/* Hero Section with animated background */}
-      <div className="relative overflow-hidden">
-        <div className="relative z-10 pt-16 pb-8">
-          <div className="text-center px-4 md:px-6 lg:px-8 py-8 md:py-12 relative">
-            {/* Animated background elements */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/5 rounded-full animate-pulse-slow" />
-              <div className="absolute -bottom-32 -left-20 w-80 h-80 bg-primary/10 rounded-full animate-float" />
-              <div className="absolute top-1/2 left-1/4 w-40 h-40 bg-primary/5 rounded-full animate-float-delayed" />
-
-              {/* Particle effect - only render on client side */}
-              {isClient && (
-                <div className="absolute inset-0">
-                  {[...Array(20)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="absolute rounded-full bg-primary/20 animate-float-random"
-                      style={{
-                        width: `${Math.random() * 6 + 2}px`,
-                        height: `${Math.random() * 6 + 2}px`,
-                        top: `${Math.random() * 100}%`,
-                        left: `${Math.random() * 100}%`,
-                        animationDuration: `${Math.random() * 10 + 10}s`,
-                        animationDelay: `${Math.random() * 5}s`,
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="mb-6 inline-flex bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-800/30 px-4 py-2 rounded-full shadow-sm border border-primary-200/50 dark:border-primary-700/50">
-              <span className="text-primary-700 dark:text-primary-300 font-medium text-sm">
-                Configuration Guide
-              </span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white">
-              Messages{" "}
-              <span className="text-primary-600 dark:text-primary-400">
-                Configuration
-              </span>
-            </h1>
-            <p className="mt-4 text-lg md:text-xl leading-8 text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Configure system messages, help menus, and text formatting for
-              your server
-            </p>
+    <div className="text-foreground antialiased">
+      <div className="mx-auto max-w-5xl">
+        <header className="py-12 md:py-16 text-center">
+          <div className="inline-flex items-center rounded-full border border-gray-200/70 bg-white/70 px-3 py-1 text-sm font-medium text-gray-700 shadow-sm backdrop-blur-sm dark:border-gray-800/70 dark:bg-gray-900/50 dark:text-gray-200">
+            Configuration
           </div>
-        </div>
-      </div>
 
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-12">
+          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+            Messages <span className="text-primary-600 dark:text-primary-400">Configuration</span>
+          </h1>
+
+          <p className="mt-4 max-w-2xl mx-auto text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:text-lg">
+            Configure system messages, help menus, and text formatting for your server.
+          </p>
+        </header>
+
         <TableOfContents items={tableItems} />
 
         <div className="space-y-16">
@@ -118,13 +75,12 @@ export default function MessagesConfiguration() {
             icon={<FaCommentAlt className="text-xl" />}
             description="Configure basic system messages"
             className="scroll-mt-24"
-            iconBg="bg-gradient-to-br from-blue-500 to-indigo-500"
           >
             <div className="mb-6 text-gray-600 dark:text-gray-400">
               <p>
-                System messages are displayed to players when they interact with
-                the plugin's commands and features. These messages can be fully
-                customized to match your server's style and tone.
+                System messages are displayed to players when they interact with the plugin&apos;s
+                commands and features. These messages can be fully customized to match your
+                server&apos;s style and tone.
               </p>
             </div>
 
@@ -148,15 +104,14 @@ export default function MessagesConfiguration() {
                 Message Variables
               </h4>
               <p className="text-sm text-blue-700 dark:text-blue-400">
-                Some messages support variables that are replaced with dynamic
-                content:
+                Some messages support variables that are replaced with dynamic content:
               </p>
               <ul className="mt-2 text-sm text-blue-700 dark:text-blue-400 space-y-1">
                 <li>
                   <code className="px-1 py-0.5 bg-blue-100 dark:bg-blue-900/50 rounded">
                     %player%
                   </code>{" "}
-                  - Player's name
+                  - Player&apos;s name
                 </li>
                 <li>
                   <code className="px-1 py-0.5 bg-blue-100 dark:bg-blue-900/50 rounded">
@@ -180,14 +135,12 @@ export default function MessagesConfiguration() {
             icon={<FaPalette className="text-xl" />}
             description="Available color and formatting options"
             className="scroll-mt-24"
-            iconBg="bg-gradient-to-br from-pink-500 to-rose-500"
           >
             <div className="mb-6 text-gray-600 dark:text-gray-400">
               <p>
-                VitalStrike supports a wide range of color and formatting
-                options for all text displayed by the plugin. These formats can
-                be used in any message configuration to create visually
-                appealing and informative text.
+                VitalStrike supports a wide range of color and formatting options for all text
+                displayed by the plugin. These formats can be used in any message configuration to
+                create visually appealing and informative text.
               </p>
             </div>
 
@@ -220,45 +173,31 @@ export default function MessagesConfiguration() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
               <div className="bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-lg p-4 border border-pink-200 dark:border-pink-800/40">
-                <h4 className="font-medium text-pink-800 dark:text-pink-300 mb-2">
-                  Basic Colors
-                </h4>
+                <h4 className="font-medium text-pink-800 dark:text-pink-300 mb-2">Basic Colors</h4>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 rounded-full bg-red-500"></div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      &lt;red&gt;
-                    </span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">&lt;red&gt;</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 rounded-full bg-blue-500"></div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      &lt;blue&gt;
-                    </span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">&lt;blue&gt;</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 rounded-full bg-green-500"></div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      &lt;green&gt;
-                    </span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">&lt;green&gt;</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 rounded-full bg-yellow-500"></div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      &lt;yellow&gt;
-                    </span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">&lt;yellow&gt;</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 rounded-full bg-purple-500"></div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      &lt;purple&gt;
-                    </span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">&lt;purple&gt;</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 rounded-full bg-gray-500"></div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      &lt;gray&gt;
-                    </span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">&lt;gray&gt;</span>
                   </div>
                 </div>
               </div>
@@ -274,16 +213,13 @@ export default function MessagesConfiguration() {
                     <span className="italic">&lt;italic&gt;</span> - Italic text
                   </li>
                   <li>
-                    <span className="underline">&lt;underlined&gt;</span> -
-                    Underlined
+                    <span className="underline">&lt;underlined&gt;</span> - Underlined
                   </li>
                   <li>
-                    <span className="line-through">&lt;strikethrough&gt;</span>{" "}
-                    - Strikethrough
+                    <span className="line-through">&lt;strikethrough&gt;</span> - Strikethrough
                   </li>
                   <li>
-                    <span className="font-mono">&lt;obfuscated&gt;</span> -
-                    Obfuscated
+                    <span className="font-mono">&lt;obfuscated&gt;</span> - Obfuscated
                   </li>
                 </ul>
               </div>
@@ -293,18 +229,14 @@ export default function MessagesConfiguration() {
                 </h4>
                 <div className="space-y-2">
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                      Gradients:
-                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Gradients:</p>
                     <div className="h-6 rounded bg-gradient-to-r from-red-500 to-yellow-500"></div>
                     <p className="text-xs mt-1 text-gray-500 dark:text-gray-500">
                       &lt;gradient:red:yellow&gt;Text&lt;/gradient&gt;
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                      Combined:
-                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Combined:</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       &lt;bold&gt;&lt;gradient:blue:aqua&gt;Text&lt;/gradient&gt;&lt;/bold&gt;
                     </p>
@@ -320,20 +252,18 @@ export default function MessagesConfiguration() {
             icon={<FaQuestionCircle className="text-xl" />}
             description="Configure help menu sections"
             className="scroll-mt-24"
-            iconBg="bg-gradient-to-br from-green-500 to-emerald-500"
           >
             <div className="mb-6 text-gray-600 dark:text-gray-400">
               <p>
-                Help sections provide detailed information about different
-                aspects of the plugin. These sections can be accessed through
-                the help command and provide players with guidance on how to use
-                the plugin's features.
+                Help sections provide detailed information about different aspects of the plugin.
+                These sections can be accessed through the help command and provide players with
+                guidance on how to use the plugin&apos;s features.
               </p>
             </div>
 
             <ConfigBlock
               title="Help Sections Configuration"
-              filename="config.yml"
+              filename="help.yml"
               code={`help-menu:
   sections:
     combos:
@@ -362,10 +292,10 @@ export default function MessagesConfiguration() {
                 Creating Custom Help Sections
               </h4>
               <p className="text-sm text-green-700 dark:text-green-400">
-                You can create additional help sections by adding new entries
-                under the <code>sections</code> key. Each section needs a unique
-                identifier, a title, and numbered content entries. Players can
-                access these sections with <code>/vs help [section-name]</code>.
+                You can create additional help sections by adding new entries under the{" "}
+                <code>sections</code> key. Each section needs a unique identifier, a title, and
+                numbered content entries. Players can access these sections with{" "}
+                <code>/vs help [section-name]</code>.
               </p>
             </div>
 
@@ -394,9 +324,7 @@ export default function MessagesConfiguration() {
                   Example Help Section
                 </h4>
                 <div className="bg-gray-100 dark:bg-gray-800 rounded p-3 text-sm">
-                  <p className="font-bold text-amber-600 dark:text-amber-400">
-                    Combo System Help
-                  </p>
+                  <p className="font-bold text-amber-600 dark:text-amber-400">Combo System Help</p>
                   <ul className="mt-1 space-y-1 text-yellow-600 dark:text-yellow-400">
                     <li>Combos increase when you hit enemies in succession</li>
                     <li>Higher combos give damage multipliers</li>
@@ -413,20 +341,18 @@ export default function MessagesConfiguration() {
             icon={<FaTerminal className="text-xl" />}
             description="Configure command descriptions and usage"
             className="scroll-mt-24"
-            iconBg="bg-gradient-to-br from-purple-500 to-indigo-500"
           >
             <div className="mb-6 text-gray-600 dark:text-gray-400">
               <p>
-                Command help provides information about available commands and
-                their usage. This section allows you to customize how commands
-                are displayed in the help menu, including their syntax and
-                descriptions.
+                Command help provides information about available commands and their usage. This
+                section allows you to customize how commands are displayed in the help menu,
+                including their syntax and descriptions.
               </p>
             </div>
 
             <ConfigBlock
               title="Command Help Configuration"
-              filename="config.yml"
+              filename="help.yml"
               code={`help-menu:
   commands:
     toggle:
@@ -449,7 +375,13 @@ export default function MessagesConfiguration() {
       description: "Manage player permissions"
     help:
       command: "/vs help [section]"
-      description: "Show this help menu or a specific section"`}
+      description: "Show this help menu or a specific section"
+    vitalawakening:
+      command: "/vs vitalawakening [amount]"
+      description: "Get Vital Awakening revival items"
+    resourcepack:
+      command: "/vs resourcepack"
+      description: "Load the custom resource pack"`}
               tip="Command help provides information about available commands and their usage."
               className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-purple-200 dark:border-purple-800/40 shadow-md"
             />
@@ -516,12 +448,8 @@ export default function MessagesConfiguration() {
                     Toggle damage indicators on or off
                   </p>
                   <div className="mt-2 border-t border-gray-300 dark:border-gray-700 pt-2"></div>
-                  <p className="text-yellow-600 dark:text-yellow-400 font-mono">
-                    /vs stats
-                  </p>
-                  <p className="text-white dark:text-gray-300 mt-1">
-                    View your combat statistics
-                  </p>
+                  <p className="text-yellow-600 dark:text-yellow-400 font-mono">/vs stats</p>
+                  <p className="text-white dark:text-gray-300 mt-1">View your combat statistics</p>
                 </div>
               </div>
             </div>

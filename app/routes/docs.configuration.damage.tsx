@@ -3,7 +3,6 @@ import { useHighlightCode } from "~/hooks/prism";
 import { DocsNavigation } from "~/components/DocsNavigation";
 import { ConfigSection, ConfigBlock } from "~/components/ConfigSection";
 import { TableOfContents } from "~/components/TableOfContents";
-import { useState, useEffect } from "react";
 import { FaUsers, FaSkull, FaVolumeUp, FaInfoCircle } from "react-icons/fa";
 import { PiGradientFill } from "react-icons/pi";
 import BackToTop from "~/components/BackToTop";
@@ -38,94 +37,49 @@ export const meta: MetaFunction = () => {
 
 export default function DamageConfiguration() {
   useHighlightCode();
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const tableItems = [
-    { id: "simple-formats", label: "Simple Damage Formats", icon: "💫" },
-    { id: "group-formats", label: "Group-Based Formats", icon: "👥" },
-    { id: "damage-types", label: "Damage Types", icon: "⚔️" },
-    { id: "custom-sounds", label: "Custom Sounds", icon: "🔊" },
-    { id: "formatting-guide", label: "Formatting Guide", icon: "📝" },
+    { id: "simple-formats", label: "Simple Damage Formats", icon: <PiGradientFill /> },
+    { id: "group-formats", label: "Group-Based Formats", icon: <FaUsers /> },
+    { id: "damage-types", label: "Damage Types", icon: <FaSkull /> },
+    { id: "custom-sounds", label: "Custom Sounds", icon: <FaVolumeUp /> },
+    { id: "formatting-guide", label: "Formatting Guide", icon: <FaInfoCircle /> },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-gray-50 dark:from-background dark:to-gray-900/50 text-foreground antialiased">
-      {/* Hero Section - Improved mobile padding */}
-      <div className="relative overflow-hidden">
-        <div className="relative z-10 pt-8 md:pt-16 pb-4 md:pb-8">
-          <div className="text-center px-3 md:px-6 lg:px-8 py-6 md:py-12 relative">
-            {/* Animated background elements */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/5 rounded-full animate-pulse-slow" />
-              <div className="absolute -bottom-32 -left-20 w-80 h-80 bg-primary/10 rounded-full animate-float" />
-              <div className="absolute top-1/2 left-1/4 w-40 h-40 bg-primary/5 rounded-full animate-float-delayed" />
-
-              {/* Particle effect - only render on client side */}
-              {isClient && (
-                <div className="absolute inset-0">
-                  {[...Array(20)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="absolute rounded-full bg-primary/20 animate-float-random"
-                      style={{
-                        width: `${Math.random() * 6 + 2}px`,
-                        height: `${Math.random() * 6 + 2}px`,
-                        top: `${Math.random() * 100}%`,
-                        left: `${Math.random() * 100}%`,
-                        animationDuration: `${Math.random() * 10 + 10}s`,
-                        animationDelay: `${Math.random() * 5}s`,
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="mb-4 md:mb-6 inline-flex bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-800/30 px-3 md:px-4 py-2 rounded-full shadow-sm border border-primary-200/50 dark:border-primary-700/50">
-              <span className="text-primary-700 dark:text-primary-300 font-medium text-xs md:text-sm">
-                Configuration Guide
-              </span>
-            </div>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white">
-              Damage{" "}
-              <span className="text-primary-600 dark:text-primary-400">
-                Indicators
-              </span>
-            </h1>
-            <p className="mt-3 md:mt-4 text-base md:text-lg lg:text-xl leading-7 md:leading-8 text-gray-600 dark:text-gray-400 max-w-2xl mx-auto px-4">
-              Configure damage indicators, formats, and visual effects for
-              different damage types
-            </p>
+    <div className="text-foreground antialiased">
+      <div className="mx-auto max-w-5xl">
+        <header className="py-12 md:py-16 text-center">
+          <div className="inline-flex items-center rounded-full border border-gray-200/70 bg-white/70 px-3 py-1 text-sm font-medium text-gray-700 shadow-sm backdrop-blur-sm dark:border-gray-800/70 dark:bg-gray-900/50 dark:text-gray-200">
+            Configuration
           </div>
-        </div>
-      </div>
 
-      {/* Main content - Improved spacing and mobile layout */}
-      <div className="mx-auto max-w-5xl px-3 sm:px-6 lg:px-8 py-8 md:py-12">
-        {/* Table of Contents - Enhanced mobile view */}
-        <div className="mb-8 md:mb-12">
+          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+            Damage <span className="text-primary-600 dark:text-primary-400">Indicators</span>
+          </h1>
+
+          <p className="mt-4 max-w-2xl mx-auto text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:text-lg">
+            Configure damage indicators, formats, and visual effects for different damage types.
+          </p>
+        </header>
+
+        <div className="mb-12">
           <TableOfContents items={tableItems} />
         </div>
 
-        <div className="space-y-12 md:space-y-16">
-          {/* Config sections - Improved mobile layout */}
+        <div className="space-y-16">
           <ConfigSection
             id="simple-formats"
             title="Simple Damage Formats"
             icon={<PiGradientFill className="text-xl" />}
             description="Basic damage indicator formats for different types of damage"
-            className="scroll-mt-20 md:scroll-mt-24"
-            iconBg="bg-gradient-to-br from-red-500 to-pink-500"
+            className="scroll-mt-24"
           >
             <div className="mb-6 text-gray-600 dark:text-gray-400">
               <p>
-                Simple formats provide an easy way to customize how damage
-                appears above entities. Each damage type can have its own unique
-                appearance with colors, gradients, and emojis.
+                Simple formats provide an easy way to customize how damage appears above entities.
+                Each damage type can have its own unique appearance with colors, gradients, and
+                symbols.
               </p>
             </div>
 
@@ -152,14 +106,10 @@ simple-damage-formats:
               </h4>
               <p className="text-sm text-red-700 dark:text-red-400">
                 You can use{" "}
-                <code className="px-1 py-0.5 bg-red-100 dark:bg-red-900/50 rounded">
-                  %.0f
-                </code>{" "}
-                for whole numbers,
-                <code className="px-1 py-0.5 bg-red-100 dark:bg-red-900/50 rounded">
-                  %.2f
-                </code>{" "}
-                for two decimal places, etc. Combine with formatting tags like{" "}
+                <code className="px-1 py-0.5 bg-red-100 dark:bg-red-900/50 rounded">%.0f</code> for
+                whole numbers,
+                <code className="px-1 py-0.5 bg-red-100 dark:bg-red-900/50 rounded">%.2f</code> for
+                two decimal places, etc. Combine with formatting tags like{" "}
                 <code className="px-1 py-0.5 bg-red-100 dark:bg-red-900/50 rounded">
                   &lt;bold&gt;
                 </code>{" "}
@@ -178,14 +128,12 @@ simple-damage-formats:
             icon={<FaUsers className="text-xl" />}
             description="Permission-based damage indicator formats"
             className="scroll-mt-24"
-            iconBg="bg-gradient-to-br from-blue-500 to-indigo-500"
           >
             <div className="mb-6 text-gray-600 dark:text-gray-400">
               <p>
-                Group formats allow different players to have different damage
-                indicator styles based on their permissions. This is perfect for
-                creating unique visual effects for donors, staff, or different
-                player classes.
+                Group formats allow different players to have different damage indicator styles
+                based on their permissions. This is perfect for creating unique visual effects for
+                donors, staff, or different player classes.
               </p>
             </div>
 
@@ -216,24 +164,18 @@ simple-damage-formats:
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
               <div className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm rounded-lg p-4 border border-blue-200 dark:border-blue-800/40 shadow-sm">
-                <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-2">
-                  Default Group
-                </h4>
+                <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-2">Default Group</h4>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  The default group is used when a player doesn't have
-                  permission for any other group. Setting{" "}
-                  <code>use-simple-formats: true</code> will make it use your
-                  simple formats.
+                  The default group is used when a player doesn&apos;t have permission for any other
+                  group. Setting <code>use-simple-formats: true</code> will make it use your simple
+                  formats.
                 </p>
               </div>
               <div className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm rounded-lg p-4 border border-blue-200 dark:border-blue-800/40 shadow-sm">
-                <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-2">
-                  Custom Groups
-                </h4>
+                <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-2">Custom Groups</h4>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Create as many custom groups as you need. Each group needs a
-                  unique permission node and can override any damage type
-                  format.
+                  Create as many custom groups as you need. Each group needs a unique permission
+                  node and can override any damage type format.
                 </p>
               </div>
             </div>
@@ -245,14 +187,12 @@ simple-damage-formats:
             icon={<FaSkull className="text-xl" />}
             description="Configure formats for specific damage types"
             className="scroll-mt-24"
-            iconBg="bg-gradient-to-br from-orange-500 to-amber-500"
           >
             <div className="mb-6 text-gray-600 dark:text-gray-400">
               <p>
-                VitalStrike supports all Minecraft damage types, allowing you to
-                create unique visual indicators for each type of damage a player
-                can receive. This helps players quickly identify what's damaging
-                them.
+                VitalStrike supports all Minecraft damage types, allowing you to create unique
+                visual indicators for each type of damage a player can receive. This helps players
+                quickly identify what&apos;s damaging them.
               </p>
             </div>
 
@@ -301,9 +241,7 @@ simple-damage-formats:
                 </ul>
               </div>
               <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800/40">
-                <h4 className="font-medium text-orange-800 dark:text-orange-300 mb-2">
-                  Combat
-                </h4>
+                <h4 className="font-medium text-orange-800 dark:text-orange-300 mb-2">Combat</h4>
                 <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                   <li>Melee attacks</li>
                   <li>Projectiles</li>
@@ -313,9 +251,7 @@ simple-damage-formats:
                 </ul>
               </div>
               <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800/40">
-                <h4 className="font-medium text-orange-800 dark:text-orange-300 mb-2">
-                  Special
-                </h4>
+                <h4 className="font-medium text-orange-800 dark:text-orange-300 mb-2">Special</h4>
                 <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                   <li>Dragon breath</li>
                   <li>Sonic boom</li>
@@ -333,13 +269,11 @@ simple-damage-formats:
             icon={<FaVolumeUp className="text-xl" />}
             description="Configure sounds for different damage types"
             className="scroll-mt-24"
-            iconBg="bg-gradient-to-br from-purple-500 to-violet-500"
           >
             <div className="mb-6 text-gray-600 dark:text-gray-400">
               <p>
-                Enhance the player experience by adding custom sounds for each
-                damage type. When a player takes damage, they'll hear a sound
-                that matches the damage source.
+                Enhance the player experience by adding custom sounds for each damage type. When a
+                player takes damage, they&apos;ll hear a sound that matches the damage source.
               </p>
             </div>
 
@@ -385,9 +319,8 @@ simple-damage-formats:
                 Sound Volume & Pitch
               </h4>
               <p className="text-sm text-purple-700 dark:text-purple-400">
-                By default, sounds play at normal volume and pitch. In future
-                updates, you'll be able to customize volume and pitch for each
-                sound type.
+                By default, sounds play at normal volume and pitch. In future updates, you&apos;ll
+                be able to customize volume and pitch for each sound type.
               </p>
             </div>
           </ConfigSection>
@@ -395,16 +328,15 @@ simple-damage-formats:
           <ConfigSection
             id="formatting-guide"
             title="Formatting Guide"
-            icon="📝"
+            icon={<FaInfoCircle className="text-xl" />}
             description="Learn how to use color codes and formatting tags"
             className="scroll-mt-24"
-            iconBg="bg-gradient-to-br from-teal-500 to-emerald-500"
           >
             <div className="mb-6 text-gray-600 dark:text-gray-400">
               <p>
-                VitalStrike supports two different formatting systems:
-                MiniMessage format and traditional Minecraft color codes. Here's
-                how to use both systems to create beautiful damage indicators.
+                VitalStrike supports two different formatting systems: MiniMessage format and
+                traditional Minecraft color codes. Here&apos;s how to use both systems to create
+                beautiful damage indicators.
               </p>
             </div>
 
@@ -414,8 +346,7 @@ simple-damage-formats:
                   MiniMessage Format
                 </h4>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                  Modern tag-based format with support for gradients and
-                  advanced formatting.
+                  Modern tag-based format with support for gradients and advanced formatting.
                 </p>
                 <div className="space-y-2 text-sm">
                   <div>

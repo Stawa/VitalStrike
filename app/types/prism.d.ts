@@ -1,25 +1,25 @@
 // app/types/prism.d.ts
 declare module "prismjs/components/prism-jsx" {
-  const content: any;
+  const content: unknown;
   export default content;
 }
 
 declare module "prismjs/components/prism-tsx" {
-  const content: any;
+  const content: unknown;
   export default content;
 }
 
 declare module "prismjs/components/prism-yaml" {
-  const content: any;
+  const content: unknown;
   export default content;
 }
 
 declare module "prismjs/components/prism-typescript" {
-  const content: any;
+  const content: unknown;
   export default content;
 }
 
 declare module "prismjs/components/prism-javascript" {
-  const content: any;
+  const content: unknown;
   export default content;
 }

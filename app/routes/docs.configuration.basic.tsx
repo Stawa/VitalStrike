@@ -3,15 +3,7 @@ import { useHighlightCode } from "~/hooks/prism";
 import { DocsNavigation } from "~/components/DocsNavigation";
 import { ConfigSection, ConfigBlock } from "~/components/ConfigSection";
 import { TableOfContents } from "~/components/TableOfContents";
-import { useState, useEffect } from "react";
-import {
-  FaCog,
-  FaDatabase,
-  FaSyncAlt,
-  FaEye,
-  FaComments,
-  FaGlobe,
-} from "react-icons/fa";
+import { FaCog, FaDatabase, FaSyncAlt, FaEye, FaComments, FaGlobe } from "react-icons/fa";
 import BackToTop from "~/components/BackToTop";
 
 export const meta: MetaFunction = () => {
@@ -44,74 +36,33 @@ export const meta: MetaFunction = () => {
 
 export default function BasicConfiguration() {
   useHighlightCode();
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const tableItems = [
-    { id: "general-settings", label: "General Settings", icon: "⚙️" },
-    { id: "database", label: "Database Configuration", icon: "💾" },
-    { id: "update-checker", label: "Update Checker", icon: "🔄" },
-    { id: "world-settings", label: "World Settings", icon: "🌍" },
-    { id: "display", label: "Display Settings", icon: "🎯" },
-    { id: "messages", label: "Messages", icon: "💬" },
+    { id: "general-settings", label: "General Settings", icon: <FaCog /> },
+    { id: "database", label: "Database Configuration", icon: <FaDatabase /> },
+    { id: "update-checker", label: "Update Checker", icon: <FaSyncAlt /> },
+    { id: "world-settings", label: "World Settings", icon: <FaGlobe /> },
+    { id: "display", label: "Display Settings", icon: <FaEye /> },
+    { id: "messages", label: "Messages", icon: <FaComments /> },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-gray-50 dark:from-background dark:to-gray-900/50 text-foreground antialiased">
-      {/* Hero Section with animated background */}
-      <div className="relative overflow-hidden">
-        <div className="relative z-10 pt-16 pb-8">
-          <div className="text-center px-4 md:px-6 lg:px-8 py-8 md:py-12 relative">
-            {/* Animated background elements */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/5 rounded-full animate-pulse-slow" />
-              <div className="absolute -bottom-32 -left-20 w-80 h-80 bg-primary/10 rounded-full animate-float" />
-              <div className="absolute top-1/2 left-1/4 w-40 h-40 bg-primary/5 rounded-full animate-float-delayed" />
-
-              {/* Particle effect - only render on client side */}
-              {isClient && (
-                <div className="absolute inset-0">
-                  {[...Array(20)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="absolute rounded-full bg-primary/20 animate-float-random"
-                      style={{
-                        width: `${Math.random() * 6 + 2}px`,
-                        height: `${Math.random() * 6 + 2}px`,
-                        top: `${Math.random() * 100}%`,
-                        left: `${Math.random() * 100}%`,
-                        animationDuration: `${Math.random() * 10 + 10}s`,
-                        animationDelay: `${Math.random() * 5}s`,
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="mb-6 inline-flex bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-800/30 px-4 py-2 rounded-full shadow-sm border border-primary-200/50 dark:border-primary-700/50">
-              <span className="text-primary-700 dark:text-primary-300 font-medium text-sm">
-                Configuration Guide
-              </span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white">
-              Basic{" "}
-              <span className="text-primary-600 dark:text-primary-400">
-                Settings
-              </span>
-            </h1>
-            <p className="mt-4 text-lg md:text-xl leading-8 text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Configure core plugin settings, display options, and basic
-              functionality
-            </p>
+    <div className="text-foreground antialiased">
+      <div className="mx-auto max-w-5xl">
+        <header className="py-12 md:py-16 text-center">
+          <div className="inline-flex items-center rounded-full border border-gray-200/70 bg-white/70 px-3 py-1 text-sm font-medium text-gray-700 shadow-sm backdrop-blur-sm dark:border-gray-800/70 dark:bg-gray-900/50 dark:text-gray-200">
+            Configuration
           </div>
-        </div>
-      </div>
 
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-12">
+          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+            Basic <span className="text-primary-600 dark:text-primary-400">Settings</span>
+          </h1>
+
+          <p className="mt-4 max-w-2xl mx-auto text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:text-lg">
+            Configure core plugin settings, display options, and basic functionality.
+          </p>
+        </header>
+
         <TableOfContents items={tableItems} />
 
         <div className="space-y-16">
@@ -121,12 +72,11 @@ export default function BasicConfiguration() {
             icon={<FaCog className="text-xl" />}
             description="Core plugin configuration options"
             className="scroll-mt-24"
-            iconBg="bg-gradient-to-br from-blue-500 to-indigo-500"
           >
             <div className="mb-6 text-gray-600 dark:text-gray-400">
               <p>
-                These settings control the core functionality of the plugin. The
-                master switch enables or disables the entire plugin.
+                These settings control the core functionality of the plugin. The master switch
+                enables or disables the entire plugin.
               </p>
             </div>
 
@@ -141,11 +91,7 @@ enabled: true`}
 
             <div className="mt-6 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40">
               <h4 className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2 flex items-center">
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
+                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z"
@@ -155,9 +101,8 @@ enabled: true`}
                 Pro Tip
               </h4>
               <p className="text-sm text-blue-700 dark:text-blue-400">
-                You can use permission-based toggles to enable/disable the
-                plugin for specific players or groups instead of disabling it
-                entirely.
+                You can use permission-based toggles to enable/disable the plugin for specific
+                players or groups instead of disabling it entirely.
               </p>
             </div>
           </ConfigSection>
@@ -168,13 +113,11 @@ enabled: true`}
             icon={<FaDatabase className="text-xl" />}
             description="Configure how player data is stored"
             className="scroll-mt-24"
-            iconBg="bg-gradient-to-br from-green-500 to-emerald-500"
           >
             <div className="mb-6 text-gray-600 dark:text-gray-400">
               <p>
-                VitalStrike stores player statistics, preferences, and other
-                data in a database. Currently, the plugin supports file-based
-                storage.
+                VitalStrike stores player statistics, preferences, and other data in a database.
+                Currently, the plugin supports file-based storage.
               </p>
             </div>
 
@@ -191,11 +134,7 @@ database:
 
             <div className="mt-6 p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/40">
               <h4 className="text-sm font-medium text-green-800 dark:text-green-300 mb-2 flex items-center">
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
+                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z"
@@ -205,9 +144,9 @@ database:
                 Database Performance
               </h4>
               <p className="text-sm text-green-700 dark:text-green-400">
-                The file-based database is automatically saved when the server
-                shuts down and periodically during operation. For larger
-                servers, consider backing up the playerdata.yml file regularly.
+                The file-based database is automatically saved when the server shuts down and
+                periodically during operation. For larger servers, consider backing up the
+                playerdata.yml file regularly.
               </p>
             </div>
           </ConfigSection>
@@ -218,13 +157,12 @@ database:
             icon={<FaSyncAlt className="text-xl" />}
             description="Configure automatic update checking"
             className="scroll-mt-24"
-            iconBg="bg-gradient-to-br from-purple-500 to-pink-500"
           >
             <div className="mb-6 text-gray-600 dark:text-gray-400">
               <p>
-                VitalStrike can automatically check for updates when your server
-                starts up. This helps ensure you're always running the latest
-                version with the newest features and bug fixes.
+                VitalStrike can automatically check for updates when your server starts up. This
+                helps ensure you&apos;re always running the latest version with the newest features
+                and bug fixes.
               </p>
             </div>
 
@@ -240,11 +178,7 @@ update-checker:
 
             <div className="mt-6 p-4 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800/40">
               <h4 className="text-sm font-medium text-purple-800 dark:text-purple-300 mb-2 flex items-center">
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
+                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z"
@@ -254,9 +188,9 @@ update-checker:
                 Update Notifications
               </h4>
               <p className="text-sm text-purple-700 dark:text-purple-400">
-                When a new version is available, a notification will be shown to
-                server operators when they join the game. You can also check for
-                updates manually with the reload command.
+                When a new version is available, a notification will be shown to server operators
+                when they join the game. You can also check for updates manually with the reload
+                command.
               </p>
             </div>
           </ConfigSection>
@@ -267,13 +201,11 @@ update-checker:
             icon={<FaGlobe className="text-xl" />}
             description="Configure world-specific behavior"
             className="scroll-mt-24"
-            iconBg="bg-gradient-to-br from-amber-500 to-orange-500"
           >
             <div className="mb-6 text-gray-600 dark:text-gray-400">
               <p>
-                Control how VitalStrike behaves in different worlds and
-                dimensions. You can disable the plugin in specific worlds or
-                adjust damage multipliers for different dimensions.
+                Control how VitalStrike behaves in different worlds and dimensions. You can disable
+                the plugin in specific worlds or adjust damage multipliers for different dimensions.
               </p>
             </div>
 
@@ -305,11 +237,7 @@ world-settings:
 
             <div className="mt-6 p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40">
               <h4 className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-2 flex items-center">
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
+                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z"
@@ -319,9 +247,8 @@ world-settings:
                 WorldGuard Integration
               </h4>
               <p className="text-sm text-amber-700 dark:text-amber-400">
-                When <code>respect-worldguard-pvp</code> is enabled, VitalStrike
-                will automatically disable damage indicators in WorldGuard
-                regions where PvP is disabled.
+                When <code>respect-worldguard-pvp</code> is enabled, VitalStrike will automatically
+                disable damage indicators in WorldGuard regions where PvP is disabled.
               </p>
             </div>
           </ConfigSection>
@@ -332,13 +259,11 @@ world-settings:
             icon={<FaEye className="text-xl" />}
             description="Configure how damage indicators are displayed"
             className="scroll-mt-24"
-            iconBg="bg-gradient-to-br from-cyan-500 to-teal-500"
           >
             <div className="mb-6 text-gray-600 dark:text-gray-400">
               <p>
-                These settings control the visual appearance and animation of
-                damage indicators. Adjust how long they stay visible, their
-                position, and animation properties.
+                These settings control the visual appearance and animation of damage indicators.
+                Adjust how long they stay visible, their position, and animation properties.
               </p>
             </div>
 
@@ -369,20 +294,18 @@ display:
                 </h4>
                 <ul className="text-sm text-cyan-700 dark:text-cyan-400 space-y-2 list-disc pl-5">
                   <li>
-                    <strong>y:</strong> Vertical position (-0.2 places
-                    indicators slightly below the entity)
+                    <strong>y:</strong> Vertical position (-0.2 places indicators slightly below the
+                    entity)
                   </li>
                   <li>
-                    <strong>x:</strong> Horizontal position (-0.5 places
-                    indicators to the left of the entity)
+                    <strong>x:</strong> Horizontal position (-0.5 places indicators to the left of
+                    the entity)
                   </li>
                   <li>
-                    <strong>random-offset:</strong> Adds variation to prevent
-                    overlapping indicators
+                    <strong>random-offset:</strong> Adds variation to prevent overlapping indicators
                   </li>
                   <li>
-                    <strong>direction:</strong> Which way indicators move (down,
-                    up, left, right)
+                    <strong>direction:</strong> Which way indicators move (down, up, left, right)
                   </li>
                 </ul>
               </div>
@@ -393,20 +316,16 @@ display:
                 </h4>
                 <ul className="text-sm text-teal-700 dark:text-teal-400 space-y-2 list-disc pl-5">
                   <li>
-                    <strong>fade-in/out:</strong> How quickly indicators appear
-                    and disappear
+                    <strong>fade-in/out:</strong> How quickly indicators appear and disappear
                   </li>
                   <li>
-                    <strong>float-speed:</strong> How fast indicators move
-                    (higher = faster)
+                    <strong>float-speed:</strong> How fast indicators move (higher = faster)
                   </li>
                   <li>
-                    <strong>float-curve:</strong> Adds a curved path to
-                    indicator movement
+                    <strong>float-curve:</strong> Adds a curved path to indicator movement
                   </li>
                   <li>
-                    <strong>duration:</strong> Total time indicators remain
-                    visible
+                    <strong>duration:</strong> Total time indicators remain visible
                   </li>
                 </ul>
               </div>
@@ -419,13 +338,11 @@ display:
             icon={<FaComments className="text-xl" />}
             description="Customize plugin messages"
             className="scroll-mt-24"
-            iconBg="bg-gradient-to-br from-yellow-500 to-amber-500"
           >
             <div className="mb-6 text-gray-600 dark:text-gray-400">
               <p>
-                Customize all messages sent by the plugin to players. Messages
-                support MiniMessage format for colors, formatting, and
-                gradients.
+                Customize all messages sent by the plugin to players. Messages support MiniMessage
+                format for colors, formatting, and gradients.
               </p>
             </div>
 
@@ -446,11 +363,7 @@ messages:
 
             <div className="mt-6 p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800/40">
               <h4 className="text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-2 flex items-center">
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
+                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z"
@@ -460,8 +373,7 @@ messages:
                 Color Formatting
               </h4>
               <p className="text-sm text-yellow-700 dark:text-yellow-400 mb-2">
-                VitalStrike supports both MiniMessage format and traditional
-                Minecraft color codes:
+                VitalStrike supports both MiniMessage format and traditional Minecraft color codes:
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                 <div className="p-2 bg-white/50 dark:bg-gray-800/50 rounded border border-yellow-200 dark:border-yellow-800/40">
@@ -483,10 +395,8 @@ messages:
                   - Gradient
                 </div>
                 <div className="p-2 bg-white/50 dark:bg-gray-800/50 rounded border border-yellow-200 dark:border-yellow-800/40">
-                  <code className="text-yellow-800 dark:text-yellow-300">
-                    &amp;cText
-                  </code>{" "}
-                  - Legacy format (red)
+                  <code className="text-yellow-800 dark:text-yellow-300">&amp;cText</code> - Legacy
+                  format (red)
                 </div>
               </div>
             </div>

@@ -58,25 +58,19 @@ export default function BlogIndex() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-gray-50 dark:from-background dark:to-gray-900/50 text-foreground antialiased">
-      {/* Hero Section - Using existing BlogHeader component */}
-      <div className="relative overflow-hidden">
-        <div className="relative z-10 pt-16 pb-8">
-          <Suspense fallback={<BlogHeader />}>
-            <Await resolve={posts}>
-              {(resolvedPosts) => {
-                const latestVersion =
-                  resolvedPosts.length > 0 ? resolvedPosts[0].version : "1.0.0";
-                return <BlogHeader latestVersion={latestVersion} />;
-              }}
-            </Await>
-          </Suspense>
-        </div>
-      </div>
+    <div className="relative">
+      <Suspense fallback={<BlogHeader />}>
+        <Await resolve={posts}>
+          {(resolvedPosts) => {
+            const latestVersion = resolvedPosts.length > 0 ? resolvedPosts[0].version : "1.0.0";
+            return <BlogHeader latestVersion={latestVersion} />;
+          }}
+        </Await>
+      </Suspense>
 
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-12">
         {/* Search and Filter Bar - Now static instead of sticky */}
-        <div className="z-10 mb-8 bg-white/90 dark:bg-gray-900/90 rounded-xl shadow-sm border border-gray-200/50 dark:border-gray-800/50 p-4">
+        <div className="z-10 mb-10 rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/40">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-grow">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -85,7 +79,7 @@ export default function BlogIndex() {
               <input
                 type="text"
                 placeholder="Search updates..."
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 pl-10 text-gray-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:focus:border-primary-400 dark:focus:ring-primary-400/25"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -98,9 +92,7 @@ export default function BlogIndex() {
                   const categories: VersionCategory[] = [
                     "all",
                     ...new Set(
-                      resolvedPosts.map((post: BlogPost) =>
-                        getVersionCategory(post.version)
-                      )
+                      resolvedPosts.map((post: BlogPost) => getVersionCategory(post.version))
                     ),
                   ] as VersionCategory[];
 
@@ -115,10 +107,8 @@ export default function BlogIndex() {
                       <div className="relative">
                         <select
                           value={filter}
-                          onChange={(e) =>
-                            setFilter(e.target.value as VersionCategory)
-                          }
-                          className="block w-full pl-3 pr-10 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 appearance-none"
+                          onChange={(e) => setFilter(e.target.value as VersionCategory)}
+                          className="block w-full appearance-none rounded-lg border border-gray-300 bg-white py-2 pl-3 pr-10 text-sm text-gray-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:focus:border-primary-400 dark:focus:ring-primary-400/25"
                         >
                           {categories.map((category) => (
                             <option key={category} value={category}>
@@ -153,19 +143,11 @@ export default function BlogIndex() {
         </div>
         {/* Timeline with Posts */}
         <div className="relative">
-          {/* Timeline line */}
-          <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary-500 via-primary-400 to-gray-200 dark:to-gray-800"></div>
-
           <Suspense
             fallback={
-              <div className="space-y-12 ml-12">
+              <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="relative">
-                    <div className="absolute -left-12 top-6 flex h-6 items-center">
-                      <div className="relative h-3 w-3 rounded-full bg-gray-300 dark:bg-gray-700"></div>
-                    </div>
-                    <BlogCardSkeleton />
-                  </div>
+                  <BlogCardSkeleton key={i} />
                 ))}
               </div>
             }
@@ -174,24 +156,17 @@ export default function BlogIndex() {
               {(resolvedPosts) => {
                 const filteredPosts = resolvedPosts.filter(
                   (post: BlogPost) =>
-                    (filter === "all" ||
-                      getVersionCategory(post.version) === filter) &&
+                    (filter === "all" || getVersionCategory(post.version) === filter) &&
                     (searchTerm === "" ||
-                      post.version
-                        .toLowerCase()
-                        .includes(searchTerm.toLowerCase()) ||
-                      post.description
-                        .toLowerCase()
-                        .includes(searchTerm.toLowerCase()) ||
-                      post.changes
-                        .toLowerCase()
-                        .includes(searchTerm.toLowerCase()))
+                      post.version.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      post.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      post.changes.toLowerCase().includes(searchTerm.toLowerCase()))
                 );
 
                 return (
-                  <div className="space-y-12 ml-12">
+                  <div className="space-y-4">
                     {filteredPosts.length === 0 ? (
-                      <div className="text-center py-12 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+                      <div className="rounded-xl border border-gray-200 bg-white/70 p-10 text-center shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/40">
                         <svg
                           className="mx-auto h-12 w-12 text-gray-400"
                           fill="none"
@@ -205,10 +180,10 @@ export default function BlogIndex() {
                             d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
                           />
                         </svg>
-                        <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-white">
+                        <h3 className="mt-3 text-lg font-semibold text-gray-900 dark:text-white">
                           No updates found
                         </h3>
-                        <p className="mt-1 text-gray-500 dark:text-gray-400">
+                        <p className="mt-1 text-gray-600 dark:text-gray-300">
                           Try adjusting your search or filter criteria.
                         </p>
                         <button
@@ -216,30 +191,14 @@ export default function BlogIndex() {
                             setFilter("all");
                             setSearchTerm("");
                           }}
-                          className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                          className="mt-5 inline-flex items-center justify-center rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600"
                         >
                           Reset Filters
                         </button>
                       </div>
                     ) : (
-                      filteredPosts.map((post: BlogPost, index: number) => (
-                        <div key={post.id} className="relative">
-                          {/* Version marker - using index numbers */}
-                          <div className="absolute -left-16 top-6 flex items-center">
-                            <div className="flex flex-col items-center">
-                              <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/40 dark:to-primary-800/40 shadow-sm border border-primary-200/50 dark:border-primary-700/50 transform transition-transform duration-300 hover:scale-110">
-                                <span className="text-xs font-semibold text-primary-700 dark:text-primary-300">
-                                  #{index + 1}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Post card */}
-                          <div className="transform transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-                            <BlogPostCard post={post} />
-                          </div>
-                        </div>
+                      filteredPosts.map((post: BlogPost) => (
+                        <BlogPostCard key={post.id} post={post} />
                       ))
                     )}
                   </div>

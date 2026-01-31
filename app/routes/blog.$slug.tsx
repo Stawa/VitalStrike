@@ -10,9 +10,7 @@ import { FaArrowLeft, FaCalendarAlt, FaUser } from "react-icons/fa";
 export async function loader({ params }: LoaderFunctionArgs) {
   const response = await changelogLoader();
   const data = await response.json();
-  const post = data.posts.find(
-    (post: BlogPost) => post.version === params.slug
-  );
+  const post = data.posts.find((post: BlogPost) => post.version === params.slug);
 
   if (!post) {
     throw new Response("Blog post not found", { status: 404 });

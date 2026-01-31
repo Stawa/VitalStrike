@@ -3,18 +3,12 @@ import { useHighlightCode } from "~/hooks/prism";
 import { DocsNavigation } from "~/components/DocsNavigation";
 import { ConfigSection, ConfigBlock } from "~/components/ConfigSection";
 import { TableOfContents } from "~/components/TableOfContents";
-import { useState, useEffect } from "react";
-import {
-  FaHeartbeat,
-  FaRunning,
-  FaVial,
-} from "react-icons/fa";
+import { FaHeartbeat, FaRunning, FaVial } from "react-icons/fa";
 import BackToTop from "~/components/BackToTop";
 
 export const meta: MetaFunction = () => {
   const title = "VitalStrike Documentation - Knockdown System";
-  const description =
-    "Configure the knockdown and revival system in VitalStrike.";
+  const description = "Configure the knockdown and revival system in VitalStrike.";
 
   return [
     { rel: "icon", href: "/icon.png", type: "image/png" },
@@ -31,8 +25,7 @@ export const meta: MetaFunction = () => {
     { name: "twitter:description", content: description },
     {
       name: "keywords",
-      content:
-        "vitalstrike knockdown, minecraft plugin revival, vital awakening, downed state",
+      content: "vitalstrike knockdown, minecraft plugin revival, vital awakening, downed state",
     },
     { name: "theme-color", content: "#4f46e5" },
     { name: "application-name", content: "VitalStrike" },
@@ -41,70 +34,31 @@ export const meta: MetaFunction = () => {
 
 export default function KnockdownConfiguration() {
   useHighlightCode();
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const tableItems = [
-    { id: "basic-settings", label: "Basic Settings", icon: "💔" },
-    { id: "vital-awakening", label: "Vital Awakening", icon: "⚡" },
-    { id: "effects", label: "Effects & Messages", icon: "✨" },
+    { id: "basic-settings", label: "Basic Settings", icon: <FaHeartbeat /> },
+    { id: "external-revive", label: "External Revive", icon: <FaRunning /> },
+    { id: "vital-awakening", label: "Vital Awakening", icon: <FaVial /> },
+    { id: "effects", label: "Effects & Messages", icon: <FaRunning /> },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-gray-50 dark:from-background dark:to-gray-900/50 text-foreground antialiased">
-      {/* Hero Section with animated background */}
-      <div className="relative overflow-hidden">
-        <div className="relative z-10 pt-16 pb-8">
-          <div className="text-center px-4 md:px-6 lg:px-8 py-8 md:py-12 relative">
-            {/* Animated background elements */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/5 rounded-full animate-pulse-slow" />
-              <div className="absolute -bottom-32 -left-20 w-80 h-80 bg-primary/10 rounded-full animate-float" />
-              <div className="absolute top-1/2 left-1/4 w-40 h-40 bg-primary/5 rounded-full animate-float-delayed" />
-
-              {/* Particle effect - only render on client side */}
-              {isClient && (
-                <div className="absolute inset-0">
-                  {[...Array(20)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="absolute rounded-full bg-primary/20 animate-float-random"
-                      style={{
-                        width: `${Math.random() * 6 + 2}px`,
-                        height: `${Math.random() * 6 + 2}px`,
-                        top: `${Math.random() * 100}%`,
-                        left: `${Math.random() * 100}%`,
-                        animationDuration: `${Math.random() * 10 + 10}s`,
-                        animationDelay: `${Math.random() * 5}s`,
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="mb-6 inline-flex bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-800/30 px-4 py-2 rounded-full shadow-sm border border-primary-200/50 dark:border-primary-700/50">
-              <span className="text-primary-700 dark:text-primary-300 font-medium text-sm">
-                Configuration Guide
-              </span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white">
-              Knockdown{" "}
-              <span className="text-primary-600 dark:text-primary-400">
-                System
-              </span>
-            </h1>
-            <p className="mt-4 text-lg md:text-xl leading-8 text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Configure the knockdown and revival mechanics for your server
-            </p>
+    <div className="text-foreground antialiased">
+      <div className="mx-auto max-w-5xl">
+        <header className="py-12 md:py-16 text-center">
+          <div className="inline-flex items-center rounded-full border border-gray-200/70 bg-white/70 px-3 py-1 text-sm font-medium text-gray-700 shadow-sm backdrop-blur-sm dark:border-gray-800/70 dark:bg-gray-900/50 dark:text-gray-200">
+            Configuration
           </div>
-        </div>
-      </div>
 
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-12">
+          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+            Knockdown <span className="text-primary-600 dark:text-primary-400">System</span>
+          </h1>
+
+          <p className="mt-4 max-w-2xl mx-auto text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:text-lg">
+            Configure the knockdown and revival mechanics for your server.
+          </p>
+        </header>
+
         <TableOfContents items={tableItems} />
 
         <div className="space-y-16">
@@ -114,7 +68,6 @@ export default function KnockdownConfiguration() {
             icon={<FaHeartbeat className="text-xl" />}
             description="Configure knockdown system basics"
             className="scroll-mt-24"
-            iconBg="bg-gradient-to-br from-red-500 to-rose-500"
           >
             <ConfigBlock
               title="Basic Knockdown Configuration"
@@ -122,10 +75,27 @@ export default function KnockdownConfiguration() {
               code={`knockdown-system:
   enabled: true
   down-duration: 30
-  revive-duration: 5.0
-  revive-range: 3.0
   downed-health: 20.0`}
               tip="These settings control the basic behavior of the knockdown system."
+            />
+          </ConfigSection>
+
+          <ConfigSection
+            id="external-revive"
+            title="External Revive"
+            icon={<FaRunning className="text-xl" />}
+            description="Configure reviving downed players"
+            className="scroll-mt-24"
+          >
+            <ConfigBlock
+              title="External Revive Configuration"
+              filename="config.yml"
+              code={`knockdown-system:
+  external-revive:
+    require-vital-awakening: false
+    range: 3.0
+    duration: 5.0`}
+              tip="Controls how other players can revive a downed player."
             />
           </ConfigSection>
 
@@ -135,14 +105,14 @@ export default function KnockdownConfiguration() {
             icon={<FaVial className="text-xl" />}
             description="Configure vital awakening settings"
             className="scroll-mt-24"
-            iconBg="bg-gradient-to-br from-purple-500 to-indigo-500"
           >
             <ConfigBlock
               title="Vital Awakening Configuration"
               filename="config.yml"
-              code={`  vital-awakening:
-    instant-use: false # Set to true for instant use, false for hold-to-use
-    use-duration: 4.0 # Time in seconds to hold right-click when instant-use is false`}
+              code={`knockdown-system:
+  vital-awakening:
+    instant-use: false
+    use-duration: 4.0`}
               tip="Configure how Vital Awakening items work"
             />
           </ConfigSection>
@@ -153,26 +123,36 @@ export default function KnockdownConfiguration() {
             icon={<FaRunning className="text-xl" />}
             description="Configure effects and messages"
             className="scroll-mt-24"
-            iconBg="bg-gradient-to-br from-blue-500 to-cyan-500"
           >
             <ConfigBlock
               title="Effects & Messages Configuration"
               filename="config.yml"
-              code={`  effects:
+              code={`knockdown-system:
+  effects:
+    messages:
+      cannot-revive: "<red>You cannot revive this player right now."
+      revive-failed: "<red>Revival failed! Stay closer to the player."
+      revive-complete: "<green>You have been revived by %player%!"
+      self-revived: "<green>You used Vital Awakening to revive yourself!"
+      being-revived: "<yellow>Being revived by %player%..."
+      reviving-player: "<yellow>Reviving %player%..."
+      downed: "<red>You have been knocked down! Wait for help or death in %time% seconds"
+    boss-bar:
+      reviving:
+        color: "YELLOW"
+        style: "SOLID"
+        title: "<yellow>Reviving %player%..."
+      being-revived:
+        color: "YELLOW"
+        style: "SOLID"
+        title: "<yellow>Being revived by %player%..."
     down:
       slowness: 255
       blindness: 1
     reviver:
       show_bossbar: true
       particle_effect: "HEART"
-      sound_effect: "block.note_block.chime"
-    messages:
-      self-revived: "<green>You used Vital Awakening to revive yourself!"
-      downed: "<red>You have been knocked down! Wait for help or death in %time% seconds"
-      reviving: "<green>Being revived by %player%... (%progress%%)"
-      revived: "<green>You have been revived by %player%!"
-      revive-failed: "<red>Revive interrupted!"
-      cannot-revive: "<red>Cannot revive this player!"`}
+      sound_effect: "block.note_block.chime"`}
               tip="Configure status effects, particles, sounds, and messages"
             />
           </ConfigSection>
@@ -186,8 +166,8 @@ export default function KnockdownConfiguration() {
             href: "/docs/configuration/permissions",
           }}
           nextPage={{
-            title: "Combat System",
-            href: "/docs/configuration/combat",
+            title: "Commands",
+            href: "/docs/commands",
           }}
         />
       </div>

@@ -54,12 +54,7 @@ export function useTheme() {
 
     setTheme((current) => {
       const nextTheme =
-        newTheme ??
-        (current === "light"
-          ? "dark"
-          : current === "dark"
-          ? "system"
-          : "light");
+        newTheme ?? (current === "light" ? "dark" : current === "dark" ? "system" : "light");
       setCookie("theme", nextTheme, {
         path: "/",
         expires: "never",

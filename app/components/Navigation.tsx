@@ -18,67 +18,63 @@ export function Navigation() {
   ];
 
   return (
-    <nav className="bg-white dark:bg-dark-bg border-b border-gray-200/80 dark:border-dark-border sticky top-0 z-40 backdrop-blur-sm bg-white/80 dark:bg-dark-bg/80">
-      <div className="mx-auto max-w-8xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 justify-between">
-          <div className="flex">
+    <nav className="top-0 z-40 w-full backdrop-blur-md bg-white/70 dark:bg-dark-bg/70 border-b border-gray-200/50 dark:border-white/10 transition-colors duration-300">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 justify-between items-center">
+          <div className="flex items-center">
             <div className="flex flex-shrink-0 items-center">
               <Link
                 to="/"
-                className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white"
+                className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white hover:opacity-80 transition-opacity"
               >
-                <img
-                  src="/Icon.png"
-                  alt="VitalStrike Logo"
-                  className="h-8 w-8"
-                />
-                VitalStrike
+                <img src="/Icon.png" alt="VitalStrike Logo" className="h-8 w-8" />
+                <span>VitalStrike</span>
               </Link>
             </div>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+            <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
               {links.map((link) => (
                 <Link
                   key={link.name}
                   to={link.href}
-                  className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-primary-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-600 hover:text-primary-600 dark:text-gray-300 dark:hover:text-white transition-colors relative group"
                 >
                   {link.name}
+                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
                 </Link>
               ))}
             </div>
           </div>
-          <div className="flex items-center">
+          <div className="flex items-center gap-4">
             <div className="hidden md:block flex-shrink-0">
               <a
                 href="https://github.com/Stawa/VitalStrike"
-                className="relative inline-flex items-center gap-x-1.5 rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative inline-flex items-center gap-x-2 rounded-full bg-gray-900 dark:bg-white px-4 py-2 text-sm font-bold text-white dark:text-gray-900 shadow-sm hover:opacity-90 transition-opacity"
               >
-                <GitHubIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
-                Star on GitHub
+                <GitHubIcon className="h-5 w-5" aria-hidden="true" />
+                <span>Star on GitHub</span>
               </a>
             </div>
-            <div className="ml-4">
+            <div className="flex items-center border-l border-gray-200 dark:border-gray-700 pl-4 ml-2">
               <button
                 type="button"
-                className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white focus:outline-none transition-colors"
                 onClick={() => toggleTheme()}
+                aria-label="Toggle theme"
               >
-                <span className="sr-only">Toggle theme</span>
-                {mounted
-                  ? (() => {
-                      if (isDarkMode) {
-                        return (
-                          <SunIcon className="h-6 w-6" aria-hidden="true" />
-                        );
-                      }
-                      return (
-                        <MoonIcon className="h-6 w-6" aria-hidden="true" />
-                      );
-                    })()
-                  : null}
+                {mounted ? (
+                  isDarkMode ? (
+                    <SunIcon className="h-5 w-5" aria-hidden="true" />
+                  ) : (
+                    <MoonIcon className="h-5 w-5" aria-hidden="true" />
+                  )
+                ) : (
+                  <div className="h-5 w-5" />
+                )}
               </button>
             </div>
-            <div className="ml-4 sm:hidden">
+            <div className="flex items-center sm:hidden">
               <button
                 type="button"
                 className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
@@ -97,18 +93,31 @@ export function Navigation() {
       </div>
 
       {/* Mobile menu */}
-      <div className={`md:hidden ${isOpen ? "block" : "hidden"}`}>
-        <div className="space-y-1 px-3 pb-3 pt-2 shadow-lg border-t border-gray-200/80 dark:border-dark-border bg-white dark:bg-dark-bg">
+      <div
+        className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+          isOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"
+        }`}
+      >
+        <div className="space-y-1 px-4 pb-4 pt-2 bg-white/90 dark:bg-dark-bg/90 backdrop-blur-xl border-t border-gray-200 dark:border-white/10">
           {links.map((link) => (
             <Link
               key={link.name}
               to={link.href}
-              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-primary-600 dark:text-gray-300 dark:hover:bg-gray-800/50 dark:hover:text-primary-400 transition-colors"
+              className="block rounded-lg px-3 py-2 text-base font-medium text-gray-600 hover:bg-primary-50 hover:text-primary-600 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white transition-colors"
               onClick={() => setIsOpen(false)}
             >
               {link.name}
             </Link>
           ))}
+          <a
+            href="https://github.com/Stawa/VitalStrike"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 w-full rounded-lg px-3 py-2 text-base font-medium text-gray-600 hover:bg-primary-50 hover:text-primary-600 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white transition-colors"
+          >
+            <GitHubIcon className="h-5 w-5" />
+            Star on GitHub
+          </a>
         </div>
       </div>
     </nav>
@@ -193,12 +202,7 @@ function XIcon({ className }: Readonly<{ className?: string }>) {
       stroke="currentColor"
       aria-hidden="true"
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M6 18L18 6M6 6l12 12"
-      />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
     </svg>
   );
 }

@@ -1,19 +1,21 @@
 interface ErrorProps {
-  error: any;
+  error: {
+    status: number;
+    statusText: string;
+    data?: unknown;
+  };
 }
 
 export default function ErrorComponent({ error }: Readonly<ErrorProps>) {
   return (
     <main className="grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
       <div className="text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <h1 className="mt-8 text-6xl font-bold tracking-tight text-primary">
-          {error.status}
-        </h1>
+        <h1 className="mt-8 text-6xl font-bold tracking-tight text-primary">{error.status}</h1>
         <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           {error.statusText}
         </p>
         <p className="mt-4 text-base text-muted-foreground sm:text-lg">
-          {error.data}
+          {error.data == null ? null : String(error.data)}
         </p>
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           <a
@@ -50,11 +52,7 @@ export default function ErrorComponent({ error }: Readonly<ErrorProps>) {
                 stroke="currentColor"
                 strokeWidth="2"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 5l7 7-7 7"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
               </svg>
             </span>
           </a>

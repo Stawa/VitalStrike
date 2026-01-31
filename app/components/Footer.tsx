@@ -2,26 +2,24 @@ import { Link } from "@remix-run/react";
 
 export function Footer() {
   return (
-    <footer className="relative bg-white dark:bg-dark-bg border-t border-gray-200/80 dark:border-dark-border">
+    <footer className="relative bg-white/80 dark:bg-dark-bg/80 backdrop-blur-md border-t border-gray-200/50 dark:border-white/10 mt-auto">
       <div className="absolute inset-0 bg-gradient-to-t from-gray-50/50 to-transparent dark:from-gray-900/20 pointer-events-none" />
-      <div className="relative mx-auto max-w-8xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="xl:grid xl:grid-cols-3 xl:gap-8">
           {/* Brand and Description */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <img className="h-8 w-auto" src="/Icon.png" alt="VitalStrike" />
-              <span className="text-xl font-bold text-gray-900 dark:text-white">
-                VitalStrike
-              </span>
+              <span className="text-xl font-bold text-gray-900 dark:text-white">VitalStrike</span>
             </div>
-            <p className="text-base text-gray-600 dark:text-gray-400 max-w-md">
-              VitalStrike enhances Minecraft PvP with damage indicators, combo
-              multipliers, knockdowns, and leaderboards!
+            <p className="text-base text-gray-600 dark:text-gray-400 max-w-md leading-relaxed">
+              VitalStrike enhances Minecraft PvP with damage indicators, combo multipliers,
+              knockdowns, and leaderboards!
             </p>
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 pt-2">
               <a
                 href="https://github.com/Stawa/VitalStrike"
-                className="text-gray-500 hover:text-gray-900 dark:hover:text-gray-300"
+                className="text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -30,7 +28,7 @@ export function Footer() {
               </a>
               <a
                 href="https://discord.gg/b4nxvp8NcH"
-                className="text-gray-500 hover:text-gray-900 dark:hover:text-gray-300"
+                className="text-gray-400 hover:text-[#5865F2] transition-colors"
                 target="_blank"
                 rel="noopener noreferrer"
               >

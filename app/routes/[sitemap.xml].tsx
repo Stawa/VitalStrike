@@ -6,19 +6,11 @@ import { BlogPost } from "~/types/blog";
 export const loader: LoaderFunction = async ({ request }) => {
   const baseUrl = getDomainUrl(request);
 
-  const staticPages = [
-    "",
-    "/blog",
-    "/docs",
-    "/docs/getting-started",
-    "/docs/configuration",
-  ];
+  const staticPages = ["", "/blog", "/docs", "/docs/getting-started", "/docs/configuration"];
 
   const response = await changelogLoader();
   const { posts } = await response.json();
-  const dynamicBlogUrls = posts.map(
-    (post: BlogPost) => `/blog/${post.version}`
-  );
+  const dynamicBlogUrls = posts.map((post: BlogPost) => `/blog/${post.version}`);
 
   const allPages = [...staticPages, ...dynamicBlogUrls];
 

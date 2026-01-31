@@ -8,11 +8,7 @@ interface CookieOptions {
   sameSite?: "strict" | "lax" | "none";
 }
 
-function setCookie(
-  name: string,
-  value: string,
-  options: CookieOptions = {}
-): string {
+function setCookie(name: string, value: string, options: CookieOptions = {}): string {
   if (options.expires === "never") {
     delete options.expires;
   }
@@ -38,11 +34,7 @@ function deleteCookie(name: string, options: CookieOptions = {}): void {
   Cookies.remove(name, options as Cookies.CookieAttributes);
 }
 
-function modifyCookie(
-  name: string,
-  newValue: string,
-  options: CookieOptions = {}
-): void {
+function modifyCookie(name: string, newValue: string, options: CookieOptions = {}): void {
   if (Cookies.get(name) !== undefined) {
     if (options.expires === "never") {
       delete options.expires;

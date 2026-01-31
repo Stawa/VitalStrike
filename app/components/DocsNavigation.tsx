@@ -12,10 +12,7 @@ interface DocsNavigationProps {
   };
 }
 
-export function DocsNavigation({
-  previousPage,
-  nextPage,
-}: Readonly<DocsNavigationProps>) {
+export function DocsNavigation({ previousPage, nextPage }: Readonly<DocsNavigationProps>) {
   return (
     <nav className="mt-16 mb-8">
       <div className="relative flex items-center mb-8">
@@ -30,60 +27,38 @@ export function DocsNavigation({
         {previousPage && (
           <Link
             to={previousPage.href}
-            className="group relative overflow-hidden bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm rounded-xl border border-indigo-200/50 dark:border-indigo-800/50 hover:border-primary-500 dark:hover:border-primary-500/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg p-6 flex items-center"
+            className="group relative rounded-xl border border-gray-200/70 bg-white/70 p-6 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg dark:border-gray-800/70 dark:bg-gray-900/50"
           >
-            {/* Gradient background that appears on hover */}
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-            {/* Grid pattern background */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] opacity-0 group-hover:opacity-25 transition-opacity duration-500" />
-
-            <div className="relative z-10 flex items-center w-full">
-              <div className="bg-gradient-to-br from-indigo-500 to-blue-500 rounded-full p-3 mr-4 text-white shadow-md">
-                <FaArrowLeft className="text-lg" />
+            <div className="flex items-center w-full">
+              <div className="mr-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-primary-700 shadow-sm transition-colors group-hover:bg-primary/15 dark:text-primary-300">
+                <FaArrowLeft className="text-base" />
               </div>
               <div className="flex-grow">
-                <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-                  Previous
-                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Previous</div>
                 <div className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                   {previousPage.title}
                 </div>
               </div>
             </div>
-
-            {/* Decorative corner accent */}
-            <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-white/20 dark:bg-white/5 rounded-tl-xl transform rotate-45 group-hover:bg-primary-500/20 transition-colors duration-300"></div>
           </Link>
         )}
 
         {nextPage && (
           <Link
             to={nextPage.href}
-            className="group relative overflow-hidden bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm rounded-xl border border-purple-200/50 dark:border-purple-800/50 hover:border-primary-500 dark:hover:border-primary-500/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg p-6 flex items-center justify-between"
+            className="group relative rounded-xl border border-gray-200/70 bg-white/70 p-6 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg dark:border-gray-800/70 dark:bg-gray-900/50"
           >
-            {/* Gradient background that appears on hover */}
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-            {/* Grid pattern background */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] opacity-0 group-hover:opacity-25 transition-opacity duration-500" />
-
-            <div className="relative z-10 flex items-center w-full justify-between">
+            <div className="flex items-center w-full justify-between">
               <div className="flex-grow">
-                <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-                  Next
-                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Next</div>
                 <div className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                   {nextPage.title}
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-full p-3 ml-4 text-white shadow-md">
-                <FaArrowRight className="text-lg" />
+              <div className="ml-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-primary-700 shadow-sm transition-colors group-hover:bg-primary/15 dark:text-primary-300">
+                <FaArrowRight className="text-base" />
               </div>
             </div>
-
-            {/* Decorative corner accent */}
-            <div className="absolute -bottom-2 -left-2 w-12 h-12 bg-white/20 dark:bg-white/5 rounded-tr-xl transform -rotate-45 group-hover:bg-primary-500/20 transition-colors duration-300"></div>
           </Link>
         )}
       </div>
