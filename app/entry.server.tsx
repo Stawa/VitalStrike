@@ -19,8 +19,9 @@ export default function handleRequest(
   responseStatusCode: number,
   responseHeaders: Headers,
   remixContext: EntryContext,
-  loadContext: AppLoadContext
+  _loadContext: AppLoadContext
 ) {
+  void _loadContext;
   return isbot(request.headers.get("user-agent") || "")
     ? handleBotRequest(request, responseStatusCode, responseHeaders, remixContext)
     : handleBrowserRequest(request, responseStatusCode, responseHeaders, remixContext);

@@ -160,7 +160,7 @@ export default function Index() {
   const latestPost = posts[0];
 
   return (
-    <div className="relative">
+    <div className="relative overflow-x-hidden">
       {/* Background Gradients */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-primary-500/20 rounded-full blur-[120px] -z-10 opacity-60 dark:opacity-20 pointer-events-none" />
       <div className="absolute top-[600px] right-0 w-[600px] h-[600px] bg-accent-500/20 rounded-full blur-[120px] -z-10 opacity-40 dark:opacity-20 pointer-events-none" />
@@ -267,7 +267,7 @@ export default function Index() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="lg:grid lg:grid-cols-2 lg:gap-16 items-center">
             {/* Left Content */}
-            <div className="mb-12 lg:mb-0">
+            <div className="mb-12 lg:mb-0 min-w-0">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-500/10 text-primary-600 dark:text-primary-400 text-sm font-medium mb-6">
                 <FaCode className="w-4 h-4" />
                 <span>Developer Friendly</span>
@@ -302,8 +302,7 @@ export default function Index() {
             </div>
 
             {/* Right Content - Code Block */}
-            <div className="relative">
-              <div className="absolute -inset-4 bg-gradient-to-r from-primary-500 to-accent-500 rounded-2xl opacity-20 blur-xl dark:opacity-10" />
+            <div className="relative min-w-0">
               <div className="relative rounded-xl bg-[#0d1117] border border-gray-800 shadow-2xl overflow-hidden">
                 <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-800 bg-[#161b22]">
                   <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
