@@ -1,62 +1,63 @@
 import { useState } from "react";
 
-export function WIPBanner() {
+type WIPBannerProps = {
+  title?: string;
+  message?: React.ReactNode;
+  tone?: "primary" | "info";
+  variant?: "bar" | "card";
+};
+
+export function WIPBanner({
+  title = "Work in Progress",
+  message = "This documentation is currently under active development.",
+  tone = "primary",
+  variant = "bar",
+}: WIPBannerProps) {
   const [isVisible, setIsVisible] = useState(true);
 
   if (!isVisible) return null;
 
+  const wrapperClassName =
+    variant === "card"
+      ? "rounded-xl border border-gray-200/70 bg-white/70 shadow-sm backdrop-blur-sm dark:border-gray-800/70 dark:bg-gray-900/50"
+      : "w-full border-b border-gray-200/50 bg-white/70 backdrop-blur-md dark:border-white/10 dark:bg-dark-bg/70";
+
+  const innerClassName =
+    variant === "card"
+      ? "flex items-start gap-3 px-4 py-3 sm:items-center sm:gap-4 sm:px-5"
+      : "mx-auto flex max-w-7xl items-start gap-3 px-4 py-3 sm:items-center sm:gap-4 sm:px-6";
+
+  const pillClassName =
+    tone === "info"
+      ? "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-200"
+      : "border-primary-500/20 bg-primary-500/10 text-primary-700 dark:border-primary-400/20 dark:bg-primary-400/10 dark:text-primary-200";
+
   return (
-    <div className="relative isolate flex items-center gap-x-6 overflow-hidden bg-primary-600 px-6 py-2.5 sm:px-3.5">
-      <div
-        className="absolute left-[max(-7rem,calc(50%-52rem))] top-1/2 -z-10 -translate-y-1/2 transform-gpu blur-2xl"
-        aria-hidden="true"
-      >
+    <div className={wrapperClassName}>
+      <div className={innerClassName}>
         <div
-          className="aspect-[577/310] w-[36.0625rem] bg-gradient-to-r from-[#ff80b5] to-[#9089fc] opacity-30"
-          style={{
-            clipPath:
-              "polygon(74.8% 41.9%, 97.2% 73.2%, 100% 34.9%, 92.5% 0.4%, 87.5% 0%, 75% 28.6%, 58.5% 54.6%, 50.1% 56.8%, 46.9% 44%, 48.3% 17.4%, 24.7% 53.9%, 0% 27.9%, 11.9% 74.2%, 24.9% 54.1%, 68.6% 100%, 74.8% 41.9%)",
-          }}
-        />
-      </div>
-      <div
-        className="absolute left-[max(45rem,calc(50%+8rem))] top-1/2 -z-10 -translate-y-1/2 transform-gpu blur-2xl"
-        aria-hidden="true"
-      >
-        <div
-          className="aspect-[577/310] w-[36.0625rem] bg-gradient-to-r from-[#ff80b5] to-[#9089fc] opacity-30"
-          style={{
-            clipPath:
-              "polygon(74.8% 41.9%, 97.2% 73.2%, 100% 34.9%, 92.5% 0.4%, 87.5% 0%, 75% 28.6%, 58.5% 54.6%, 50.1% 56.8%, 46.9% 44%, 48.3% 17.4%, 24.7% 53.9%, 0% 27.9%, 11.9% 74.2%, 24.9% 54.1%, 68.6% 100%, 74.8% 41.9%)",
-          }}
-        />
-      </div>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <p className="text-sm leading-6 text-white">
-          <strong className="font-semibold">Work in Progress</strong>
-          <svg
-            viewBox="0 0 2 2"
-            className="mx-2 inline h-0.5 w-0.5 fill-current"
-            aria-hidden="true"
-          >
-            <circle cx={1} cy={1} r={1} />
-          </svg>
-          This documentation is currently under active development.
-        </p>
-      </div>
-      <div className="flex flex-1 justify-end">
+          className={`inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${pillClassName}`}
+        >
+          {tone === "info" ? "Updated" : "WIP"}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2">
+            <span className="text-sm font-semibold leading-6 text-gray-900 dark:text-white">
+              {title}
+            </span>
+            <span className="hidden text-gray-400 sm:inline dark:text-gray-500">•</span>
+            <span className="text-sm leading-6 text-gray-600 dark:text-gray-300">{message}</span>
+          </div>
+        </div>
+
         <button
           type="button"
-          className="-m-3 p-3 focus-visible:outline-offset-[-4px]"
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
           onClick={() => setIsVisible(false)}
+          aria-label="Dismiss"
         >
-          <span className="sr-only">Dismiss</span>
-          <svg
-            className="h-5 w-5 text-white"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            aria-hidden="true"
-          >
+          <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
           </svg>
         </button>

@@ -120,6 +120,16 @@ export default function App() {
                 isDocsPage ? "max-w-6xl" : "max-w-8xl"
               } px-4 sm:px-6 lg:px-8 py-8`}
             >
+              {isDocsPage && (
+                <div className="mb-6">
+                  <WIPBanner
+                    tone="info"
+                    variant="card"
+                    title="Docs are always up to date"
+                    message="This site only shows the latest configuration and features. Version history and older configs aren’t available here yet."
+                  />
+                </div>
+              )}
               <Outlet />
             </div>
           </main>

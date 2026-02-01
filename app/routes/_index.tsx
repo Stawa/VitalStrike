@@ -2,6 +2,7 @@ import type { MetaFunction } from "@remix-run/node";
 import { useLoaderData, Await, Link } from "@remix-run/react";
 import { Suspense } from "react";
 import { useHighlightCode } from "~/hooks/prism";
+import { DeveloperCard } from "~/components/DeveloperCard";
 import { loader as changelogLoader } from "./CHANGELOG";
 import {
   FaBolt,
@@ -258,6 +259,47 @@ export default function Index() {
                 <p className="mt-2 text-gray-600 dark:text-gray-300">{feature.description}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Project Lead Section */}
+      <section className="py-16 sm:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-500/10 text-primary-600 dark:text-primary-400 text-sm font-medium">
+            <FaUserTag className="w-4 h-4" />
+            <span>Maintained By</span>
+          </div>
+          <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+            Who&apos;s In Charge
+          </h2>
+          <p className="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-2xl">
+            VitalStrike is actively maintained by the main developer. You can reach out on GitHub
+            for issues, suggestions, and contributions.
+          </p>
+        </div>
+
+        <div className="mt-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <DeveloperCard
+              className="w-full"
+              name="Stawa"
+              avatarUrl="https://github.com/Stawa.png"
+              roles={[
+                { label: "Main Developer", tone: "primary" },
+                { label: "Maintainer", tone: "neutral" },
+              ]}
+              bio="Responsible for the plugin, releases, and keeping the docs aligned with the latest features."
+              githubUrl="https://github.com/Stawa/"
+            />
+            <DeveloperCard
+              className="w-full"
+              name="TeenYsDaMan"
+              avatarUrl="https://github.com/TeenYsDaMan.png"
+              roles={[{ label: "Resource Pack", tone: "primary" }]}
+              bio="Responsible for the resource pack, which includes models, and textures for the plugin to enhance the player experience."
+              githubUrl="https://github.com/TeenYsDaMan/"
+            />
           </div>
         </div>
       </section>
