@@ -1,464 +1,376 @@
 package stawa.vitalstrike.systems;
 
+import java.time.Duration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
-import java.util.logging.Logger;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.title.Title;
 import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
-import org.bukkit.Registry;
 import org.bukkit.Sound;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
+import stawa.vitalstrike.Lookup;
 import stawa.vitalstrike.PlayerManager;
 import stawa.vitalstrike.PlayerStats;
-import stawa.vitalstrike.config.ConfigManager;
+import stawa.vitalstrike.Text;
+import stawa.vitalstrike.VitalStrike;
 
-/**
- * Manages player combos, including tracking, decay, multipliers, and effects. Handles combo display
- * and decay tasks.
- */
-public class ComboManager {
-  private final JavaPlugin plugin;
-  private final ConfigManager configManager;
-  private final PlayerManager playerManager;
-  private final PlayerStats playerStats;
-  private final Logger logger;
+/** Consecutive-hit combos with ranks, damage multipliers, decay, effects and a streak hologram. */
+public final class ComboManager {
+  private static final String DEFAULT_RANK = "D";
+  private static final float HOLOGRAM_SCALE = 1.3f;
 
-  private final Map<UUID, Integer> playerCombos = new HashMap<>();
-  private final Map<UUID, Long> lastComboTime = new HashMap<>();
-  private final Map<UUID, Long> lastActionTime = new HashMap<>();
-  private final Map<UUID, TextDisplay> activeHolograms = new HashMap<>();
-  private final Map<UUID, BukkitTask> decayTasks = new HashMap<>();
-
-  /**
-   * Creates a new ComboManager instance.
-   *
-   * @param plugin The plugin instance
-   * @param configManager The configuration manager
-   * @param playerManager The player manager
-   * @param playerStats The player statistics manager
-   * @param logger The logger to use for reporting combo status
-   */
-  public ComboManager(
-      JavaPlugin plugin,
-      ConfigManager configManager,
-      PlayerManager playerManager,
-      PlayerStats playerStats,
-      Logger logger) {
-    this.plugin = plugin;
-    this.configManager = configManager;
-    this.playerManager = playerManager;
-    this.playerStats = playerStats;
-    this.logger = logger;
+  private static final class State {
+    int combo;
+    long lastHit;
+    long lastDecay;
+    TextDisplay hologram;
+    long hologramUntil;
   }
 
-  /**
-   * Handles combo logic when a player deals damage. Updates combo count, resets decay timer,
-   * applies multipliers, and triggers effects.
-   *
-   * @param player The player dealing damage
-   * @param event The damage event
-   * @param currentTime The current system time in milliseconds
-   */
-  public void handlePlayerCombos(Player player, EntityDamageEvent event, long currentTime) {
-    if (event.getEntity().getType() == EntityType.ARMOR_STAND) {
+  private final VitalStrike plugin;
+  private final PlayerManager players;
+  private final PlayerStats stats;
+  private final Map<UUID, State> states = new HashMap<>();
+  private BukkitTask ticker;
+
+  private boolean enabled;
+  private long resetMs;
+  private boolean decayEnabled;
+  private long decayAfterMs;
+  private long decayIntervalMs;
+  private int decayRate;
+  private int decayMinimum;
+
+  private boolean multiplierEnabled;
+  private double multBase;
+  private double multPerCombo;
+  private double multMax;
+  private Map<String, Double> rankMultipliers = Map.of();
+
+  private final TreeMap<Integer, String> rankThresholds = new TreeMap<>();
+  private Map<String, String> rankColors = Map.of();
+  private boolean rankEnabled;
+  private String rankFormat;
+  private String comboFormat;
+  private String multiplierFormat;
+  private String decayFormat;
+
+  private boolean hologramEnabled;
+  private int hologramMinCombo;
+  private long hologramMs;
+  private double hologramHeight;
+  private String hologramFormat;
+  private String rankUpFormat;
+
+  private boolean effects;
+  private Sound comboSound;
+  private Sound milestoneSound;
+  private float soundVolume;
+  private float soundPitch;
+  private Particle particle;
+  private int particleCount;
+
+  public ComboManager(VitalStrike plugin, PlayerManager players, PlayerStats stats) {
+    this.plugin = plugin;
+    this.players = players;
+    this.stats = stats;
+  }
+
+  public void reload(FileConfiguration c) {
+    enabled = c.getBoolean("combo.enabled");
+    resetMs = c.getLong("combo.reset-time") * 1000;
+    decayEnabled = c.getBoolean("combo.decay.enabled");
+    decayAfterMs = c.getLong("combo.decay.time") * 1000;
+    decayIntervalMs = Math.max(1, c.getLong("combo.decay.interval")) * 1000;
+    decayRate = c.getInt("combo.decay.rate");
+    decayMinimum = c.getInt("combo.decay.minimum");
+
+    multiplierEnabled = c.getBoolean("combo.multiplier.enabled");
+    multBase = c.getDouble("combo.multiplier.base");
+    multPerCombo = c.getDouble("combo.multiplier.per-combo");
+    multMax = c.getDouble("combo.multiplier.max");
+    Map<String, Double> ranks = new HashMap<>();
+    ConfigurationSection rankMults = c.getConfigurationSection("combo.multiplier.ranks");
+    if (rankMults != null) {
+      rankMults.getKeys(false).forEach(rank -> ranks.put(rank, rankMults.getDouble(rank)));
+    }
+    rankMultipliers = ranks;
+
+    rankThresholds.clear();
+    ConfigurationSection thresholds = c.getConfigurationSection("combo.display.rank.thresholds");
+    if (thresholds != null) {
+      thresholds.getKeys(false).forEach(rank -> rankThresholds.put(thresholds.getInt(rank), rank));
+    }
+    Map<String, String> colors = new HashMap<>();
+    ConfigurationSection colorSection = c.getConfigurationSection("combo.display.rank.colors");
+    if (colorSection != null) {
+      colorSection.getKeys(false).forEach(rank -> colors.put(rank, colorSection.getString(rank)));
+    }
+    rankColors = colors;
+    rankEnabled = c.getBoolean("combo.display.rank.enabled");
+    rankFormat = c.getString("combo.display.rank.format");
+    comboFormat = c.getString("combo.display.format");
+    multiplierFormat = c.getString("combo.display.multiplier-format");
+    decayFormat = c.getString("combo.display.decay-warning");
+
+    hologramEnabled = c.getBoolean("combo.hologram.enabled");
+    hologramMinCombo = c.getInt("combo.hologram.min-combo");
+    hologramMs = (long) (c.getDouble("combo.hologram.duration") * 1000);
+    hologramHeight = c.getDouble("combo.hologram.height");
+    hologramFormat = c.getString("combo.hologram.format");
+    rankUpFormat = c.getString("combo.display.rank-up", "");
+
+    effects = c.getBoolean("combo.effects.enabled");
+    boolean sound = c.getBoolean("combo.effects.sound.enabled");
+    comboSound = sound ? sound(c.getString("combo.effects.sound.combo-up")) : null;
+    milestoneSound = sound ? sound(c.getString("combo.effects.sound.combo-milestone")) : null;
+    soundVolume = (float) c.getDouble("combo.effects.sound.volume");
+    soundPitch = (float) c.getDouble("combo.effects.sound.pitch");
+    particle =
+        c.getBoolean("combo.effects.particles.enabled")
+            ? particle(c.getString("combo.effects.particles.type"))
+            : null;
+    particleCount = c.getInt("combo.effects.particles.count");
+
+    if (!enabled) {
+      shutdown();
+    } else if (ticker == null) {
+      ticker = plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 10L, 10L);
+    }
+  }
+
+  private Sound sound(String name) {
+    Sound sound = Lookup.sound(name);
+    if (sound == null) {
+      plugin.getSLF4JLogger().warn("Invalid combo sound '{}'", name);
+    }
+    return sound;
+  }
+
+  private Particle particle(String name) {
+    Particle particle = Lookup.particle(name);
+    if (particle == null) {
+      plugin.getSLF4JLogger().warn("Invalid combo particle '{}'", name);
+    }
+    return particle;
+  }
+
+  /** Damage multiplier for the hit this player is about to land. */
+  public double multiplierForNextHit(Player player) {
+    if (!enabled || !multiplierEnabled) {
+      return 1.0;
+    }
+    State s = states.get(player.getUniqueId());
+    boolean expired =
+        s == null || (!decayEnabled && System.currentTimeMillis() - s.lastHit > resetMs);
+    return multiplierFor((expired ? 0 : s.combo) + 1);
+  }
+
+  private double multiplierFor(int combo) {
+    double byCombo = multBase + combo * multPerCombo;
+    double byRank = rankMultipliers.getOrDefault(rankOf(combo), multBase);
+    return Math.min(Math.max(byCombo, byRank), multMax);
+  }
+
+  /** Registers a landed hit: advances the combo and drives the HUD, effects and hologram. */
+  public void onHit(Player player, LivingEntity victim) {
+    if (!enabled) {
       return;
     }
+    long now = System.currentTimeMillis();
+    State s = states.computeIfAbsent(player.getUniqueId(), id -> new State());
+    if (!decayEnabled && now - s.lastHit > resetMs) {
+      s.combo = 0;
+    }
+    int before = s.combo++;
+    s.lastHit = now;
+    s.lastDecay = now;
+    stats.recordCombo(player, s.combo);
 
-    UUID playerId = player.getUniqueId();
-    updatePlayerCombo(playerId, currentTime);
-    handleComboDecay(player, playerId);
-    applyDamageMultiplier(player, playerId, event);
-    playComboEffects(player, playerId);
-
-    playerStats.updateStats(player, event.getFinalDamage(), playerCombos.get(playerId));
-    displayComboHUD(player, event.getEntity());
+    if (!players.isEnabled(player)) {
+      return;
+    }
+    if (effects) {
+      playEffects(player, before, s.combo);
+    }
+    player.sendActionBar(hud(s, now));
+    boolean rankUp = !rankOf(before).equals(rankOf(s.combo));
+    if (rankUp && !rankUpFormat.isBlank()) {
+      player.showTitle(
+          Title.title(
+              Component.empty(),
+              Text.parse(streakText(rankUpFormat, s.combo)),
+              Title.Times.times(Duration.ZERO, Duration.ofMillis(700), Duration.ofMillis(300))));
+    }
+    if (hologramEnabled && s.combo >= hologramMinCombo && players.isHologramEnabled(player)) {
+      showHologram(s, victim, now, rankUp);
+    }
   }
 
-  private void updatePlayerCombo(UUID playerId, long currentTime) {
-    Long lastCombo = lastComboTime.getOrDefault(playerId, 0L);
-    if (currentTime - lastCombo > configManager.getComboResetTime()) {
-      playerCombos.put(playerId, 1);
-    } else {
-      int currentCombo = playerCombos.getOrDefault(playerId, 0);
-      playerCombos.put(playerId, currentCombo + 1);
-    }
-
-    lastComboTime.put(playerId, currentTime);
-    lastActionTime.put(playerId, currentTime);
+  /** Fills %combo%, %rank% and %color% (the rank's colour tag) in a configured streak text. */
+  private String streakText(String format, int combo) {
+    String rank = rankOf(combo);
+    return format
+        .replace("%combo%", String.valueOf(combo))
+        .replace("%rank%", rank)
+        .replace("%color%", rankColors.getOrDefault(rank, "<white>"));
   }
 
-  private void handleComboDecay(Player player, UUID playerId) {
-    if (!configManager.isComboDecayEnabled()) return;
-
-    BukkitTask existingTask = decayTasks.remove(playerId);
-    if (existingTask != null) {
-      existingTask.cancel();
+  private void playEffects(Player player, int before, int after) {
+    Location at = player.getLocation();
+    if (comboSound != null) {
+      player.playSound(at, comboSound, soundVolume, soundPitch);
     }
-
-    BukkitTask decayTask =
+    if (milestoneSound != null && !rankOf(before).equals(rankOf(after))) {
+      player.playSound(at, milestoneSound, soundVolume * 1.2f, soundPitch * 1.2f);
+    }
+    if (particle != null) {
+      try {
+        at.getWorld().spawnParticle(particle, at.add(0, 1, 0), particleCount, 0.5, 0.5, 0.5, 0);
+      } catch (IllegalArgumentException e) {
         plugin
-            .getServer()
-            .getScheduler()
-            .runTaskTimer(
-                plugin,
-                () -> {
-                  long timeSinceLastAction =
-                      (System.currentTimeMillis() - lastActionTime.get(playerId)) / 1000;
-
-                  if (timeSinceLastAction >= configManager.getComboDecayTime()) {
-                    int currentCombo = playerCombos.getOrDefault(playerId, 0);
-                    int min = configManager.getComboDecayMinimum();
-                    if (currentCombo > min) {
-                      playerCombos.put(
-                          playerId,
-                          Math.max(currentCombo - configManager.getComboDecayRate(), min));
-                      displayComboHUD(player, null);
-                    }
-                  }
-                },
-                configManager.getComboDecayTime() * 20L,
-                configManager.getComboDecayInterval() * 20L);
-
-    decayTasks.put(playerId, decayTask);
-  }
-
-  private void applyDamageMultiplier(Player player, UUID playerId, EntityDamageEvent event) {
-    if (!configManager.isComboMultiplierEnabled()) return;
-
-    int combo = playerCombos.get(playerId);
-    String rank = getRankName(combo);
-
-    double multiplier =
-        configManager.getComboMultiplierBase()
-            + (combo * configManager.getComboMultiplierPerCombo());
-
-    double rankMultiplier =
-        configManager
-            .getRankMultipliers()
-            .getOrDefault(rank, configManager.getComboMultiplierBase());
-    multiplier = Math.max(multiplier, rankMultiplier);
-    applyElementalEffects(player, event.getEntity(), combo);
-
-    multiplier = Math.min(multiplier, configManager.getComboMultiplierMax());
-
-    event.setDamage(event.getDamage() * multiplier);
-  }
-
-  private void applyElementalEffects(Player player, Entity target, int combo) {
-    String element = playerManager.getPlayerElement(player);
-    if (element == null) return;
-
-    switch (element.toLowerCase()) {
-      case "fire":
-        target.setFireTicks(combo * 20);
-        break;
-      case "ice":
-        if (target instanceof LivingEntity livingEntity) {
-          livingEntity.addPotionEffect(
-              new PotionEffect(PotionEffectType.SLOWNESS, combo * 20, combo / 5));
-        }
-        break;
-      case "lightning":
-        if (combo % 10 == 0) {
-          target.getWorld().strikeLightning(target.getLocation());
-        }
-        break;
-      default:
-        break;
-    }
-  }
-
-  private void playComboEffects(Player player, UUID playerId) {
-    if (!plugin.getConfig().getBoolean("combo.effects.enabled", true)
-        || !playerManager.isEnabled(player)) return;
-
-    playComboSound(player, playerId);
-    spawnComboParticles(player);
-  }
-
-  private void playComboSound(Player player, UUID playerId) {
-    if (!plugin.getConfig().getBoolean("combo.effects.sound.enabled", true)) return;
-
-    try {
-      String soundName =
-          plugin
-              .getConfig()
-              .getString("combo.effects.sound.combo-up", "entity.experience_orb.pickup");
-      Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase()));
-      if (sound == null) {
-        logger.warning("Invalid sound name in config: " + soundName);
-        return;
+            .getSLF4JLogger()
+            .warn("Particle '{}' needs extra data and cannot be used", particle.key());
+        particle = null;
       }
-
-      float volume = (float) plugin.getConfig().getDouble("combo.effects.sound.volume", 1.0);
-      float pitch = (float) plugin.getConfig().getDouble("combo.effects.sound.pitch", 1.0);
-      Location location = player.getLocation();
-      if (location != null) {
-        player.playSound(location, sound, volume, pitch);
-      }
-
-      int prevCombo = playerCombos.getOrDefault(playerId, 0) - 1;
-      String prevRank = getRankName(prevCombo);
-      String newRank = getRankName(playerCombos.get(playerId));
-
-      if (!prevRank.equals(newRank)) {
-        String milestoneSoundName =
-            plugin
-                .getConfig()
-                .getString("combo.effects.sound.combo-milestone", "ENTITY_PLAYER_LEVELUP");
-        Sound milestoneSound =
-            Registry.SOUNDS.get(NamespacedKey.minecraft(milestoneSoundName.toLowerCase()));
-        if (milestoneSound == null) {
-          logger.warning("Invalid milestone sound name in config: " + milestoneSoundName);
-          return;
-        }
-
-        Location playerLoc = player.getLocation();
-        if (playerLoc != null) {
-          player.playSound(playerLoc, milestoneSound, volume * 1.2f, pitch * 1.2f);
-        }
-      }
-    } catch (IllegalArgumentException e) {
-      logger.warning("Invalid sound name in config: " + e.getMessage());
     }
   }
 
-  private void spawnComboParticles(Player player) {
-    if (!plugin.getConfig().getBoolean("combo.effects.particles.enabled", true)) return;
-
-    try {
-      String particleType = plugin.getConfig().getString("combo.effects.particles.type", "CRIT");
-      int count = plugin.getConfig().getInt("combo.effects.particles.count", 10);
-      Location playerLocation = player.getLocation();
-
-      if (playerLocation != null) {
-        Location particleLocation = playerLocation.clone().add(0, 1, 0);
-        player
-            .getWorld()
-            .spawnParticle(
-                Particle.valueOf(particleType.toUpperCase()),
-                particleLocation,
-                count,
-                0.5,
-                0.5,
-                0.5,
-                0);
+  private Component hud(State s, long now) {
+    StringBuilder text = new StringBuilder(Text.format(comboFormat, s.combo));
+    if (rankEnabled) {
+      String rank = rankOf(s.combo);
+      text.append(Text.format(rankFormat, rankColors.getOrDefault(rank, "<white>") + rank));
+    }
+    if (multiplierEnabled) {
+      text.append(Text.format(multiplierFormat, multiplierFor(s.combo)));
+    }
+    if (decayEnabled) {
+      double untilDecay = (decayAfterMs - (now - s.lastHit)) / 1000.0;
+      if (untilDecay > 0 && untilDecay <= 3) {
+        text.append(' ').append(Text.format(decayFormat, untilDecay));
       }
-
-    } catch (IllegalArgumentException e) {
-      logger.warning("Invalid particle type in config: " + e.getMessage());
     }
+    return Text.parse(text.toString());
   }
 
-  private void displayComboHUD(Player player, Entity target) {
-    if (!configManager.isComboEnabled() || !playerManager.isEnabled(player)) return;
-
-    int combo = playerCombos.getOrDefault(player.getUniqueId(), 0);
-    if (combo <= 0) return;
-
-    String displayText = buildComboHudText(player, combo);
-
-    Component message = MiniMessage.miniMessage().deserialize(displayText);
-    player.sendActionBar(message);
-
-    if (configManager.isComboHologramEnabled()
-        && playerManager.isHologramEnabled(player)
-        && combo >= configManager.getComboHologramMinCombo()
-        && target != null) {
-      createComboHologram(player, combo, target);
+  private void showHologram(State s, LivingEntity victim, long now, boolean rankUp) {
+    Location at = victim.getLocation().add(0, victim.getHeight() + hologramHeight, 0);
+    Component text = Text.parse(streakText(hologramFormat, s.combo));
+    if (s.hologram == null || !s.hologram.isValid()) {
+      removeHologram(s);
+      s.hologram =
+          at.getWorld()
+              .spawn(
+                  at,
+                  TextDisplay.class,
+                  d -> {
+                    d.setPersistent(false);
+                    d.addScoreboardTag(VitalStrike.TEXT_TAG);
+                    d.setBillboard(Display.Billboard.CENTER);
+                    d.setAlignment(TextDisplay.TextAlignment.CENTER);
+                    d.setSeeThrough(true);
+                    d.setShadowed(true);
+                    d.setDefaultBackground(false);
+                    d.setViewRange(0.5f);
+                    d.setTransformation(DamageIndicatorManager.scale(HOLOGRAM_SCALE * 0.4f));
+                  });
+    } else {
+      s.hologram.teleport(at);
     }
-
-    scheduleActionBarClear(player, combo);
+    s.hologram.text(text);
+    s.hologramUntil = now + hologramMs;
+    pop(s.hologram, rankUp ? 1.7f : 1.25f);
   }
 
-  private void createComboHologram(Player player, int combo, Entity target) {
-    UUID playerId = player.getUniqueId();
-
-    TextDisplay existing = activeHolograms.remove(playerId);
-    if (existing != null && existing.isValid()) {
-      existing.remove();
-    }
-
-    Location loc =
-        target.getLocation().add(0, target.getHeight() + configManager.getComboHologramHeight(), 0);
-    TextDisplay hologram = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
-
-    String formattedText =
-        configManager.getComboHologramFormat().replace("%combo%", String.valueOf(combo));
-    hologram.text(MiniMessage.miniMessage().deserialize(formattedText));
-
-    hologram.setBillboard(org.bukkit.entity.Display.Billboard.CENTER);
-    hologram.setAlignment(TextDisplay.TextAlignment.CENTER);
-    hologram.setSeeThrough(true);
-    hologram.setShadowed(true);
-    hologram.setPersistent(false);
-    hologram.setViewRange(32);
-    hologram.setDefaultBackground(false);
-
-    activeHolograms.put(playerId, hologram);
-
-    int removalTicks = (int) (configManager.getComboHologramDuration() * 20);
+  /** Swells the hologram and eases it back, so each hit visibly lands. */
+  private void pop(TextDisplay display, float peak) {
+    display.setInterpolationDuration(1);
+    display.setTransformation(DamageIndicatorManager.scale(HOLOGRAM_SCALE * peak));
     plugin
         .getServer()
         .getScheduler()
         .runTaskLater(
             plugin,
             () -> {
-              TextDisplay storedHologram = activeHolograms.get(playerId);
-              if (storedHologram != null && storedHologram.equals(hologram) && hologram.isValid()) {
-                hologram.remove();
-                activeHolograms.remove(playerId);
+              if (display.isValid()) {
+                display.setInterpolationDuration(5);
+                display.setTransformation(DamageIndicatorManager.scale(HOLOGRAM_SCALE));
               }
             },
-            removalTicks);
+            2L);
   }
 
-  private String buildComboHudText(Player player, int combo) {
-    StringBuilder display = new StringBuilder();
-
-    display.append(String.format(configManager.getComboFormat(), combo));
-
-    if (configManager.isComboRankEnabled()) {
-      display.append(getComboRank(combo));
-    }
-
-    if (configManager.isComboMultiplierEnabled()) {
-      display.append(getComboMultiplierText(combo));
-    }
-
-    if (configManager.isComboDecayEnabled()) {
-      display.append(getDecayWarningText(player));
-    }
-
-    return display.toString();
+  public String rankOf(int combo) {
+    var entry = rankThresholds.floorEntry(combo);
+    return entry == null ? DEFAULT_RANK : entry.getValue();
   }
 
-  private String getComboMultiplierText(int combo) {
-    String rank = getRankName(combo);
-    double multiplier =
-        configManager.getComboMultiplierBase()
-            + (combo * configManager.getComboMultiplierPerCombo());
-    double rankMultiplier =
-        configManager
-            .getRankMultipliers()
-            .getOrDefault(rank, configManager.getComboMultiplierBase());
-    multiplier = Math.clamp(multiplier, rankMultiplier, configManager.getComboMultiplierMax());
-    return String.format(configManager.getMultiplierFormat(), multiplier);
-  }
-
-  private String getDecayWarningText(Player player) {
-    UUID playerId = player.getUniqueId();
-    if (!lastActionTime.containsKey(playerId)) {
-      return "";
-    }
-
-    long timeSinceLastAction = (System.currentTimeMillis() - lastActionTime.get(playerId)) / 1000;
-    if (timeSinceLastAction >= configManager.getComboDecayTime() - 3) {
-      float timeUntilDecay = (float) configManager.getComboDecayTime() - timeSinceLastAction;
-      if (timeUntilDecay > 0) {
-        return " " + String.format(configManager.getDecayWarningFormat(), timeUntilDecay);
+  private void tick() {
+    long now = System.currentTimeMillis();
+    for (Iterator<Map.Entry<UUID, State>> it = states.entrySet().iterator(); it.hasNext(); ) {
+      Map.Entry<UUID, State> entry = it.next();
+      State s = entry.getValue();
+      if (s.hologram != null && now >= s.hologramUntil) {
+        s.hologram.remove();
+        s.hologram = null;
+      }
+      Player player = plugin.getServer().getPlayer(entry.getKey());
+      if (!decayEnabled && now - s.lastHit > resetMs) {
+        s.combo = 0;
+      } else if (decayEnabled
+          && s.combo > decayMinimum
+          && now - s.lastHit >= decayAfterMs
+          && now - s.lastDecay >= decayIntervalMs) {
+        s.combo = Math.max(decayMinimum, s.combo - decayRate);
+        s.lastDecay = now;
+        if (player != null && players.isEnabled(player)) {
+          player.sendActionBar(hud(s, now));
+        }
+      }
+      boolean idle = s.combo <= (decayEnabled ? decayMinimum : 0);
+      if (player == null || (idle && s.hologram == null)) {
+        removeHologram(s);
+        it.remove();
       }
     }
-    return "";
   }
 
-  private void scheduleActionBarClear(Player player, int currentCombo) {
-    int durationTicks = (int) (configManager.getDisplayDuration() * 20);
-    plugin
-        .getServer()
-        .getScheduler()
-        .runTaskLater(
-            plugin,
-            () -> {
-              if (playerCombos.getOrDefault(player.getUniqueId(), 0) == currentCombo) {
-                player.sendActionBar(Component.empty());
-              }
-            },
-            durationTicks);
-  }
-
-  /**
-   * Gets the rank name for a given combo count.
-   *
-   * @param combo The combo count
-   * @return The rank name
-   */
-  public String getRankName(int combo) {
-    String currentRank = "D";
-    int highestThreshold = -1;
-
-    for (Map.Entry<String, Integer> entry : configManager.getRankThresholds().entrySet()) {
-      if (combo >= entry.getValue() && entry.getValue() > highestThreshold) {
-        currentRank = entry.getKey();
-        highestThreshold = entry.getValue();
-      }
+  private static void removeHologram(State s) {
+    if (s.hologram != null) {
+      s.hologram.remove();
+      s.hologram = null;
     }
-    return currentRank;
   }
 
-  /**
-   * Gets the rank name for a given combo count.
-   *
-   * @param combo The combo count
-   * @return The rank name
-   */
-  private String getComboRank(int combo) {
-    String currentRank = getRankName(combo);
-    String rankColor = configManager.getRankColors().getOrDefault(currentRank, "<white>");
-    return String.format(configManager.getRankFormat(), rankColor + currentRank);
+  /** Removes every combo hologram but keeps the combos themselves. */
+  public void clearHolograms() {
+    states.values().forEach(ComboManager::removeHologram);
   }
 
-  /**
-   * Cleans up all resources associated with a player. Removes holograms, cancels tasks, and clears
-   * combo data.
-   *
-   * @param playerId The UUID of the player to cleanup
-   */
-  public void cleanup(UUID playerId) {
-    TextDisplay hologram = activeHolograms.remove(playerId);
-    if (hologram != null && hologram.isValid()) {
-      hologram.remove();
+  public void cleanup(UUID id) {
+    State s = states.remove(id);
+    if (s != null) {
+      removeHologram(s);
     }
-    BukkitTask task = decayTasks.remove(playerId);
-    if (task != null) {
-      task.cancel();
-    }
-    playerCombos.remove(playerId);
-    lastActionTime.remove(playerId);
-    lastComboTime.remove(playerId);
   }
 
-  /**
-   * Resets a player's combo counter
-   *
-   * @param playerId the UUID of the player
-   */
-  public void resetPlayerCombo(UUID playerId) {
-    playerCombos.put(playerId, 0);
-    lastComboTime.remove(playerId);
-    lastActionTime.remove(playerId);
-
-    org.bukkit.scheduler.BukkitTask existingTask = decayTasks.remove(playerId);
-    if (existingTask != null) {
-      existingTask.cancel();
-    }
-
-    TextDisplay hologram = activeHolograms.remove(playerId);
-    if (hologram != null && hologram.isValid()) {
-      hologram.remove();
+  public void shutdown() {
+    states.values().forEach(ComboManager::removeHologram);
+    states.clear();
+    if (ticker != null) {
+      ticker.cancel();
+      ticker = null;
     }
   }
 }

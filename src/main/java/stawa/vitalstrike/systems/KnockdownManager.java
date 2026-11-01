@@ -1,928 +1,468 @@
 package stawa.vitalstrike.systems;
 
-import java.util.*;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.Bukkit;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
+import net.kyori.adventure.bossbar.BossBar;
+import net.kyori.adventure.text.Component;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.boss.BossBar;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Pose;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
-import stawa.vitalstrike.Errors;
+import stawa.vitalstrike.Lookup;
+import stawa.vitalstrike.Text;
 import stawa.vitalstrike.VitalStrike;
 import stawa.vitalstrike.items.CustomItems;
 
 /**
- * Manages the knockdown system in VitalStrike, providing a second-chance mechanic for players in
- * combat. When a player would normally die, they enter a "downed" state where they are temporarily
- * incapacitated but can be revived by teammates or use special items for self-revival.
+ * Knockdown system: lethal damage puts a player into a timed "downed" state instead of killing
+ * them. Others (or a Vital Awakening item) can revive them before the timer runs out.
  */
-public class KnockdownManager {
-  /** Controls whether the knockdown system is enabled */
-  private final boolean enabled;
+public final class KnockdownManager {
+  private static final String MESSAGES = "knockdown-system.effects.messages.";
+  private static final String BARS = "knockdown-system.effects.boss-bar.";
 
-  /** Determines if Vital Awakening items are used instantly or require a progress bar */
-  private final boolean instantUse;
+  private static final class Downed {
+    long deadline;
+    long lastTick;
+    BossBar bar;
+  }
 
-  /** The amount of health a player has while in the downed state */
-  private final double downedHealth;
+  /**
+   * A revival in progress. {@code reviver} equals {@code target} for a Vital Awakening self-use.
+   */
+  private static final class Revival {
+    final UUID reviver;
+    final UUID target;
+    final EquipmentSlot hand;
+    final Location origin;
+    final int totalTicks;
+    int ticks;
+    BukkitTask task;
+    BossBar reviverBar;
+    BossBar targetBar;
 
-  /** The time in seconds it takes for another player to revive a downed player */
-  private final double reviveDuration;
+    Revival(UUID reviver, UUID target, EquipmentSlot hand, Location origin, int totalTicks) {
+      this.reviver = reviver;
+      this.target = target;
+      this.hand = hand;
+      this.origin = origin;
+      this.totalTicks = Math.max(1, totalTicks);
+    }
 
-  /** The maximum distance in blocks at which a player can revive another player */
-  private final double reviveRange;
+    boolean isSelf() {
+      return reviver.equals(target);
+    }
+  }
 
-  /** The time in seconds it takes to use a Vital Awakening item */
-  private final double useTime;
-
-  /** The time in seconds a player can remain in the downed state before dying */
-  private final int downDuration;
-
-  /** Maps player UUIDs to their downed state boss bars */
-  private final Map<UUID, BossBar> playerBossBars = new HashMap<>();
-
-  /** Maps player UUIDs to their self-revival progress boss bars */
-  private final Map<UUID, BossBar> selfReviveBars = new HashMap<>();
-
-  /** Maps player UUIDs to their downed state tasks */
-  private final Map<UUID, BukkitTask> downedPlayers = new HashMap<>();
-
-  /** Maps player UUIDs to the timestamp when they entered the downed state */
-  private final Map<UUID, Long> downStartTimes = new HashMap<>();
-
-  /** Maps player UUIDs to the timestamp when their downed state was paused */
-  private final Map<UUID, Long> pauseStartTimes = new HashMap<>();
-
-  /** Maps player UUIDs to their total paused time in the downed state */
-  private final Map<UUID, Long> totalPausedTime = new HashMap<>();
-
-  /** Maps player UUIDs to their revival attempt tasks */
-  private final Map<UUID, BukkitTask> revivingTasks = new HashMap<>();
-
-  /** Maps player UUIDs to their self-revival attempt tasks */
-  private final Map<UUID, BukkitTask> selfReviveTasks = new HashMap<>();
-
-  /** Maps reviver UUIDs to target UUIDs for revival tracking */
-  private final Map<UUID, UUID> revivingPairs = new HashMap<>();
-
-  private final Map<UUID, UUID> reviveAttempts = new HashMap<>();
-  private final Map<UUID, Long> lastReviveAttempt = new HashMap<>();
-  private static final long REVIVE_COOLDOWN = 1000;
-
-  /** Handles custom item functionality including Vital Awakening items */
-  private final CustomItems customItems;
-
-  /** Reference to the main plugin instance */
   private final VitalStrike plugin;
+  private final CustomItems items;
+  private final Map<UUID, Downed> downed = new HashMap<>();
+  private final Map<UUID, Revival> byTarget = new HashMap<>();
+  private final Map<UUID, Revival> byReviver = new HashMap<>();
+  private BukkitTask ticker;
 
-  /**
-   * Initializes the KnockdownManager with configuration settings from the plugin.
-   *
-   * @param plugin The VitalStrike plugin instance
-   * @throws Errors.ConfigurationException If there are issues with the configuration values
-   */
-  public KnockdownManager(VitalStrike plugin) throws Errors.ConfigurationException {
+  private boolean enabled;
+  private int downSeconds;
+  private double downedHealth;
+  private double reviveRange;
+  private int reviveTicks;
+  private int useTicks;
+  private boolean instantUse;
+  private boolean requireItem;
+  private int slowness;
+  private int blindness;
+  private boolean reviverBar;
+  private Particle reviveParticle;
+  private Sound reviveSound;
+
+  public KnockdownManager(VitalStrike plugin, CustomItems items) {
     this.plugin = plugin;
-    plugin.reloadConfig();
-    this.enabled = plugin.getConfig().getBoolean("knockdown-system.enabled", true);
-    this.downDuration = plugin.getConfig().getInt("knockdown-system.down-duration", 30);
-    this.reviveDuration =
-        plugin.getConfig().getDouble("knockdown-system.external-revive.duration", 5.0);
-    this.reviveRange = plugin.getConfig().getDouble("knockdown-system.external-revive.range", 3.0);
-    this.downedHealth =
-        Math.clamp(plugin.getConfig().getDouble("knockdown-system.downed-health", 20.0), 1.0, 20.0);
-    this.instantUse =
-        plugin.getConfig().getBoolean("knockdown-system.vital-awakening.instant-use", false);
-    this.useTime =
-        plugin.getConfig().getDouble("knockdown-system.vital-awakening.use-duration", 2.0);
-    try {
-      this.customItems = new CustomItems(plugin);
-    } catch (Errors.ConfigurationException e) {
-      plugin.getLogger().warning("Failed to initialize CustomItems: " + e.getMessage());
-      plugin
-          .getLogger()
-          .warning("Some features related to Vital Awakening items may not work properly.");
-      throw e;
+    this.items = items;
+  }
+
+  public void reload(FileConfiguration c) {
+    String root = "knockdown-system.";
+    enabled = c.getBoolean(root + "enabled");
+    downSeconds = Math.max(1, c.getInt(root + "down-duration"));
+    downedHealth = Math.max(1, c.getDouble(root + "downed-health"));
+    reviveRange = c.getDouble(root + "external-revive.range");
+    reviveTicks = (int) (c.getDouble(root + "external-revive.duration") * 20);
+    requireItem = c.getBoolean(root + "external-revive.require-vital-awakening");
+    useTicks = (int) (c.getDouble(root + "vital-awakening.use-duration") * 20);
+    instantUse = c.getBoolean(root + "vital-awakening.instant-use");
+    slowness = c.getInt(root + "effects.down.slowness");
+    blindness = c.getInt(root + "effects.down.blindness");
+    reviverBar = c.getBoolean(root + "effects.reviver.show_bossbar");
+
+    reviveParticle = Lookup.particle(c.getString(root + "effects.reviver.particle_effect"));
+    reviveSound = Lookup.sound(c.getString(root + "effects.reviver.sound_effect"));
+
+    if (!enabled) {
+      shutdown();
     }
   }
 
-  /**
-   * Attempts to initiate a self-revival process for a downed player using a Vital Awakening item.
-   * If instant use is enabled, the revival happens immediately. Otherwise, it starts a progress
-   * bar.
-   *
-   * @param player The player attempting to self-revive
-   */
-  public void attemptSelfRevive(Player player) {
-    if (!isPlayerDowned(player)) return;
-
-    ItemStack mainHand = player.getInventory().getItemInMainHand();
-    ItemStack offHand = player.getInventory().getItemInOffHand();
-    boolean hasMainHandItem = customItems.isVitalAwakening(mainHand);
-    boolean hasOffHandItem = customItems.isVitalAwakening(offHand);
-
-    if (!hasMainHandItem && !hasOffHandItem) {
-      return;
-    }
-
-    if (instantUse) {
-      if (hasMainHandItem) {
-        mainHand.setAmount(mainHand.getAmount() - 1);
-        completeRevive(player, player);
-      } else {
-        offHand.setAmount(offHand.getAmount() - 1);
-        completeRevive(player, player);
-      }
-      return;
-    }
-
-    startSelfRevive(player);
+  public boolean isEnabled() {
+    return enabled;
   }
 
-  /**
-   * Cancels an ongoing self-revival attempt for a player. Cleans up associated tasks and progress
-   * bars.
-   *
-   * @param player The player whose self-revival attempt should be cancelled
-   */
-  public void cancelSelfRevive(Player player) {
-    UUID playerId = player.getUniqueId();
-    BukkitTask task = selfReviveTasks.remove(playerId);
-    if (task != null) {
-      task.cancel();
-    }
-
-    BossBar bar = selfReviveBars.remove(playerId);
-    if (bar != null) {
-      bar.removeAll();
-    }
+  public boolean isDowned(Player player) {
+    return downed.containsKey(player.getUniqueId());
   }
 
-  /**
-   * Starts the self-revival process for a downed player. Creates a boss bar to show progress and
-   * schedules the task to handle the revival.
-   *
-   * @param player The player attempting to self-revive
-   */
-  public void startSelfRevive(Player player) {
-    UUID playerId = player.getUniqueId();
-    cancelSelfRevive(player);
-
-    boolean wasMainHand = customItems.isVitalAwakening(player.getInventory().getItemInMainHand());
-    BossBar bossBar =
-        Bukkit.createBossBar("§e§lUsing Vital Awakening...", BarColor.YELLOW, BarStyle.SOLID);
-    bossBar.setProgress(0.0);
-    bossBar.addPlayer(player);
-    selfReviveBars.put(playerId, bossBar);
-
-    final double[] progress = {0.0};
-    BukkitTask task =
-        plugin
-            .getServer()
-            .getScheduler()
-            .runTaskTimer(
-                plugin,
-                () -> {
-                  if (!isPlayerDowned(player) || !player.isOnline()) {
-                    cancelSelfRevive(player);
-                    return;
-                  }
-
-                  ItemStack currentMainHand = player.getInventory().getItemInMainHand();
-                  ItemStack currentOffHand = player.getInventory().getItemInOffHand();
-                  boolean hasMainHandItem = customItems.isVitalAwakening(currentMainHand);
-                  boolean hasOffHandItem = customItems.isVitalAwakening(currentOffHand);
-
-                  if ((wasMainHand && !hasMainHandItem) || (!wasMainHand && !hasOffHandItem)) {
-                    cancelSelfRevive(player);
-                    player.sendMessage("§cVital Awakening interrupted: Item was changed.");
-                    return;
-                  }
-
-                  progress[0] += 0.05;
-                  double progressPercent = progress[0] / useTime;
-                  bossBar.setProgress(Math.min(1.0, progressPercent));
-
-                  if (progress[0] >= useTime) {
-                    ItemStack usedItem = wasMainHand ? currentMainHand : currentOffHand;
-                    usedItem.setAmount(usedItem.getAmount() - 1);
-                    completeRevive(player, player);
-                    cancelSelfRevive(player);
-                  }
-                },
-                0L,
-                1L);
-
-    selfReviveTasks.put(playerId, task);
-  }
-
-  /**
-   * Performs cleanup of all active knockdown-related tasks and resources. This should be called
-   * when the plugin is being disabled or reloaded.
-   */
-  public void cleanup() {
-    downedPlayers.values().forEach(BukkitTask::cancel);
-    downedPlayers.clear();
-    revivingTasks.values().forEach(BukkitTask::cancel);
-    revivingTasks.clear();
-    revivingPairs.clear();
-    playerBossBars.values().forEach(BossBar::removeAll);
-    playerBossBars.clear();
-    selfReviveTasks.values().forEach(BukkitTask::cancel);
-    selfReviveTasks.clear();
-    selfReviveBars.values().forEach(BossBar::removeAll);
-    selfReviveBars.clear();
-    pauseStartTimes.clear();
-    totalPausedTime.clear();
-    lastReviveAttempt.clear();
-  }
-
-  /**
-   * Creates a boss bar for a downed player showing their remaining time.
-   *
-   * @param player The downed player to create the boss bar for
-   */
-  private void createDownedBossBar(Player player) {
-    String message =
-        plugin
-            .getConfig()
-            .getString(
-                "knockdown-system.effects.messages.downed",
-                "<red>You have been knocked down! Wait for help or death in %time% seconds");
-    message = message.replace("%time%", String.valueOf(downDuration));
-
-    String plainTitle = "§c§lDowned! " + downDuration + "s remaining";
-
-    BossBar bossBar = Bukkit.createBossBar(plainTitle, BarColor.RED, BarStyle.SOLID);
-    bossBar.setProgress(1.0);
-    bossBar.addPlayer(player);
-    playerBossBars.put(player.getUniqueId(), bossBar);
-
-    player.sendMessage(MiniMessage.miniMessage().deserialize(message));
-  }
-
-  /**
-   * Updates the boss bar for a downed player with the remaining time.
-   *
-   * @param player The downed player
-   * @param remainingSeconds The remaining time in seconds before death
-   */
-  private void updateDownedBossBar(Player player, int remainingSeconds) {
-    BossBar bossBar = playerBossBars.get(player.getUniqueId());
-    if (bossBar != null) {
-      double progress = Math.max(0.0, (double) remainingSeconds / downDuration);
-      bossBar.setProgress(progress);
-      bossBar.setTitle("§c§lDowned! " + remainingSeconds + "s remaining");
-    }
-  }
-
-  /**
-   * Removes the boss bar for a player who is no longer downed.
-   *
-   * @param player The player whose boss bar should be removed
-   */
-  private void removeDownedBossBar(Player player) {
-    BossBar bossBar = playerBossBars.remove(player.getUniqueId());
-    if (bossBar != null) {
-      bossBar.removeAll();
-    }
-  }
-
-  /**
-   * Initiates the knockdown state for a player who would normally die. This method handles the
-   * complete
-   *
-   * @param player The player entering the knockdown state
-   */
-  public void handlePlayerDeath(Player player) {
-    if (!enabled
-        || player.getGameMode() == GameMode.CREATIVE
-        || player.getGameMode() == GameMode.SPECTATOR) {
-      return;
-    }
-
-    UUID playerId = player.getUniqueId();
-
-    if (isPlayerDowned(player)) {
-      BukkitTask task = downedPlayers.remove(playerId);
-      if (task != null) {
-        task.cancel();
-      }
-      removeDownedBossBar(player);
-      cancelSelfRevive(player);
-    }
-
-    player.setHealth(downedHealth);
-    player.setInvulnerable(true);
-    downStartTimes.put(playerId, System.currentTimeMillis());
-    pauseStartTimes.remove(playerId);
-    totalPausedTime.remove(playerId);
-
-    applyDownedEffects(player);
-    createDownedBossBar(player);
-
-    BukkitTask task =
-        plugin
-            .getServer()
-            .getScheduler()
-            .runTaskTimer(
-                plugin,
-                () -> {
-                  if (!player.isOnline() || !isPlayerDowned(player)) {
-                    removeDownedState(player);
-                    return;
-                  }
-                  int remainingTime = getRemainingTime(player);
-                  if (remainingTime <= 0) {
-                    finalizePlayerDeath(player);
-                  } else {
-                    updateDownedBossBar(player, remainingTime);
-                  }
-                },
-                20L,
-                20L);
-
-    downedPlayers.put(playerId, task);
-  }
-
-  /**
-   * Finalizes a player's death after their downed timer expires. Removes the downed state and sets
-   * their health to 0.
-   *
-   * @param player The player to kill
-   */
-  private void finalizePlayerDeath(Player player) {
-    if (player == null || !player.isOnline()) return;
-    removeDownedState(player);
-    plugin
-        .getServer()
-        .getScheduler()
-        .runTaskLater(
-            plugin,
-            () -> {
-              if (player.isOnline()) {
-                player.setInvulnerable(false);
-                player.setHealth(0);
-              }
-            },
-            2L);
-  }
-
-  /**
-   * Removes the downed state from a player. Cleans up tasks, effects, and UI elements.
-   *
-   * @param player The player to remove the downed state from
-   */
-  private void removeDownedState(Player player) {
-    if (player == null) return;
-
-    UUID playerId = player.getUniqueId();
-    BukkitTask task = downedPlayers.remove(playerId);
-    if (task != null) {
-      task.cancel();
-    }
-    downStartTimes.remove(playerId);
-    pauseStartTimes.remove(playerId);
-    totalPausedTime.remove(playerId);
-    removeDownedBossBar(player);
-    removeDownedEffects(player);
-    player.setInvulnerable(false);
-  }
-
-  /**
-   * Handles a player disconnecting from the server while in a downed state. Preserves their downed
-   * state but cancels active tasks.
-   *
-   * @param player The player who disconnected
-   */
-  public void handlePlayerQuit(Player player) {
-    UUID playerId = player.getUniqueId();
-
-    reviveAttempts.remove(player.getUniqueId());
-    lastReviveAttempt.remove(player.getUniqueId());
-
-    UUID targetId =
-        reviveAttempts.entrySet().stream()
-            .filter(entry -> entry.getValue().equals(player.getUniqueId()))
-            .map(Map.Entry::getKey)
-            .findFirst()
-            .orElse(null);
-
-    if (targetId != null) {
-      Player reviver = Bukkit.getPlayer(targetId);
-      if (reviver != null) {
-        cancelRevive(reviver.getUniqueId());
-      }
-      reviveAttempts.remove(targetId);
-    }
-
-    if (isPlayerDowned(player)) {
-      BukkitTask task = downedPlayers.remove(playerId);
-      if (task != null) {
-        task.cancel();
-      }
-      BossBar bossBar = playerBossBars.remove(playerId);
-      if (bossBar != null) {
-        bossBar.removeAll();
-      }
-      cancelSelfRevive(player);
-    }
-
-    for (Map.Entry<UUID, UUID> entry : new HashMap<>(revivingPairs).entrySet()) {
-      if (entry.getValue().equals(playerId)) {
-        cancelRevive(entry.getKey());
-      }
-    }
-  }
-
-  /**
-   * Manages the state restoration of a player who rejoins the server while in a downed state. This
-   * method handles several scenarios:
-   *
-   * <ul>
-   *   <li>Checks if the player's downed timer expired during their absence
-   *   <li>Restores the downed state with appropriate health and effects if time remains
-   *   <li>Resumes the countdown timer and UI elements
-   *   <li>Ensures proper cleanup if the player disconnects again
-   * </ul>
-   *
-   * @param player The player who joined the server
-   */
-  public void handlePlayerJoin(Player player) {
-    UUID playerId = player.getUniqueId();
-
-    if (downStartTimes.containsKey(playerId)) {
-      int remainingTime = getRemainingTime(player);
-      if (remainingTime <= 0) {
-        downStartTimes.remove(playerId);
-        pauseStartTimes.remove(playerId);
-        totalPausedTime.remove(playerId);
-
-        plugin
-            .getServer()
-            .getScheduler()
-            .runTaskLater(
-                plugin,
-                () -> {
-                  if (player.isOnline()) {
-                    player.setInvulnerable(false);
-                    player.setHealth(0);
-                  }
-                },
-                5L);
-        return;
-      }
-
-      player.setHealth(downedHealth);
-      player.setInvulnerable(true);
-      applyDownedEffects(player);
-      createDownedBossBar(player);
-
-      BukkitTask task =
-          plugin
-              .getServer()
-              .getScheduler()
-              .runTaskTimer(
-                  plugin,
-                  () -> {
-                    if (!player.isOnline()) {
-                      BukkitTask currentTask = downedPlayers.remove(playerId);
-                      if (currentTask != null) {
-                        currentTask.cancel();
-                      }
-                      return;
-                    }
-
-                    if (!isPlayerDowned(player)) {
-                      removeDownedState(player);
-                      return;
-                    }
-
-                    int currentRemainingTime = getRemainingTime(player);
-                    if (currentRemainingTime <= 0) {
-                      finalizePlayerDeath(player);
-                    } else {
-                      updateDownedBossBar(player, currentRemainingTime);
-                    }
-                  },
-                  20L,
-                  20L);
-
-      downedPlayers.put(playerId, task);
-    }
-  }
-
-  /**
-   * Revives a player from their downed state by restoring their normal gameplay state. This method
-   * handles the complete revival process including:
-   *
-   * <ul>
-   *   <li>Canceling all active downed state tasks
-   *   <li>Removing UI elements and visual indicators
-   *   <li>Clearing all downed state tracking data
-   *   <li>Restoring the player's normal movement, health, and status effects
-   * </ul>
-   *
-   * @param player The player to revive from the downed state
-   */
-  public void revivePlayer(Player player) {
-    UUID playerId = player.getUniqueId();
-
-    BukkitTask task = downedPlayers.remove(playerId);
-    if (task != null) {
-      task.cancel();
-    }
-
-    BossBar bossBar = playerBossBars.remove(playerId);
-    if (bossBar != null) {
-      bossBar.removeAll();
-    }
-
-    downStartTimes.remove(playerId);
-    pauseStartTimes.remove(playerId);
-    totalPausedTime.remove(playerId);
-
-    player.setWalkSpeed(0.2f);
-    player.setHealth(player.getAttribute(Attribute.MAX_HEALTH).getValue());
-    player.removePotionEffect(PotionEffectType.BLINDNESS);
-    player.removePotionEffect(PotionEffectType.SLOWNESS);
-    player.setInvulnerable(false);
-  }
-
-  /**
-   * Initiates the revival process for a downed player by another player. Creates a progress bar and
-   * starts the revival countdown.
-   *
-   * @param reviver The player attempting to revive the downed player
-   * @param target The downed player being revived
-   */
-  private final Map<UUID, BossBar> revivingBossBars = new HashMap<>();
-
-  private final Map<UUID, BossBar> beingRevivedBossBars = new HashMap<>();
-
-  /**
-   * Starts the revival process for a downed player by another player.
-   *
-   * @param reviver The player attempting to revive the downed player
-   * @param target The downed player being revived
-   */
-  public void startRevive(Player reviver, Player target) {
-    UUID reviverId = reviver.getUniqueId();
-    UUID targetId = target.getUniqueId();
-
-    long currentTime = System.currentTimeMillis();
-    if (lastReviveAttempt.containsKey(reviverId)) {
-      long lastAttempt = lastReviveAttempt.get(reviverId);
-      if (currentTime - lastAttempt < REVIVE_COOLDOWN) {
-        return;
-      }
-    }
-
-    if (reviveAttempts.containsKey(reviverId) || isBeingRevived(target)) {
-      return;
-    }
-
-    if (!canRevive(reviver, target)) {
-      String message =
-          plugin
-              .getConfig()
-              .getString(
-                  "knockdown-system.effects.messages.cannot-revive",
-                  "<red>You cannot revive this player right now.");
-      reviver.sendMessage(MiniMessage.miniMessage().deserialize(message));
-      return;
-    }
-
-    lastReviveAttempt.put(reviverId, currentTime);
-    reviveAttempts.put(reviverId, targetId);
-
-    String reviverMessage =
-        plugin
-            .getConfig()
-            .getString(
-                "knockdown-system.effects.messages.reviving-player",
-                "<yellow>Reviving %player%...");
-    reviverMessage = reviverMessage.replace("%player%", target.getName());
-
-    String targetMessage =
-        plugin
-            .getConfig()
-            .getString(
-                "knockdown-system.effects.messages.being-revived",
-                "<yellow>Being revived by %player%...");
-    targetMessage = targetMessage.replace("%player%", reviver.getName());
-
-    reviver.sendMessage(MiniMessage.miniMessage().deserialize(reviverMessage));
-    target.sendMessage(MiniMessage.miniMessage().deserialize(targetMessage));
-
-    String reviverBarTitle =
-        plugin
-            .getConfig()
-            .getString(
-                "knockdown-system.effects.boss-bar.reviving.title", "<yellow>Reviving %player%...");
-    reviverBarTitle = reviverBarTitle.replace("%player%", target.getName());
-
-    String targetBarTitle =
-        plugin
-            .getConfig()
-            .getString(
-                "knockdown-system.effects.boss-bar.being-revived.title",
-                "<yellow>Being revived by %player%...");
-    targetBarTitle = targetBarTitle.replace("%player%", reviver.getName());
-
-    String plainReviverTitle = "§e§l" + MiniMessage.miniMessage().stripTags(reviverBarTitle);
-    String plainTargetTitle = "§e§l" + MiniMessage.miniMessage().stripTags(targetBarTitle);
-
-    BarColor barColor;
-    BarStyle barStyle;
-
-    try {
-      String colorStr =
-          plugin
-              .getConfig()
-              .getString("knockdown-system.effects.boss-bar.reviving.color", "YELLOW");
-      barColor = BarColor.valueOf(colorStr.toUpperCase());
-    } catch (Exception e) {
-      barColor = BarColor.YELLOW;
-    }
-
-    try {
-      String styleStr =
-          plugin.getConfig().getString("knockdown-system.effects.boss-bar.reviving.style", "SOLID");
-      barStyle = BarStyle.valueOf(styleStr.toUpperCase());
-    } catch (Exception e) {
-      barStyle = BarStyle.SOLID;
-    }
-
-    BossBar reviverBar = Bukkit.createBossBar(plainReviverTitle, barColor, barStyle);
-
-    BossBar targetBar = Bukkit.createBossBar(plainTargetTitle, barColor, barStyle);
-
-    reviverBar.addPlayer(reviver);
-    targetBar.addPlayer(target);
-    revivingBossBars.put(reviverId, reviverBar);
-    beingRevivedBossBars.put(targetId, targetBar);
-
-    BukkitTask task =
-        plugin
-            .getServer()
-            .getScheduler()
-            .runTaskTimer(
-                plugin,
-                new Runnable() {
-                  private double progress = 0;
-                  private final Location startLoc = reviver.getLocation();
-
-                  @Override
-                  public void run() {
-                    if (!reviver.isOnline() || !target.isOnline() || !isPlayerDowned(target)) {
-                      cancelRevive(reviverId);
-                      String message =
-                          plugin
-                              .getConfig()
-                              .getString(
-                                  "knockdown-system.effects.messages.revive-failed",
-                                  "<red>Revival failed! Stay closer to the player.");
-                      if (reviver.isOnline()) {
-                        reviver.sendMessage(MiniMessage.miniMessage().deserialize(message));
-                      }
-                      return;
-                    }
-
-                    Location currentLocation = reviver.getLocation();
-                    if (isPlayerDowned(reviver)
-                        || currentLocation == null
-                        || startLoc == null
-                        || !currentLocation.getWorld().equals(startLoc.getWorld())
-                        || currentLocation.distance(startLoc) > 0.5) {
-                      cancelRevive(reviverId);
-                      String message =
-                          plugin
-                              .getConfig()
-                              .getString(
-                                  "knockdown-system.effects.messages.revive-failed",
-                                  "<red>Revival failed! Stay closer to the player.");
-                      reviver.sendMessage(MiniMessage.miniMessage().deserialize(message));
-                      return;
-                    }
-
-                    progress += 1.0 / (reviveDuration * 20);
-                    reviverBar.setProgress(Math.min(1.0, progress));
-                    targetBar.setProgress(Math.min(1.0, progress));
-
-                    if (progress >= 1.0) {
-                      completeRevive(reviver, target);
-                      cancelRevive(reviverId);
-                    }
-                  }
-                },
-                0L,
-                1L);
-
-    revivingTasks.put(reviverId, task);
-    revivingPairs.put(reviverId, targetId);
-  }
-
-  /**
-   * Checks if a downed player is currently being revived by another player.
-   *
-   * @param target The downed player to check
-   * @return true if the player is being revived, false otherwise
-   */
-  private boolean isBeingRevived(Player target) {
-    return reviveAttempts.containsValue(target.getUniqueId());
-  }
-
-  /**
-   * Cancels an ongoing revival attempt by a player. Cleans up associated tasks and progress bars.
-   *
-   * @param reviverId The UUID of the player attempting the revival
-   */
-  public void cancelRevive(UUID reviverId) {
-    reviveAttempts.remove(reviverId);
-    BukkitTask task = revivingTasks.remove(reviverId);
-    if (task != null) {
-      task.cancel();
-    }
-
-    BossBar reviverBar = revivingBossBars.remove(reviverId);
-    if (reviverBar != null) {
-      reviverBar.removeAll();
-    }
-
-    UUID targetId = revivingPairs.remove(reviverId);
-    if (targetId != null) {
-      BossBar targetBar = beingRevivedBossBars.remove(targetId);
-      if (targetBar != null) {
-        targetBar.removeAll();
-      }
-    }
-  }
-
-  /**
-   * Checks if a player can revive another player based on distance and other conditions.
-   *
-   * @param reviver The player attempting to revive
-   * @param target The downed player to be revived
-   * @return true if the reviver can revive the target, false otherwise
-   */
-  private boolean canRevive(Player reviver, Player target) {
-    if (!isPlayerDowned(target) || isPlayerDowned(reviver)) {
-      return false;
-    }
-
-    Location targetLoc = target.getLocation();
-    Location reviverLoc = reviver.getLocation();
-
-    if (targetLoc == null
-        || reviverLoc == null
-        || !targetLoc.getWorld().equals(reviverLoc.getWorld())
-        || targetLoc.distance(reviverLoc) > reviveRange) {
-      return false;
-    }
-
-    boolean requireVitalAwakening =
-        plugin
-            .getConfig()
-            .getBoolean("knockdown-system.external-revive.require-vital-awakening", false);
-
-    if (!requireVitalAwakening) {
-      return true;
-    }
-
-    ItemStack mainHand = reviver.getInventory().getItemInMainHand();
-    ItemStack offHand = reviver.getInventory().getItemInOffHand();
-    return customItems.isVitalAwakening(mainHand) || customItems.isVitalAwakening(offHand);
-  }
-
-  private void applyDownedEffects(Player player) {
-    int slowness = plugin.getConfig().getInt("knockdown-system.effects.down.slowness", 255);
-    int blindness = plugin.getConfig().getInt("knockdown-system.effects.down.blindness", 1);
-
-    if (slowness > 0) {
-      player.addPotionEffect(
-          new PotionEffect(PotionEffectType.SLOWNESS, Integer.MAX_VALUE, slowness, false, false));
-    }
-
-    if (blindness > 0) {
-      player.addPotionEffect(
-          new PotionEffect(PotionEffectType.BLINDNESS, Integer.MAX_VALUE, blindness, false, false));
-    }
-  }
-
-  private void removeDownedEffects(Player player) {
-    player.removePotionEffect(PotionEffectType.SLOWNESS);
-    player.removePotionEffect(PotionEffectType.BLINDNESS);
-  }
-
-  /**
-   * Completes the revival process for a downed player.
-   *
-   * @param reviver The player who revived the downed player
-   * @param target The downed player who was revived
-   */
-  private void completeRevive(Player reviver, Player target) {
-    revivePlayer(target);
-
-    if (reviver.equals(target)) {
-      String message =
-          plugin
-              .getConfig()
-              .getString(
-                  "knockdown-system.effects.messages.self-revived",
-                  "<green>You used Vital Awakening to revive yourself!");
-      target.sendMessage(MiniMessage.miniMessage().deserialize(message));
-    } else {
-      String message =
-          plugin
-              .getConfig()
-              .getString(
-                  "knockdown-system.effects.messages.revive-complete",
-                  "<green>You have been revived by %player%!");
-      message = message.replace("%player%", reviver.getName());
-      target.sendMessage(MiniMessage.miniMessage().deserialize(message));
-
-      String reviverMessage =
-          plugin
-              .getConfig()
-              .getString(
-                  "knockdown-system.effects.messages.reviver-complete",
-                  "<green>You successfully revived %player%!");
-      reviverMessage = reviverMessage.replace("%player%", target.getName());
-      reviver.sendMessage(MiniMessage.miniMessage().deserialize(reviverMessage));
-    }
-  }
-
-  /**
-   * Calculates the remaining time before a downed player dies. Pauses the timer if the player is
-   * currently being revived or using Vital Awakening.
-   *
-   * @param player The downed player
-   * @return The remaining time in seconds
-   */
-  private int getRemainingTime(Player player) {
-    UUID playerId = player.getUniqueId();
-    if (!downStartTimes.containsKey(playerId)) {
-      return 0;
-    }
-
-    boolean isBeingRevived = revivingPairs.containsValue(playerId);
-    boolean isSelfReviving = selfReviveTasks.containsKey(playerId);
-
-    if ((isBeingRevived || isSelfReviving) && !pauseStartTimes.containsKey(playerId)) {
-      pauseStartTimes.put(playerId, System.currentTimeMillis());
-    } else if (!(isBeingRevived || isSelfReviving) && pauseStartTimes.containsKey(playerId)) {
-      long pauseStart = pauseStartTimes.remove(playerId);
-      long pauseDuration = System.currentTimeMillis() - pauseStart;
-      totalPausedTime.put(playerId, totalPausedTime.getOrDefault(playerId, 0L) + pauseDuration);
-    }
-
-    long startTime = downStartTimes.get(playerId);
-    long currentTime = System.currentTimeMillis();
-    long pauseTime = totalPausedTime.getOrDefault(playerId, 0L);
-
-    if (pauseStartTimes.containsKey(playerId)) {
-      pauseTime += (currentTime - pauseStartTimes.get(playerId));
-    }
-
-    int elapsedSeconds = (int) ((currentTime - startTime - pauseTime) / 1000);
-    return Math.max(0, downDuration - elapsedSeconds);
-  }
-
-  /**
-   * Checks if a player is currently in a downed state.
-   *
-   * @param player The player to check
-   * @return true if the player is downed, false otherwise
-   */
-  public boolean isPlayerDowned(Player player) {
-    UUID playerId = player.getUniqueId();
-    return downStartTimes.containsKey(playerId);
-  }
-
-  /**
-   * Gets the maximum range at which players can be revived
-   *
-   * @return The revival range in blocks
-   */
-  public double getReviveRange() {
+  public double reviveRange() {
     return reviveRange;
   }
 
+  // --- Downing ---------------------------------------------------------------------------------
+
+  public boolean canDown(Player player) {
+    return enabled
+        && !isDowned(player)
+        && player.getGameMode() != GameMode.CREATIVE
+        && player.getGameMode() != GameMode.SPECTATOR;
+  }
+
+  /** Puts the player into the downed state. Returns false if they cannot be downed. */
+  public boolean down(Player player) {
+    if (!canDown(player)) {
+      return false;
+    }
+    long now = System.currentTimeMillis();
+    Downed d = new Downed();
+    d.deadline = now + downSeconds * 1000L;
+    d.lastTick = now;
+    d.bar =
+        BossBar.bossBar(downedTitle(downSeconds), 1f, BossBar.Color.RED, BossBar.Overlay.PROGRESS);
+    downed.put(player.getUniqueId(), d);
+
+    player.setHealth(Math.min(downedHealth, player.getAttribute(Attribute.MAX_HEALTH).getValue()));
+    player.setFireTicks(0);
+    player.setPose(Pose.SWIMMING, true);
+    applyEffects(player);
+    player.showBossBar(d.bar);
+    player.sendMessage(
+        Text.parse(message("downed").replace("%time%", String.valueOf(downSeconds))));
+
+    if (ticker == null) {
+      ticker = plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 20L, 20L);
+    }
+    return true;
+  }
+
+  private Component downedTitle(long seconds) {
+    return Text.parse("<red><bold>Downed! " + seconds + "s remaining");
+  }
+
+  private void applyEffects(Player player) {
+    if (slowness > 0) {
+      player.addPotionEffect(
+          new PotionEffect(PotionEffectType.SLOWNESS, 60, slowness, false, false, false));
+    }
+    if (blindness > 0) {
+      player.addPotionEffect(
+          new PotionEffect(PotionEffectType.BLINDNESS, 60, blindness, false, false, false));
+    }
+  }
+
+  private void tick() {
+    long now = System.currentTimeMillis();
+    for (UUID id : List.copyOf(downed.keySet())) {
+      Downed d = downed.get(id);
+      if (byTarget.containsKey(id)) {
+        d.deadline += now - d.lastTick;
+      }
+      d.lastTick = now;
+      Player player = plugin.getServer().getPlayer(id);
+      if (player == null) {
+        continue;
+      }
+      long left = d.deadline - now;
+      if (left <= 0) {
+        downed.remove(id);
+        release(player, d);
+        player.setHealth(0);
+        continue;
+      }
+      applyEffects(player);
+      d.bar.progress(Math.min(1f, (float) left / (downSeconds * 1000f)));
+      d.bar.name(downedTitle((left + 999) / 1000));
+    }
+    if (downed.isEmpty() && ticker != null) {
+      ticker.cancel();
+      ticker = null;
+    }
+  }
+
+  /** Undoes everything the downed state applied to the player. */
+  private void release(Player player, Downed d) {
+    cancelRevivals(player.getUniqueId());
+    player.hideBossBar(d.bar);
+    player.removePotionEffect(PotionEffectType.SLOWNESS);
+    player.removePotionEffect(PotionEffectType.BLINDNESS);
+    player.setPose(Pose.STANDING, false);
+  }
+
+  // --- Reviving --------------------------------------------------------------------------------
+
+  /** Another player starts reviving {@code target}. */
+  public void startRevive(Player reviver, Player target) {
+    if (!enabled || reviver.equals(target) || !isDowned(target) || isDowned(reviver)) {
+      return;
+    }
+    if (byTarget.containsKey(target.getUniqueId())
+        || byReviver.containsKey(reviver.getUniqueId())) {
+      return;
+    }
+    EquipmentSlot hand = requireItem ? heldAwakening(reviver) : null;
+    boolean inRange =
+        reviver.getWorld().equals(target.getWorld())
+            && reviver.getLocation().distanceSquared(target.getLocation())
+                <= reviveRange * reviveRange;
+    if (!inRange || (requireItem && hand == null)) {
+      reviver.sendMessage(Text.parse(message("cannot-revive")));
+      return;
+    }
+    begin(reviver, target, hand, reviveTicks);
+    reviver.sendMessage(
+        Text.parse(message("reviving-player").replace("%player%", target.getName())));
+    target.sendMessage(Text.parse(message("being-revived").replace("%player%", reviver.getName())));
+  }
+
+  /** A downed player uses the Vital Awakening item held in {@code hand}. */
+  public void startSelfRevive(Player player, EquipmentSlot hand) {
+    UUID id = player.getUniqueId();
+    if (!isDowned(player)
+        || byTarget.containsKey(id)
+        || byReviver.containsKey(id)
+        || !items.isVitalAwakening(player.getInventory().getItem(hand))) {
+      return;
+    }
+    if (instantUse) {
+      consume(player, hand);
+      revive(player, player);
+    } else {
+      begin(player, player, hand, useTicks);
+    }
+  }
+
+  private EquipmentSlot heldAwakening(Player player) {
+    if (items.isVitalAwakening(player.getInventory().getItemInMainHand())) {
+      return EquipmentSlot.HAND;
+    }
+    return items.isVitalAwakening(player.getInventory().getItemInOffHand())
+        ? EquipmentSlot.OFF_HAND
+        : null;
+  }
+
+  private void begin(Player reviver, Player target, EquipmentSlot hand, int ticks) {
+    Revival r =
+        new Revival(
+            reviver.getUniqueId(), target.getUniqueId(), hand, reviver.getLocation(), ticks);
+    r.targetBar = bar(r.isSelf() ? "self-reviving" : "being-revived", reviver.getName());
+    target.showBossBar(r.targetBar);
+    if (!r.isSelf() && reviverBar) {
+      r.reviverBar = bar("reviving", target.getName());
+      reviver.showBossBar(r.reviverBar);
+    }
+    byTarget.put(r.target, r);
+    byReviver.put(r.reviver, r);
+    r.task = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> step(r), 1L, 1L);
+  }
+
+  private BossBar bar(String type, String playerName) {
+    String path = BARS + type + ".";
+    BossBar.Color color = BossBar.Color.YELLOW;
+    BossBar.Overlay overlay = BossBar.Overlay.PROGRESS;
+    try {
+      color =
+          BossBar.Color.valueOf(
+              plugin.getConfig().getString(path + "color", "YELLOW").toUpperCase(Locale.ROOT));
+      String style = plugin.getConfig().getString(path + "style", "SOLID").toUpperCase(Locale.ROOT);
+      overlay =
+          style.equals("SOLID")
+              ? BossBar.Overlay.PROGRESS
+              : BossBar.Overlay.valueOf(style.replace("SEGMENTED", "NOTCHED"));
+    } catch (IllegalArgumentException e) {
+      plugin.getSLF4JLogger().warn("Invalid boss bar color/style under '{}'", path);
+    }
+    String title = plugin.getConfig().getString(path + "title", "").replace("%player%", playerName);
+    return BossBar.bossBar(Text.parse(title), 0f, color, overlay);
+  }
+
+  private void step(Revival r) {
+    Player reviver = plugin.getServer().getPlayer(r.reviver);
+    Player target = plugin.getServer().getPlayer(r.target);
+    if (reviver == null
+        || target == null
+        || !isDowned(target)
+        || (!r.isSelf() && isDowned(reviver))) {
+      fail(r, reviver);
+      return;
+    }
+    if (!r.isSelf()) {
+      Location now = reviver.getLocation();
+      boolean moved =
+          !now.getWorld().equals(r.origin.getWorld()) || now.distanceSquared(r.origin) > 0.25;
+      boolean tooFar =
+          !now.getWorld().equals(target.getWorld())
+              || now.distanceSquared(target.getLocation()) > reviveRange * reviveRange;
+      if (moved || tooFar) {
+        fail(r, reviver);
+        return;
+      }
+    }
+    if (r.hand != null && !items.isVitalAwakening(reviver.getInventory().getItem(r.hand))) {
+      fail(r, reviver);
+      return;
+    }
+    float progress = (float) ++r.ticks / r.totalTicks;
+    r.targetBar.progress(Math.min(1f, progress));
+    if (r.reviverBar != null) {
+      r.reviverBar.progress(Math.min(1f, progress));
+    }
+    if (r.ticks >= r.totalTicks) {
+      cancelRevival(r);
+      if (r.hand != null) {
+        consume(reviver, r.hand);
+      }
+      revive(target, r.isSelf() ? target : reviver);
+    }
+  }
+
+  private void fail(Revival r, Player reviver) {
+    cancelRevival(r);
+    if (reviver != null) {
+      reviver.sendMessage(Text.parse(message("revive-failed")));
+    }
+  }
+
+  private void consume(Player player, EquipmentSlot hand) {
+    ItemStack stack = player.getInventory().getItem(hand);
+    player.getInventory().setItem(hand, stack.getAmount() > 1 ? stack.subtract() : null);
+  }
+
   /**
-   * Checks if a player is currently attempting to revive another player.
+   * Brings a downed player back at full health.
    *
-   * @param player The player to check
-   * @return true if the player is attempting to revive someone, false otherwise
+   * @param reviver who revived them; the target itself for a self-revive, or null for an admin
+   * @return false if the player was not downed
    */
-  public boolean isAttemptingRevive(Player player) {
-    return reviveAttempts.containsKey(player.getUniqueId());
+  public boolean revive(Player target, Player reviver) {
+    Downed d = downed.remove(target.getUniqueId());
+    if (d == null) {
+      return false;
+    }
+    release(target, d);
+    target.setHealth(target.getAttribute(Attribute.MAX_HEALTH).getValue());
+
+    if (reviver != null && reviver.equals(target)) {
+      target.sendMessage(Text.parse(message("self-revived")));
+    } else {
+      String name = reviver == null ? "an administrator" : reviver.getName();
+      target.sendMessage(Text.parse(message("revive-complete").replace("%player%", name)));
+      if (reviver != null) {
+        reviver.sendMessage(
+            Text.parse(message("reviver-complete").replace("%player%", target.getName())));
+        if (reviveSound != null) {
+          reviver.playSound(reviver.getLocation(), reviveSound, 1f, 1f);
+        }
+      }
+    }
+    if (reviveParticle != null) {
+      target
+          .getWorld()
+          .spawnParticle(reviveParticle, target.getLocation().add(0, 1.5, 0), 8, 0.4, 0.4, 0.4, 0);
+    }
+    return true;
+  }
+
+  private void cancelRevival(Revival r) {
+    r.task.cancel();
+    byTarget.remove(r.target, r);
+    byReviver.remove(r.reviver, r);
+    Player target = plugin.getServer().getPlayer(r.target);
+    if (target != null) {
+      target.hideBossBar(r.targetBar);
+    }
+    Player reviver = plugin.getServer().getPlayer(r.reviver);
+    if (reviver != null && r.reviverBar != null) {
+      reviver.hideBossBar(r.reviverBar);
+    }
+  }
+
+  private void cancelRevivals(UUID player) {
+    Revival asTarget = byTarget.get(player);
+    if (asTarget != null) {
+      cancelRevival(asTarget);
+    }
+    Revival asReviver = byReviver.get(player);
+    if (asReviver != null) {
+      cancelRevival(asReviver);
+    }
+  }
+
+  // --- Lifecycle hooks -------------------------------------------------------------------------
+
+  public void onQuit(Player player) {
+    cancelRevivals(player.getUniqueId());
+  }
+
+  /** A downed player who rejoins resumes the countdown, or dies if it ran out while offline. */
+  public void onJoin(Player player) {
+    Downed d = downed.get(player.getUniqueId());
+    if (d == null) {
+      return;
+    }
+    long now = System.currentTimeMillis();
+    d.lastTick = now;
+    if (d.deadline <= now) {
+      downed.remove(player.getUniqueId());
+      plugin.getServer().getScheduler().runTask(plugin, () -> player.setHealth(0));
+      return;
+    }
+    player.setPose(Pose.SWIMMING, true);
+    player.showBossBar(d.bar);
+    applyEffects(player);
+  }
+
+  public void onDeath(Player player) {
+    Downed d = downed.remove(player.getUniqueId());
+    if (d != null) {
+      release(player, d);
+    }
+    cancelRevivals(player.getUniqueId());
+  }
+
+  /** Restores every downed player and drops all pending work; used on disable and reload. */
+  public void shutdown() {
+    for (UUID id : List.copyOf(downed.keySet())) {
+      Downed d = downed.remove(id);
+      Player player = plugin.getServer().getPlayer(id);
+      if (player != null) {
+        release(player, d);
+      }
+    }
+    List.copyOf(byTarget.values()).forEach(this::cancelRevival);
+    if (ticker != null) {
+      ticker.cancel();
+      ticker = null;
+    }
+  }
+
+  private String message(String key) {
+    return plugin.getConfig().getString(MESSAGES + key, "");
   }
 }

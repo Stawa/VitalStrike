@@ -1,295 +1,188 @@
 package stawa.vitalstrike;
 
-import org.bukkit.event.HandlerList;
+import org.bukkit.World;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.TextDisplay;
 import org.bukkit.plugin.java.JavaPlugin;
-import stawa.vitalstrike.commands.CommandManager;
 import stawa.vitalstrike.commands.HelpManager;
-import stawa.vitalstrike.config.ConfigManager;
+import stawa.vitalstrike.commands.VitalCommand;
 import stawa.vitalstrike.items.CustomItems;
 import stawa.vitalstrike.listeners.VitalStrikeListener;
-import stawa.vitalstrike.logger.VitalLogger;
 import stawa.vitalstrike.resources.ResourcePackManager;
 import stawa.vitalstrike.systems.ComboManager;
 import stawa.vitalstrike.systems.DamageIndicatorManager;
+import stawa.vitalstrike.systems.HealthBarManager;
 import stawa.vitalstrike.systems.KnockdownManager;
 import stawa.vitalstrike.utils.UpdateChecker;
-import stawa.vitalstrike.world.DimensionManager;
-import stawa.vitalstrike.world.WorldGuardUtil;
+import stawa.vitalstrike.world.WorldRules;
 
 /**
- * VitalStrike is a dynamic damage indication plugin for Minecraft servers.
- *
- * <p>This plugin provides customizable damage indicators with various features including:
- *
- * <ul>
- *   <li>Dynamic damage indicators with customizable styles
- *   <li>Combo system with multipliers and ranks
- *   <li>Player statistics tracking
- *   <li>Per-player preferences
- * </ul>
- *
- * The plugin extends JavaPlugin and implements Listener to handle Bukkit events. It manages core
- * functionality including:
- *
- * <ul>
- *   <li>Damage indicator display and customization
- *   <li>Combat combo system with multipliers and ranks
- *   <li>Player statistics and leaderboards
- *   <li>Configuration management
- *   <li>Event handling for combat and player interactions
- *   <li>Hologram management for visual feedback
- * </ul>
- *
- * The plugin requires Paper 1.21.4+ or compatible forks and Java 21 or higher.
- *
- * @author Stawa
- * @version 1.5.0-SNAPSHOT
+ * VitalStrike: floating damage indicators, combos, statistics and a knockdown/revive system for
+ * Paper servers.
  */
-public class VitalStrike extends JavaPlugin {
-  /** Default constructor for VitalStrike plugin. */
-  public VitalStrike() {
-    super();
-  }
+public final class VitalStrike extends JavaPlugin {
+  /** Scoreboard tag on every floating text this plugin spawns, so strays can be found. */
+  public static final String TEXT_TAG = "vitalstrike_text";
 
-  private ConfigManager configManager;
-  private ComboManager comboManager;
-  private DamageIndicatorManager damageIndicatorManager;
-  private KnockdownManager knockdownManager;
-  private PermissionManager permissionManager;
-  private PlayerManager playerManager;
-  private PlayerStats playerStats;
-  private ResourcePackManager resourcePackManager;
-  private DimensionManager dimensionManager;
-  private CustomItems customItems;
-  private CommandManager commandManager;
-  private HelpManager helpManager;
-  private VitalLogger logger;
-  private UpdateChecker updateChecker;
-  private VitalStrikeListener vitalStrikeListener;
+  private static final long AUTOSAVE_TICKS = 5 * 60 * 20L;
 
-  /** Called when the plugin is enabled. */
+  private PlayerManager players;
+  private PlayerStats stats;
+  private Rewards rewards;
+  private Progression progression;
+  private WorldRules worlds;
+  private CustomItems items;
+  private DamageIndicatorManager indicators;
+  private HealthBarManager healthBars;
+  private ComboManager combos;
+  private KnockdownManager knockdown;
+  private ResourcePackManager resourcePacks;
+  private HelpManager help;
+  private boolean enabled;
+
   @Override
   public void onEnable() {
-    this.logger = new VitalLogger(this);
-
-    String version = getPluginMeta().getVersion();
-    if (version.contains("SNAPSHOT")) {
-      logger.warning("You are running a SNAPSHOT version of VitalStrike ({}).", version);
-      logger.warning("This version may contain bugs or be unstable.");
-      logger.warning(
-          "If you encounter any issues, please report them on GitHub Issues or our Discord server.");
-    }
-
     saveDefaultConfig();
-    this.configManager = new ConfigManager(this, getLogger());
 
-    this.dimensionManager = new DimensionManager(this);
-    WorldGuardUtil.init(this);
+    players = new PlayerManager(this);
+    stats = new PlayerStats(this);
+    rewards = new Rewards(this);
+    progression = new Progression(this);
+    worlds = new WorldRules();
+    items = new CustomItems(this);
+    indicators = new DamageIndicatorManager(this, players);
+    healthBars = new HealthBarManager(this, indicators);
+    combos = new ComboManager(this, players, stats);
+    knockdown = new KnockdownManager(this, items);
+    resourcePacks = new ResourcePackManager(this);
+    help = new HelpManager(this);
+    UpdateChecker updateChecker = new UpdateChecker(this);
+    loadSettings();
 
-    try {
-      this.knockdownManager = new KnockdownManager(this);
-    } catch (Errors.ConfigurationException e) {
-      logger.severe("Failed to initialize knockdown manager: " + e.getMessage());
-      getServer().getPluginManager().disablePlugin(this);
-      return;
+    var events = getServer().getPluginManager();
+    events.registerEvents(new VitalStrikeListener(this), this);
+    events.registerEvents(resourcePacks, this);
+    events.registerEvents(updateChecker, this);
+
+    PluginCommand command = getCommand("vitalstrike");
+    VitalCommand handler = new VitalCommand(this, help);
+    command.setExecutor(handler);
+    command.setTabCompleter(handler);
+
+    getServer().getScheduler().runTaskTimer(this, this::saveData, AUTOSAVE_TICKS, AUTOSAVE_TICKS);
+    if (getConfig().getBoolean("update-checker.enabled")) {
+      updateChecker.check();
     }
-
-    try {
-      this.resourcePackManager = new ResourcePackManager(this);
-      logger.info("Resource pack manager initialized successfully");
-    } catch (Exception e) {
-      logger.severe("Failed to initialize resource pack manager: " + e.getMessage());
+    if (getPluginMeta().getVersion().contains("SNAPSHOT")) {
+      getSLF4JLogger()
+          .warn("Running a SNAPSHOT build ({}); expect rough edges.", getPluginMeta().getVersion());
     }
-
-    try {
-      this.customItems = new CustomItems(this);
-    } catch (Errors.ConfigurationException e) {
-      logger.severe("Failed to initialize custom items: " + e.getMessage());
-      getServer().getPluginManager().disablePlugin(this);
-      return;
-    }
-
-    try {
-      this.playerManager = new PlayerManager(this);
-    } catch (Errors.DatabaseException e) {
-      logger.severe("Failed to initialize player manager: " + e.getMessage());
-    }
-
-    try {
-      this.playerStats = new PlayerStats(this);
-    } catch (Errors.DatabaseException e) {
-      logger.severe("Failed to initialize player statistics: " + e.getMessage());
-    }
-
-    this.permissionManager = new PermissionManager(this);
-    this.comboManager =
-        new ComboManager(this, configManager, playerManager, playerStats, getLogger());
-    this.damageIndicatorManager =
-        new DamageIndicatorManager(this, configManager, playerManager, permissionManager);
-
-    this.vitalStrikeListener =
-        new VitalStrikeListener(
-            this,
-            configManager,
-            playerManager,
-            knockdownManager,
-            resourcePackManager,
-            comboManager,
-            damageIndicatorManager,
-            dimensionManager,
-            customItems);
-    getServer().getPluginManager().registerEvents(vitalStrikeListener, this);
-
-    this.helpManager = new HelpManager(this);
-    this.commandManager =
-        new CommandManager(
-            this, logger, playerManager, playerStats, helpManager, resourcePackManager);
-    getCommand("vitalstrike").setExecutor(commandManager);
-    getCommand("vitalstrike").setTabCompleter(commandManager);
-
-    this.updateChecker = new UpdateChecker(this, getLogger());
-    if (configManager.isUpdateCheckerEnabled()) {
-      updateChecker.checkForUpdates();
-    }
-
-    logger.info("VitalStrike has been enabled!");
   }
 
-  /** Called when the plugin is disabled. */
   @Override
   public void onDisable() {
-    if (knockdownManager != null) {
-      knockdownManager.cleanup();
+    if (help == null) {
+      return;
     }
-
-    if (playerManager != null) {
-      try {
-        playerManager.saveDatabase();
-      } catch (Errors.DatabaseException e) {
-        logger.severe("Failed to save player database: " + e.getMessage());
-      }
-    }
-
-    if (playerStats != null) {
-      try {
-        playerStats.saveAllStats();
-      } catch (Errors.DatabaseException e) {
-        logger.severe("Failed to save player statistics: " + e.getMessage());
-      }
-    }
-
-    HandlerList.unregisterAll(this);
-    logger.info("VitalStrike has been disabled!");
+    knockdown.shutdown();
+    combos.shutdown();
+    indicators.shutdown();
+    healthBars.shutdown();
+    items.unregister();
+    saveData();
   }
 
-  /** Reloads the plugin configuration and related components. */
+  /** Re-reads config.yml and help.yml and applies them to every component. */
   public void reload() {
-    configManager.reload();
-    dimensionManager.reload();
-    if (damageIndicatorManager != null) {
-      damageIndicatorManager.reloadSettings();
+    clearText();
+    reloadConfig();
+    loadSettings();
+    help.reload();
+  }
+
+  /** Removes all floating damage and combo text, including strays; returns how many strays. */
+  public int clearText() {
+    indicators.shutdown();
+    healthBars.shutdown();
+    combos.clearHolograms();
+    int strays = 0;
+    for (World world : getServer().getWorlds()) {
+      for (TextDisplay display : world.getEntitiesByClass(TextDisplay.class)) {
+        if (display.getScoreboardTags().contains(TEXT_TAG)) {
+          display.remove();
+          strays++;
+        }
+      }
     }
-    if (permissionManager != null) {
-      permissionManager.loadPermissions();
-    }
+    return strays;
   }
 
-  /**
-   * Gets the configuration manager.
-   *
-   * @return The ConfigManager instance
-   */
-  public ConfigManager getConfigManager() {
-    return configManager;
+  private void loadSettings() {
+    FileConfiguration config = getConfig();
+    enabled = config.getBoolean("enabled");
+    worlds.reload(config);
+    rewards.reload(config);
+    progression.reload(config);
+    indicators.reload(config);
+    healthBars.reload(config);
+    combos.reload(config);
+    knockdown.reload(config);
+    items.reload(config);
+    resourcePacks.reload();
   }
 
-  /**
-   * Gets the combo manager.
-   *
-   * @return The ComboManager instance
-   */
-  public ComboManager getComboManager() {
-    return comboManager;
+  private void saveData() {
+    players.save();
+    stats.save();
   }
 
-  /**
-   * Gets the damage indicator manager.
-   *
-   * @return The DamageIndicatorManager instance
-   */
-  public DamageIndicatorManager getDamageIndicatorManager() {
-    return damageIndicatorManager;
+  /** Whether VitalStrike should act on events in this world. */
+  public boolean isActive(World world) {
+    return enabled && worlds.isActive(world);
   }
 
-  /**
-   * Gets the knockdown manager.
-   *
-   * @return The KnockdownManager instance
-   */
-  public KnockdownManager getKnockdownManager() {
-    return knockdownManager;
+  public PlayerManager getPlayers() {
+    return players;
   }
 
-  /**
-   * Gets the permission manager.
-   *
-   * @return The PermissionManager instance
-   */
-  public PermissionManager getPermissionManager() {
-    return permissionManager;
+  public PlayerStats getStats() {
+    return stats;
   }
 
-  /**
-   * Gets the player manager.
-   *
-   * @return The PlayerManager instance
-   */
-  public PlayerManager getPlayerManager() {
-    return playerManager;
+  public Rewards getRewards() {
+    return rewards;
   }
 
-  /**
-   * Gets the player statistics manager.
-   *
-   * @return The PlayerStats instance
-   */
-  public PlayerStats getPlayerStats() {
-    return playerStats;
+  public Progression getProgression() {
+    return progression;
   }
 
-  /**
-   * Gets the resource pack manager.
-   *
-   * @return The ResourcePackManager instance
-   */
-  public ResourcePackManager getResourcePackManager() {
-    return resourcePackManager;
+  public WorldRules getWorlds() {
+    return worlds;
   }
 
-  /**
-   * Gets the dimension manager.
-   *
-   * @return The DimensionManager instance
-   */
-  public DimensionManager getDimensionManager() {
-    return dimensionManager;
+  public CustomItems getItems() {
+    return items;
   }
 
-  /**
-   * Gets the custom items manager.
-   *
-   * @return The CustomItems instance
-   */
-  public CustomItems getCustomItems() {
-    return customItems;
+  public HealthBarManager getHealthBars() {
+    return healthBars;
   }
 
-  /**
-   * Gets the command manager.
-   *
-   * @return The CommandManager instance
-   */
-  public CommandManager getCommandManager() {
-    return commandManager;
+  public DamageIndicatorManager getIndicators() {
+    return indicators;
+  }
+
+  public ComboManager getCombos() {
+    return combos;
+  }
+
+  public KnockdownManager getKnockdown() {
+    return knockdown;
+  }
+
+  public ResourcePackManager getResourcePacks() {
+    return resourcePacks;
   }
 }

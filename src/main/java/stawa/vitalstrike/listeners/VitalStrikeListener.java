@@ -1,309 +1,241 @@
 package stawa.vitalstrike.listeners;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import java.util.Set;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.TextDisplay;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import stawa.vitalstrike.PlayerManager;
+import stawa.vitalstrike.PlayerStats;
 import stawa.vitalstrike.VitalStrike;
-import stawa.vitalstrike.config.ConfigManager;
-import stawa.vitalstrike.items.CustomItems;
-import stawa.vitalstrike.resources.ResourcePackManager;
-import stawa.vitalstrike.systems.ComboManager;
-import stawa.vitalstrike.systems.DamageIndicatorManager;
-import stawa.vitalstrike.systems.KnockdownManager;
-import stawa.vitalstrike.world.DimensionManager;
 
-/** Handles all Bukkit events for the VitalStrike plugin. */
-public class VitalStrikeListener implements Listener {
+/** Bukkit event wiring for indicators, combos, rewards and the knockdown state. */
+public final class VitalStrikeListener implements Listener {
+  /** Damage that must always go through, otherwise a downed player could hang in the void. */
+  private static final Set<String> UNSAVEABLE = Set.of("VOID", "KILL", "SUICIDE");
 
   private final VitalStrike plugin;
-  private final ConfigManager configManager;
-  private final PlayerManager playerManager;
-  private final KnockdownManager knockdownManager;
-  private final ResourcePackManager resourcePackManager;
-  private final ComboManager comboManager;
-  private final DamageIndicatorManager damageIndicatorManager;
-  private final DimensionManager dimensionManager;
-  private final CustomItems customItems;
 
-  private final Map<UUID, Long> lastDamageTime = new HashMap<>();
-  private static final long DAMAGE_COOLDOWN = 500;
-
-  /**
-   * Constructs a new VitalStrikeListener.
-   *
-   * @param plugin The main plugin instance
-   * @param configManager The configuration manager
-   * @param playerManager The player manager
-   * @param knockdownManager The knockdown manager
-   * @param resourcePackManager The resource pack manager
-   * @param comboManager The combo manager
-   * @param damageIndicatorManager The damage indicator manager
-   * @param dimensionManager The dimension manager
-   * @param customItems The custom items manager
-   */
-  public VitalStrikeListener(
-      VitalStrike plugin,
-      ConfigManager configManager,
-      PlayerManager playerManager,
-      KnockdownManager knockdownManager,
-      ResourcePackManager resourcePackManager,
-      ComboManager comboManager,
-      DamageIndicatorManager damageIndicatorManager,
-      DimensionManager dimensionManager,
-      CustomItems customItems) {
+  public VitalStrikeListener(VitalStrike plugin) {
     this.plugin = plugin;
-    this.configManager = configManager;
-    this.playerManager = playerManager;
-    this.knockdownManager = knockdownManager;
-    this.resourcePackManager = resourcePackManager;
-    this.comboManager = comboManager;
-    this.damageIndicatorManager = damageIndicatorManager;
-    this.dimensionManager = dimensionManager;
-    this.customItems = customItems;
   }
 
-  /**
-   * Handles player join events. Loads player data, handles knockdown state, and sends resource pack
-   * prompts.
-   *
-   * @param event The player join event
-   */
-  @EventHandler
-  public void onPlayerJoin(PlayerJoinEvent event) {
-    if (!configManager.isEnabled()) return;
+  private static Player attackerOf(EntityDamageEvent event) {
+    if (!(event instanceof EntityDamageByEntityEvent byEntity)) {
+      return null;
+    }
+    Entity damager = byEntity.getDamager();
+    if (damager instanceof Projectile projectile
+        && projectile.getShooter() instanceof Player shooter) {
+      return shooter;
+    }
+    return damager instanceof Player player ? player : null;
+  }
 
-    Player player = event.getPlayer();
-    playerManager.loadPlayer(player);
-    knockdownManager.handlePlayerJoin(player);
+  // --- Damage ----------------------------------------------------------------------------------
 
-    if (plugin.getConfig().getBoolean("resource-pack.auto-send", false)) {
-      try {
-        resourcePackManager.sendResourcePack(player);
-        plugin.getLogger().info("Sent resource pack to player: " + player.getName());
-      } catch (Exception e) {
-        plugin
-            .getLogger()
-            .warning("Failed to send resource pack to " + player.getName() + ": " + e.getMessage());
+  /** Decides the outcome: blocks downed combatants, applies multipliers, and downs lethal hits. */
+  @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+  public void onDamage(EntityDamageEvent event) {
+    if (!plugin.isActive(event.getEntity().getWorld())) {
+      return;
+    }
+    Player attacker = attackerOf(event);
+    if (attacker != null && plugin.getKnockdown().isDowned(attacker)) {
+      event.setCancelled(true);
+      return;
+    }
+    boolean saveable = !UNSAVEABLE.contains(event.getCause().name());
+    if (event.getEntity() instanceof Player downedCandidate
+        && plugin.getKnockdown().isDowned(downedCandidate)) {
+      event.setCancelled(saveable);
+      return;
+    }
+    if (!(event.getEntity() instanceof LivingEntity victim)) {
+      return;
+    }
+
+    if (event instanceof EntityDamageByEntityEvent) {
+      double multiplier = plugin.getWorlds().multiplier(victim.getWorld());
+      if (attacker != null) {
+        multiplier *= plugin.getCombos().multiplierForNextHit(attacker);
       }
-    } else {
-      if (plugin.getConfig().getBoolean("resource-pack.hint.enabled", false)) {
-        player.sendMessage(
-            MiniMessage.miniMessage()
-                .deserialize(
-                    plugin
-                        .getConfig()
-                        .getString(
-                            "resource-pack.hint.message",
-                            "<yellow>You can use <click:suggest_command:/vs resourcepack>/vs resourcepack</click> or <click:suggest_command:/vs rp>/vs rp</click> to load the resource pack!")));
+      if (multiplier != 1.0) {
+        event.setDamage(event.getDamage() * multiplier);
+      }
+    }
+
+    if (victim instanceof Player player
+        && saveable
+        && event.getFinalDamage() >= player.getHealth()
+        && !holdsPlainTotem(player)
+        && plugin.getKnockdown().canDown(player)) {
+      registerHit(event, victim, attacker);
+      plugin.getKnockdown().down(player);
+      event.setCancelled(true);
+    }
+  }
+
+  /** Reports hits that actually landed, so cancelled damage never counts. */
+  @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+  public void onDamageLanded(EntityDamageEvent event) {
+    if (plugin.isActive(event.getEntity().getWorld())
+        && event.getEntity() instanceof LivingEntity victim) {
+      registerHit(event, victim, attackerOf(event));
+    }
+  }
+
+  private void registerHit(EntityDamageEvent event, LivingEntity victim, Player attacker) {
+    if (victim instanceof ArmorStand) {
+      return;
+    }
+    double dealt = Math.min(event.getFinalDamage(), victim.getHealth());
+    if (dealt < 0.05) {
+      return;
+    }
+    if (attacker != null && !attacker.equals(victim)) {
+      PlayerStats.Stats stats = plugin.getStats().recordDamage(attacker, dealt);
+      plugin.getRewards().check(attacker, stats);
+      plugin.getCombos().onHit(attacker, victim);
+    }
+    plugin.getIndicators().showDamage(victim, attacker, event, dealt);
+    plugin.getHealthBars().touch(victim, true);
+  }
+
+  @EventHandler(priority = EventPriority.MONITOR)
+  public void onKill(EntityDeathEvent event) {
+    Player killer = event.getEntity().getKiller();
+    if (killer != null && plugin.isActive(event.getEntity().getWorld())) {
+      plugin.getProgression().onKill(killer, event.getEntity());
+    }
+  }
+
+  @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+  public void onHeal(EntityRegainHealthEvent event) {
+    if (event.getRegainReason() == EntityRegainHealthEvent.RegainReason.SATIATED
+        || !(event.getEntity() instanceof LivingEntity entity)
+        || !plugin.isActive(entity.getWorld())) {
+      return;
+    }
+    var maxHealth = entity.getAttribute(Attribute.MAX_HEALTH);
+    double missing =
+        maxHealth == null ? event.getAmount() : maxHealth.getValue() - entity.getHealth();
+    plugin.getIndicators().showHeal(entity, Math.min(event.getAmount(), missing));
+    plugin.getHealthBars().touch(entity, false);
+  }
+
+  private boolean holdsPlainTotem(Player player) {
+    return isPlainTotem(player.getInventory().getItemInMainHand())
+        || isPlainTotem(player.getInventory().getItemInOffHand());
+  }
+
+  private boolean isPlainTotem(ItemStack item) {
+    return item.getType() == Material.TOTEM_OF_UNDYING && !plugin.getItems().isVitalAwakening(item);
+  }
+
+  // --- Downed players --------------------------------------------------------------------------
+
+  @EventHandler
+  public void onInteractEntity(PlayerInteractEntityEvent event) {
+    Player player = event.getPlayer();
+    if (plugin.getKnockdown().isDowned(player)) {
+      event.setCancelled(true);
+      plugin.getKnockdown().startSelfRevive(player, event.getHand());
+    } else if (event.getHand() == EquipmentSlot.HAND
+        && event.getRightClicked() instanceof Player target
+        && plugin.getKnockdown().isDowned(target)) {
+      event.setCancelled(true);
+      plugin.getKnockdown().startRevive(player, target);
+    }
+  }
+
+  @EventHandler
+  public void onInteract(PlayerInteractEvent event) {
+    Player player = event.getPlayer();
+    if (plugin.getKnockdown().isDowned(player)) {
+      event.setCancelled(true);
+      if (event.getAction().isRightClick() && event.getHand() != null) {
+        plugin.getKnockdown().startSelfRevive(player, event.getHand());
       }
     }
   }
 
-  /**
-   * Handles block break events. Prevents downed players from breaking blocks.
-   *
-   * @param event The block break event
-   */
-  @EventHandler
+  @EventHandler(ignoreCancelled = true)
   public void onBlockBreak(BlockBreakEvent event) {
-    Player player = event.getPlayer();
-    if (knockdownManager.isPlayerDowned(player)) {
+    event.setCancelled(plugin.getKnockdown().isDowned(event.getPlayer()));
+  }
+
+  @EventHandler(ignoreCancelled = true)
+  public void onBlockPlace(BlockPlaceEvent event) {
+    event.setCancelled(plugin.getKnockdown().isDowned(event.getPlayer()));
+  }
+
+  @EventHandler(ignoreCancelled = true)
+  public void onDrop(PlayerDropItemEvent event) {
+    event.setCancelled(plugin.getKnockdown().isDowned(event.getPlayer()));
+  }
+
+  @EventHandler(ignoreCancelled = true)
+  public void onTarget(EntityTargetLivingEntityEvent event) {
+    if (event.getTarget() instanceof Player player && plugin.getKnockdown().isDowned(player)) {
       event.setCancelled(true);
     }
   }
 
-  /**
-   * Handles player quit events. Cleans up player data, holograms, and knockdown state.
-   *
-   * @param event The player quit event
-   */
+  /** Downed players can look around and fall, but not walk or jump. */
+  @EventHandler(ignoreCancelled = true)
+  public void onMove(PlayerMoveEvent event) {
+    if (!event.hasChangedPosition() || !plugin.getKnockdown().isDowned(event.getPlayer())) {
+      return;
+    }
+    Location from = event.getFrom();
+    Location to = event.getTo();
+    Location pinned = from.clone();
+    pinned.setYaw(to.getYaw());
+    pinned.setPitch(to.getPitch());
+    if (to.getY() < from.getY()) {
+      pinned.setY(to.getY());
+    }
+    event.setTo(pinned);
+  }
+
+  // --- Lifecycle -------------------------------------------------------------------------------
+
   @EventHandler
-  public void onPlayerQuit(PlayerQuitEvent event) {
-    Player player = event.getPlayer();
-    comboManager.cleanup(player.getUniqueId());
-    cleanupPlayerTextDisplays(player);
-    playerManager.unloadPlayer(event.getPlayer());
-    knockdownManager.handlePlayerQuit(event.getPlayer());
+  public void onJoin(PlayerJoinEvent event) {
+    plugin.getKnockdown().onJoin(event.getPlayer());
   }
 
-  private void cleanupPlayerTextDisplays(Player player) {
-    Location loc = player.getLocation();
-    double radius = 32;
-    for (Entity entity : loc.getWorld().getNearbyEntities(loc, radius, radius, radius)) {
-      if (entity instanceof TextDisplay td && td.isValid()) {
-        td.remove();
-      }
-    }
-  }
-
-  /**
-   * Handles entity damage events. Applies damage multipliers, handles knockdown, and displays
-   * damage indicators.
-   *
-   * @param event The entity damage event
-   */
-  @EventHandler(priority = EventPriority.LOWEST)
-  public void onEntityDamage(EntityDamageEvent event) {
-    if (!configManager.isEnabled()) return;
-
-    Entity entity = event.getEntity();
-    if (!(entity instanceof LivingEntity)) return;
-
-    boolean worldSettingsEnabled = plugin.getConfig().getBoolean("world-settings.enabled", true);
-    double damageMultiplier = 1.0;
-
-    if (worldSettingsEnabled) {
-      List<String> disabledWorlds =
-          plugin.getConfig().getStringList("world-settings.disabled-worlds");
-      if (!disabledWorlds.contains(entity.getWorld().getName())
-          && dimensionManager.isDimensionEnabled(entity)) {
-        damageMultiplier = dimensionManager.getDimensionMultiplier(entity);
-      }
-    }
-
-    if (entity instanceof Player player) {
-      if (knockdownManager.isPlayerDowned(player)) {
-        event.setCancelled(true);
-        return;
-      }
-
-      double finalDamage = event.getFinalDamage();
-      double currentHealth = player.getHealth();
-
-      if (currentHealth - finalDamage <= 0) {
-        ItemStack mainHand = player.getInventory().getItemInMainHand();
-        ItemStack offHand = player.getInventory().getItemInOffHand();
-
-        if (mainHand.getType() == Material.TOTEM_OF_UNDYING
-                && !customItems.isVitalAwakening(mainHand)
-            || offHand.getType() == Material.TOTEM_OF_UNDYING
-                && !customItems.isVitalAwakening(offHand)) {
-          return;
-        }
-
-        event.setCancelled(true);
-        knockdownManager.handlePlayerDeath(player);
-        return;
-      }
-    }
-
-    UUID entityId = entity.getUniqueId();
-    long currentTime = System.currentTimeMillis();
-
-    if (event instanceof EntityDamageByEntityEvent entityDamageByEntityEvent) {
-      if (entityDamageByEntityEvent.getDamager() instanceof Player damager) {
-        comboManager.handlePlayerCombos(damager, event, currentTime);
-      }
-      double originalDamage = event.getDamage();
-      double modifiedDamage = originalDamage * damageMultiplier;
-      event.setDamage(modifiedDamage);
-    }
-
-    if (!isOnCooldown(entityId, currentTime)) {
-      lastDamageTime.put(entityId, currentTime);
-      damageIndicatorManager.displayDamageIndicator(entity, event);
-    }
-  }
-
-  /**
-   * Handles player interaction events. Prevents downed players from reviving themselves or others.
-   *
-   * @param event The player interact entity event
-   */
   @EventHandler
-  public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
-    if (!configManager.isEnabled() || !(event.getRightClicked() instanceof Player target)) {
-      return;
-    }
-
-    Player player = event.getPlayer();
-
-    if (knockdownManager.isAttemptingRevive(player)) {
-      return;
-    }
-
-    if (knockdownManager.isPlayerDowned(player)) {
-      event.setCancelled(true);
-      ItemStack mainHand = player.getInventory().getItemInMainHand();
-      ItemStack offHand = player.getInventory().getItemInOffHand();
-
-      if ((mainHand.getType() == Material.TOTEM_OF_UNDYING
-              && customItems.isVitalAwakening(mainHand))
-          || (offHand.getType() == Material.TOTEM_OF_UNDYING
-              && customItems.isVitalAwakening(offHand))) {
-        knockdownManager.attemptSelfRevive(player);
-      }
-      return;
-    }
-
-    Location targetLoc = target.getLocation();
-    Location playerLoc = player.getLocation();
-
-    if (targetLoc != null
-        && playerLoc != null
-        && knockdownManager.isPlayerDowned(target)
-        && targetLoc.distance(playerLoc) <= knockdownManager.getReviveRange()) {
-      event.setCancelled(true);
-      knockdownManager.startRevive(player, target);
-    }
+  public void onQuit(PlayerQuitEvent event) {
+    plugin.getCombos().cleanup(event.getPlayer().getUniqueId());
+    plugin.getKnockdown().onQuit(event.getPlayer());
   }
 
-  /**
-   * Handles player interaction events. Manages self-revive attempts when using specific items.
-   *
-   * @param event The player interact event
-   */
   @EventHandler
-  public void onPlayerInteract(PlayerInteractEvent event) {
-    if (!configManager.isEnabled()
-        || (event.getAction() != Action.RIGHT_CLICK_AIR
-            && event.getAction() != Action.RIGHT_CLICK_BLOCK)) {
-      return;
-    }
-
-    Player player = event.getPlayer();
-
-    if (knockdownManager.isAttemptingRevive(player)) {
-      return;
-    }
-
-    if (knockdownManager.isPlayerDowned(player)) {
-      event.setCancelled(true);
-      ItemStack mainHand = player.getInventory().getItemInMainHand();
-      ItemStack offHand = player.getInventory().getItemInOffHand();
-
-      if ((mainHand.getType() == Material.TOTEM_OF_UNDYING
-              && customItems.isVitalAwakening(mainHand))
-          || (offHand.getType() == Material.TOTEM_OF_UNDYING
-              && customItems.isVitalAwakening(offHand))) {
-        knockdownManager.attemptSelfRevive(player);
-      }
-    }
-  }
-
-  private boolean isOnCooldown(UUID entityId, long currentTime) {
-    return lastDamageTime.containsKey(entityId)
-        && currentTime - lastDamageTime.get(entityId) < DAMAGE_COOLDOWN;
+  public void onDeath(PlayerDeathEvent event) {
+    plugin.getKnockdown().onDeath(event.getPlayer());
   }
 }

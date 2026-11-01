@@ -1,112 +1,108 @@
 package stawa.vitalstrike.utils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
+import com.google.gson.JsonParser;
 import java.net.URI;
-import java.util.logging.Logger;
-import org.bukkit.plugin.java.JavaPlugin;
-import stawa.vitalstrike.Errors;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import stawa.vitalstrike.Text;
+import stawa.vitalstrike.VitalStrike;
 
-/** Checks for updates to the VitalStrike plugin by querying the GitHub API. */
-public class UpdateChecker {
+/** Checks GitHub for a newer release and tells the console and permitted players about it. */
+public final class UpdateChecker implements Listener {
+  private static final URI LATEST =
+      URI.create("https://api.github.com/repos/Stawa/VitalStrike/releases/latest");
+  private static final String DOWNLOAD = "https://modrinth.com/plugin/vitalstrike";
+  private static final Pattern VERSION = Pattern.compile("(\\d+(?:\\.\\d+)*)");
 
-  private final JavaPlugin plugin;
-  private final Logger logger;
+  private final VitalStrike plugin;
+  private volatile String newerVersion;
 
-  /**
-   * Creates a new UpdateChecker instance.
-   *
-   * @param plugin The plugin instance
-   * @param logger The logger to use for reporting update status
-   */
-  public UpdateChecker(JavaPlugin plugin, Logger logger) {
+  public UpdateChecker(VitalStrike plugin) {
     this.plugin = plugin;
-    this.logger = logger;
   }
 
-  /** Asynchronously checks for updates and logs the result. */
-  public void checkForUpdates() {
-    plugin
-        .getServer()
-        .getScheduler()
-        .runTaskAsynchronously(
-            plugin,
-            () -> {
-              try {
-                String jsonResponse = fetchLatestReleaseData();
-                processVersionInfo(jsonResponse);
-              } catch (Errors.UpdateException e) {
-                logger.warning(e.getMessage());
-              } catch (Exception e) {
-                logger.warning("Failed to check for updates: " + e.getMessage());
-                Errors.UpdateException updateException =
-                    new Errors.UpdateException("Failed to check for updates", e);
-                logger.warning("Error code: " + updateException.getErrorCode().getCode());
-              }
+  public void check() {
+    HttpRequest request =
+        HttpRequest.newBuilder(LATEST)
+            .header("Accept", "application/vnd.github+json")
+            .header("User-Agent", "VitalStrike/" + plugin.getPluginMeta().getVersion())
+            .timeout(Duration.ofSeconds(10))
+            .build();
+    HttpClient.newHttpClient()
+        .sendAsync(request, HttpResponse.BodyHandlers.ofString())
+        .thenAccept(this::handle)
+        .exceptionally(
+            e -> {
+              plugin.getSLF4JLogger().warn("Update check failed: {}", e.getMessage());
+              return null;
             });
   }
 
-  private String fetchLatestReleaseData() throws Errors.UpdateException {
-    try {
-      URI uri = URI.create("https://api.github.com/repos/Stawa/VitalStrike/releases/latest");
-      HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
-      connection.setRequestMethod("GET");
-      connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
-
-      if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-        throw new Errors.UpdateException(
-            "Failed to connect to GitHub API: HTTP " + connection.getResponseCode());
-      }
-
-      return readResponseFromConnection(connection);
-    } catch (IOException e) {
-      throw new Errors.UpdateException("Failed to connect to GitHub API", e);
+  private void handle(HttpResponse<String> response) {
+    if (response.statusCode() != 200) {
+      plugin.getSLF4JLogger().warn("Update check failed: HTTP {}", response.statusCode());
+      return;
     }
-  }
-
-  private String readResponseFromConnection(HttpURLConnection connection) throws IOException {
-    try (BufferedReader reader =
-        new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
-      StringBuilder response = new StringBuilder();
-      String line;
-
-      while ((line = reader.readLine()) != null) {
-        response.append(line);
-      }
-
-      return response.toString();
-    }
-  }
-
-  private void processVersionInfo(String jsonResponse) throws Errors.UpdateException {
-    String latestVersion;
-    if (!jsonResponse.contains("\"tag_name\":")) {
-      throw new Errors.UpdateException(
-          "Failed to parse version information from GitHub API response");
-    }
-
-    latestVersion = jsonResponse.split("\"tag_name\":\"")[1].split("\"")[0];
-    String currentVersion = plugin.getPluginMeta().getVersion();
-
-    logVersionInfo(currentVersion, latestVersion);
-  }
-
-  private void logVersionInfo(String currentVersion, String latestVersion) {
-    if (!currentVersion.equals(latestVersion)) {
-      String newVersionMessage = String.format("New version available: %s", latestVersion);
-      String currentVersionMessage = String.format("You are running version: %s", currentVersion);
-      String downloadMessage =
-          String.format(
-              "Download the latest version from: %s", "https://modrinth.com/plugin/vitalstrike");
-      logger.info(newVersionMessage);
-      logger.info(currentVersionMessage);
-      logger.info(downloadMessage);
+    String latest =
+        JsonParser.parseString(response.body()).getAsJsonObject().get("tag_name").getAsString();
+    String current = plugin.getPluginMeta().getVersion();
+    if (compare(latest, current) > 0) {
+      newerVersion = latest;
+      plugin
+          .getSLF4JLogger()
+          .info("Version {} is available (you run {}): {}", latest, current, DOWNLOAD);
     } else {
-      String latestVersionMessage =
-          String.format("You are running the latest version: %s", latestVersion);
-      logger.info(latestVersionMessage);
+      plugin.getSLF4JLogger().info("VitalStrike is up to date ({}).", current);
+    }
+  }
+
+  /**
+   * Compares the numeric parts of two version strings; qualifiers such as -SNAPSHOT are ignored.
+   */
+  static int compare(String a, String b) {
+    int[] x = numbers(a);
+    int[] y = numbers(b);
+    for (int i = 0; i < Math.max(x.length, y.length); i++) {
+      int diff = Integer.compare(i < x.length ? x[i] : 0, i < y.length ? y[i] : 0);
+      if (diff != 0) {
+        return diff;
+      }
+    }
+    return 0;
+  }
+
+  private static int[] numbers(String version) {
+    Matcher m = VERSION.matcher(version);
+    if (!m.find()) {
+      return new int[0];
+    }
+    String[] parts = m.group(1).split("\\.");
+    int[] result = new int[parts.length];
+    for (int i = 0; i < parts.length; i++) {
+      result[i] = Integer.parseInt(parts[i]);
+    }
+    return result;
+  }
+
+  @EventHandler
+  public void onJoin(PlayerJoinEvent event) {
+    Player player = event.getPlayer();
+    if (newerVersion != null && player.hasPermission("vitalstrike.update-notify")) {
+      player.sendMessage(
+          Text.parse(
+              "<gold>VitalStrike <yellow>"
+                  + newerVersion
+                  + "</yellow> is available: <click:open_url:"
+                  + DOWNLOAD
+                  + "><aqua>download</aqua></click>"));
     }
   }
 }

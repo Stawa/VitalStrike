@@ -11,11 +11,6 @@ update-checker:
   # Should the plugin check for updates on startup?
   enabled: true
 
-# Database settings for storing player data (e.g., stats, preferences).
-database:
-  enabled: true
-  file: "playerdata.yml"
-
 # Settings for how damage indicators appear, animate, and behave.
 display:
   # How long (in seconds) the damage indicator stays visible.
@@ -49,8 +44,11 @@ display:
     # The speed at which the indicator floats (blocks per tick).
     float-speed: 0.03
 
-    # The intensity of the curve effect during movement.
-    float-curve: 0.02
+    # Sideways sway of the indicator while it floats, in blocks. 0 disables it.
+    float-curve: 0.1
+
+  # Show green "+x" indicators when entities regain health (uses the "heal" format below).
+  show-heals: true
 
   # Damage Merging System
   # Merges multiple damage events into a single indicator if they happen quickly.
@@ -134,8 +132,14 @@ group-damage-formats:
       poison: "<gradient:#FF6347:#FF4500>-%.1f ☄</gradient>"
       fire: "<gradient:#FF4500:#FF8C00>-%.1f 🌋</gradient>"
 
-# Sounds played when specific damage types occur.
-# Use standard Minecraft sound names.
+# Sounds played when specific damage types occur. Keys are lowercase damage causes,
+# plus "critical" for real critical hits. Use standard Minecraft sound names.
+damage-type-sounds-settings:
+  volume: 1.0
+  pitch: 1.0
+  # Players within this many blocks of the victim hear the sound.
+  radius: 20.0
+
 damage-type-sounds:
   entity_attack: "entity.player.attack.strong"
   critical: "entity.player.attack.crit"
@@ -167,17 +171,18 @@ damage-type-sounds:
   world_border: "entity.elder_guardian.curse"
 
 # Settings to control where the plugin is active and how it behaves in different worlds.
+# Cancelled damage (e.g. a WorldGuard no-PvP region) is ignored automatically.
 world-settings:
   # Enable per-world settings.
   enabled: true
 
-  # List of worlds where damage indicators are completely disabled.
+  # Worlds where VitalStrike does nothing at all (no indicators, combos or knockdown).
   disabled-worlds:
     - "example_world"
     - "minigames_world"
 
-  # Dimension-specific damage multipliers.
-  # You can adjust how much damage is dealt in different environments.
+  # Dimension-specific settings. "enabled: false" switches VitalStrike off in that dimension.
+  # The multiplier scales all damage dealt by entities in that dimension.
   dimensions:
     overworld:
       enabled: true
@@ -191,10 +196,6 @@ world-settings:
       enabled: true
       # 1.1 = 110% (10% more damage)
       damage-multiplier: 1.1
-
-  # Integration with WorldGuard regions.
-  # If true, indicators will respect PVP flags in regions.
-  respect-worldguard-pvp: true
 
 # Settings for the combo tracking and display system.
 combo:
@@ -255,6 +256,10 @@ combo:
 
     # Format for the multiplier display (if enabled).
     multiplier-format: " <gray>(<gradient:#FFD700:#FFA500>%.1fx</gradient>)</gray>"
+
+    # Subtitle flashed when you reach a new rank. Placeholders: %rank%, %color%, %combo%.
+    # Leave empty ("") to disable.
+    rank-up: "%color%<bold>✦ RANK %rank% ✦"
 
     # Warning message when combo is about to decay.
     decay-warning: "<italic><gray>(Decaying in %.1fs)</gray></italic>"
@@ -322,8 +327,8 @@ combo:
     # Height offset above the player.
     height: 2.0
 
-    # Text format for the hologram.
-    format: "<gradient:red:gold><bold>COMBO STREAK!</bold></gradient>"
+    # Text format for the hologram. Placeholders: %combo%, %rank%, %color% (the rank's colour).
+    format: "%color%<bold>✦ %combo% HIT STREAK ✦</bold><reset><newline><gray>Rank %color%<bold>%rank%"
 
 # Settings for the knockdown and revival mechanics.
 knockdown-system:
@@ -355,6 +360,10 @@ knockdown-system:
     # Time (in seconds) to use the item.
     use-duration: 4.0
 
+    # Item model of the Vital Awakening totem. "template:vs" comes from the optional resource
+    # pack; leave empty ("") to keep the plain totem look if you do not use the pack.
+    item-model: "template:vs"
+
   # Visual and Audio Effects for Knockdown/Revival.
   effects:
     # Chat messages for various states.
@@ -362,6 +371,7 @@ knockdown-system:
       cannot-revive: "<red>You cannot revive this player right now."
       revive-failed: "<red>Revival failed! Stay closer to the player."
       revive-complete: "<green>You have been revived by %player%!"
+      reviver-complete: "<green>You successfully revived %player%!"
       self-revived: "<green>You used Vital Awakening to revive yourself!"
       being-revived: "<yellow>Being revived by %player%..."
       reviving-player: "<yellow>Reviving %player%..."
@@ -377,6 +387,10 @@ knockdown-system:
         color: "YELLOW"
         style: "SOLID"
         title: "<yellow>Being revived by %player%..."
+      self-reviving:
+        color: "YELLOW"
+        style: "SOLID"
+        title: "<yellow><bold>Using Vital Awakening..."
 
     # Potion effects applied to the downed player.
     down:
@@ -389,7 +403,42 @@ knockdown-system:
       particle_effect: "HEART"
       sound_effect: "block.note_block.chime"
 
-# Settings for player rewards based on damage dealt.
+# Health bar floating above a mob or player after it takes damage.
+health-bar:
+  enabled: true
+  # Seconds the bar stays after the last hit or heal.
+  duration: 4.0
+  # Blocks above the top of the entity's head.
+  height: 0.75
+  # Number of segments in the bar.
+  length: 10
+  # Placeholders: %bar%, %health%, %max%.
+  format: "%bar% <white>%health%<gray>/%max% <red>❤"
+
+# Floating "slain" marker, action bar and sound when you kill something.
+# Placeholders: %victim% (name), %xp% (XP gained), %level%, %bar% (progress to next level).
+kill-indicator:
+  enabled: true
+  format: "<bold><gradient:#FF0000:#8B0000>☠ SLAIN</gradient></bold> <gray>%victim%</gray> <gold>+%xp% XP</gold>"
+  actionbar: "<gold>Lv %level% %bar% <gray>| <red>☠ <white>%victim% <gold>+%xp% XP"
+  sound: "entity.player.levelup"
+
+# RPG levels. Kills grant XP based on the victim's max health; levels are saved in stats.yml.
+# XP needed to leave level L = base-xp * L ^ exponent.
+levels:
+  enabled: true
+  # XP per point of the victim's max health (a 20 HP zombie gives 20 XP).
+  xp-per-health: 1.0
+  base-xp: 100
+  exponent: 1.5
+  max-level: 100
+  level-up:
+    title: "<bold><gradient:#FFD700:#FFA500>LEVEL UP!</gradient></bold>"
+    subtitle: "<yellow>You reached level <white>%level%"
+    sound: "ui.toast.challenge_complete"
+
+# One-time milestone rewards for lifetime damage dealt. Each tier is paid out once per player.
+# Keep tiers in the same order if you edit them later: progress is stored as "tiers claimed".
 rewards:
   # Enable the reward system.
   enabled: true
@@ -440,6 +489,9 @@ leaderboard:
 
 # Resource Pack Settings (Optional)
 resource-pack:
+  # Where the pack is downloaded from. Its SHA-1 is computed automatically.
+  url: "https://github.com/Stawa/VitalAwakening/raw/refs/heads/main/output/VitalAwakening_1.5.0-SNAPSHOT.zip"
+
   # Automatically send the resource pack on join?
   auto-send: false
 
@@ -456,3 +508,7 @@ messages:
   already-enabled: "<yellow>VitalStrike damage indicators are already enabled for you!"
   already-disabled: "<yellow>VitalStrike damage indicators are already disabled for you!"
   config-reloaded: "<green>Configuration reloaded successfully!"
+  hologram-enabled: "<green>Combo holograms enabled for you!"
+  hologram-disabled: "<red>Combo holograms disabled for you!"
+  # %damage% is the milestone that was reached.
+  reward-claimed: "<gold>Damage milestone <yellow>%damage%</yellow> reached! Rewards received."

@@ -1,53 +1,63 @@
 name: VitalStrike
-version: "1.5.0-SNAPSHOT"
+version: "${version}"
 main: stawa.vitalstrike.VitalStrike
-api-version: "1.21"
+api-version: "26.1"
 author: stawa
-description: A plugin that displays damage indicators when entities or players take damage
-softdepend: [WorldGuard]
+description: Floating damage indicators, combos, statistics and a knockdown/revive system.
+website: https://github.com/Stawa/VitalStrike
 
 commands:
   vitalstrike:
-    description: Main command for VitalStrike
-    usage: |
-      §6VitalStrike Commands:
-      §e/vs help §7- Show this help menu
-      §e/vs toggle [on|off] §7- Toggle damage indicators on/off
-      §e/vs reload §7- Reload the plugin configuration
-      §e/vs stats §7- View your combat statistics
-      §e/vs leaderboard [damage|combo|average] §7- View top players leaderboard
-      §e/vs hologram [on|off] §7- Toggle combo hologram display
-      §e/vs vitalawakening [amount] §7- Give Vital Awakening items
-      §e/vs resourcepack §7- Load the custom resource pack
+    description: Main VitalStrike command
+    usage: /<command> help
     aliases: [vs]
     permission: vitalstrike.use
-    permission-message: §cYou don't have permission to use VitalStrike commands!
+    permission-message: You don't have permission to use VitalStrike commands!
 
 permissions:
-  vitalstrike.admin.permissions:
-    description: Allows managing VitalStrike permissions
-    default: op
-  vitalstrike.reload:
-    description: Allows reloading the plugin configuration
-    default: op
-  vitalstrike.give:
-    description: Allows giving Vital Awakening items
-    default: op
   vitalstrike.use:
-    description: Allows using VitalStrike commands
+    description: Allows using the /vitalstrike command
     default: true
   vitalstrike.toggle:
-    description: Allows toggling damage indicators for yourself
+    description: Toggle your own damage indicators
     default: true
   vitalstrike.stats:
-    description: Allows viewing combat statistics
+    description: View combat statistics
     default: true
   vitalstrike.leaderboard:
-    description: Allows viewing the leaderboard
+    description: View the leaderboards
     default: true
   vitalstrike.hologram:
-    description: Allows toggling combo hologram display
+    description: Toggle your combo hologram
     default: true
   vitalstrike.resourcepack:
-    description: Allows players to use the resource pack command
+    description: Load the optional resource pack
     default: true
+  vitalstrike.reload:
+    description: Reload the configuration
+    default: op
+  vitalstrike.clear:
+    description: Remove all floating damage and combo text
+    default: op
+  vitalstrike.give:
+    description: Give Vital Awakening items
+    default: op
+  vitalstrike.revive:
+    description: Force-revive a downed player
+    default: op
+  vitalstrike.admin.permissions:
+    description: Manage stored group permissions with /vs perm
+    default: op
+  vitalstrike.update-notify:
+    description: Get told about new releases when joining
+    default: op
+  vitalstrike.admin:
+    description: All VitalStrike administration permissions
+    default: op
+    children:
+      vitalstrike.reload: true
+      vitalstrike.clear: true
+      vitalstrike.give: true
+      vitalstrike.revive: true
+      vitalstrike.admin.permissions: true
+      vitalstrike.update-notify: true

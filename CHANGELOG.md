@@ -2,6 +2,44 @@
 
 All notable changes to VitalStrike will be documented in this file.
 
+## [1.5.0] - Unreleased
+Platform update and a broad bug-fix pass. Requires **Paper 26.1+ and Java 25**.
+
+### Changed
+- Built against Paper API 26.3 with Java 25; Gradle 9.8; CI actions updated.
+- Hits are now counted at `MONITOR` priority, so damage cancelled by other plugins (WorldGuard PvP flags, spawn protection) no longer creates combos, stats, indicators or rewards. The WorldGuard dependency and `respect-worldguard-pvp` option are gone.
+- Rewards are one-time lifetime-damage milestones (previously re-farmable every merge window).
+- Combo decay now works: with decay enabled the combo is no longer hard-reset after `reset-time`.
+- Downed players are held in place with an event lock instead of `setInvulnerable`, and effects are refreshed with a short duration, so nothing sticks after a crash or restart.
+- All settings are re-read on `/vs reload` (knockdown and combo values used to need a restart).
+- Commands consolidated into one class; `/vs perm` now only manages stored group grants and works for offline players.
+- The resource pack is hashed off the main thread and its URL is configurable (`resource-pack.url`).
+
+### Added
+- Heal indicators (`display.show-heals`), using the existing `heal` format.
+- Real critical-hit detection (the `critical` format and sound were previously a 20% dice roll).
+- Bow/trident/other projectile hits are credited to the shooter for combos, stats and per-group formats.
+- `/vs revive <player>`, `/vs stats [player]`, and `/vs va [amount] [player]`.
+- Downed players crawl, cannot attack, place, drop, interact or walk, and mobs stop targeting them.
+- Update notice for players with `vitalstrike.update-notify`.
+- `knockdown-system.vital-awakening.item-model` to disable the resource-pack item model.
+
+### Fixed
+- Config paths that never matched: custom damage formats (`simple-damage-formats`), merge settings (`display.merge`), combo hologram settings (`combo.hologram`) and sound volume/pitch were silently ignored.
+- Indicators and the multiplier ignored `disabled-worlds` and dimension `enabled`.
+- Quitting removed every text display within 32 blocks, including other plugins'. Indicators are now non-persistent instead.
+- A 500 ms per-entity cooldown dropped damage that merging should have summed; its map also leaked.
+- Downed state survived death (void, `/kill`) and kept the player "downed" after respawn.
+- A downed player could still be hurt by the void forever-loop; void/kill/suicide now always go through.
+- Revive quit-handling looked up state after clearing it; the revive item was never consumed when `require-vital-awakening` was on.
+- Resource pack: hash was Base64 instead of hex, the status listener was never registered, the pack was downloaded on the main thread during startup, and loaded state never reset on quit.
+- Update checker could not parse GitHub's JSON and treated any version difference (including SNAPSHOT) as an update.
+- Stats were only saved on clean shutdown; they now autosave every 5 minutes and store player names so the leaderboard no longer skips offline players.
+- Vital Awakening recipe/instances were created three times; lore is no longer italic.
+
+### Removed
+- Dead code: element system (no way to set it), per-player style, custom exception hierarchy, custom logger, WorldGuard shim, duplicated config cache, and boilerplate `package-info` files.
+
 ## [1.4.0] - 2025-03-17
 VitalStrike v1.4.0 brings important bug fixes and enhanced damage indicator customization.
 

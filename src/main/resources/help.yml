@@ -6,30 +6,46 @@ help-menu:
   commands:
     toggle:
       command: "/vs toggle [on|off]"
+      permission: "vitalstrike.toggle"
       description: "Toggle damage indicators on or off"
     reload:
       command: "/vs reload"
+      permission: "vitalstrike.reload"
       description: "Reload the plugin configuration"
+    clear:
+      command: "/vs clear"
+      permission: "vitalstrike.clear"
+      description: "Remove all floating damage and combo text"
     stats:
-      command: "/vs stats"
+      command: "/vs stats [player]"
+      permission: "vitalstrike.stats"
       description: "View your combat statistics"
     leaderboard:
       command: "/vs lb [damage|combo|average]"
+      permission: "vitalstrike.leaderboard"
       description: "View the damage leaderboards"
     hologram:
       command: "/vs hologram [on|off]"
+      permission: "vitalstrike.hologram"
       description: "Toggle combo holograms on or off"
     permissions:
       command: "/vs perm <add|remove|list> <player> [permission]"
-      description: "Manage player permissions"
+      permission: "vitalstrike.admin.permissions"
+      description: "Manage stored group permissions"
     help:
       command: "/vs help [section]"
       description: "Show this help menu or a specific section"
     vitalawakening:
-      command: "/vs vitalawakening [amount]"
+      command: "/vs vitalawakening [amount] [player]"
+      permission: "vitalstrike.give"
       description: "Get Vital Awakening revival items"
+    revive:
+      command: "/vs revive <player>"
+      permission: "vitalstrike.revive"
+      description: "Force-revive a downed player"
     resourcepack:
       command: "/vs resourcepack"
+      permission: "vitalstrike.resourcepack"
       description: "Load the custom resource pack"
   sections:
     combos:
@@ -37,7 +53,7 @@ help-menu:
       content:
         1: "<yellow>Combos increase when you hit enemies in succession"
         2: "<yellow>Higher combos give damage multipliers"
-        3: "<yellow>Combos decay after a period of inactivity"
+        3: "<yellow>Combos reset after a few seconds, or slowly decay if enabled"
     permissions:
       title: "<gold><bold>Permissions Help</bold></gold>"
       content:
@@ -48,3 +64,13 @@ help-menu:
         5: "<yellow>vitalstrike.leaderboard - View leaderboards"
         6: "<yellow>vitalstrike.hologram - Toggle holograms"
         7: "<yellow>vitalstrike.admin.permissions - Manage permissions"
+        8: "<yellow>vitalstrike.give - Give Vital Awakening items"
+        9: "<yellow>vitalstrike.revive - Force-revive a downed player"
+        10: "<yellow>vitalstrike.group.<name> - Use a group damage format"
+    knockdown:
+      title: "<gold><bold>Knockdown Help</bold></gold>"
+      content:
+        1: "<yellow>Lethal damage downs you instead of killing you"
+        2: "<yellow>Right-click a downed player to revive them (stand still)"
+        3: "<yellow>Hold a Vital Awakening and right-click to revive yourself"
+        4: "<yellow>If the timer runs out, you die"

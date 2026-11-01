@@ -10,7 +10,7 @@ Please take the following actions in order to ensure a smooth collaboration proc
 2.  **Create a Branch**: Create a new branch for your specific feature or fix (e.g., `git checkout -b feature/new-damage-indicator`).
 3.  **Implement Changes**: Make your code changes or improvements.
 4.  **Test Your Changes**:
-    - Verify your changes on a local server (Paper 1.21.4+ recommended).
+    - Verify your changes on a local server (Paper 26.1+ recommended, JDK 25 via the Gradle toolchain).
     - Ensure the combo system functions correctly.
     - Validate that any changes to `config.yml` are properly handled.
 5.  **Submit a Pull Request**: Submit a Pull Request (PR) to the main repository describing your changes in detail.

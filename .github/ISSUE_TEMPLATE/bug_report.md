@@ -25,7 +25,7 @@ If applicable, add screenshots to help explain your problem.
 
 **Server Information:**
 
-- Server Version: [e.g., Paper 1.21.4]
+- Server Version: [e.g., Paper 26.3]
 - Plugin Version: [e.g., VitalStrike v1.3.2]
 - Other Related Plugins: [e.g., Vault]
 

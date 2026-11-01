@@ -2,237 +2,155 @@ package stawa.vitalstrike;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.ToDoubleFunction;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import stawa.vitalstrike.Errors.DatabaseException;
-import stawa.vitalstrike.logger.VitalLogger;
 
-/**
- * Manages player statistics for the VitalStrike plugin. Statistics are persisted to a YAML file and
- * loaded on plugin startup.
- *
- * @author Stawa
- */
-public class PlayerStats {
-  private static final String STATS_FILE = "stats.yml";
-  private final File statsFile;
-  private final Map<UUID, PlayerStatistics> playerStats;
-  private final YamlConfiguration statsConfig;
-  private VitalLogger logger;
+/** Lifetime combat statistics, persisted to {@code stats.yml}. */
+public final class PlayerStats {
+  /** Mutable per-player totals. */
+  public static final class Stats {
+    String name;
+    int highestCombo;
+    double totalDamage;
+    int hits;
+    int rewardsClaimed;
+    int kills;
+    long xp;
 
-  /**
-   * Creates a new PlayerStats instance.
-   *
-   * @param plugin the VitalStrike plugin instance
-   * @throws DatabaseException If there is an error accessing or updating the database
-   */
-  public PlayerStats(VitalStrike plugin) throws DatabaseException {
-    this.logger = new VitalLogger(plugin);
-    this.playerStats = new ConcurrentHashMap<>();
-    this.statsFile = new File(plugin.getDataFolder(), STATS_FILE);
-    this.statsConfig = YamlConfiguration.loadConfiguration(statsFile);
-    loadAllStats();
-  }
-
-  /** Represents a player's combat statistics. */
-  public static class PlayerStatistics {
-    private int highestCombo;
-    private double totalDamageDealt;
-    private int totalHits;
-
-    /** Creates a new PlayerStatistics instance. */
-    public PlayerStatistics() {
-      this.highestCombo = 0;
-      this.totalDamageDealt = 0;
-      this.totalHits = 0;
+    public String name() {
+      return name;
     }
 
-    /**
-     * Gets the highest combo achieved by the player.
-     *
-     * @return the highest combo
-     */
-    public int getHighestCombo() {
+    public int highestCombo() {
       return highestCombo;
     }
 
-    /**
-     * Gets the total damage dealt by the player.
-     *
-     * @return the total damage dealt
-     */
-    public double getTotalDamageDealt() {
-      return totalDamageDealt;
+    public double totalDamage() {
+      return totalDamage;
     }
 
-    /**
-     * Gets the average damage per hit.
-     *
-     * @return the average damage per hit
-     */
-    public double getAverageDamagePerHit() {
-      return totalHits > 0 ? totalDamageDealt / totalHits : 0;
+    public int hits() {
+      return hits;
     }
 
-    /**
-     * Gets the total number of hits landed by the player.
-     *
-     * @return the total hits
-     */
-    public int getTotalHits() {
-      return totalHits;
+    public double averageDamage() {
+      return hits > 0 ? totalDamage / hits : 0;
     }
 
-    /**
-     * Updates the player's highest combo if the provided combo is higher.
-     *
-     * @param combo the new combo to check
-     */
-    public void updateCombo(int combo) {
-      if (combo > highestCombo) {
-        highestCombo = combo;
+    public int rewardsClaimed() {
+      return rewardsClaimed;
+    }
+
+    public int kills() {
+      return kills;
+    }
+
+    /** Lifetime RPG experience; the level is derived from it by {@code Progression}. */
+    public long xp() {
+      return xp;
+    }
+
+    public void claimReward() {
+      rewardsClaimed++;
+    }
+  }
+
+  private static final Stats EMPTY = new Stats();
+
+  private final VitalStrike plugin;
+  private final File file;
+  private final Map<UUID, Stats> stats = new HashMap<>();
+  private boolean dirty;
+
+  public PlayerStats(VitalStrike plugin) {
+    this.plugin = plugin;
+    this.file = new File(plugin.getDataFolder(), "stats.yml");
+    YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+    for (String key : yaml.getKeys(false)) {
+      try {
+        Stats s = new Stats();
+        s.name = yaml.getString(key + ".name");
+        s.highestCombo = yaml.getInt(key + ".highestCombo");
+        s.totalDamage = yaml.getDouble(key + ".totalDamageDealt");
+        s.hits = yaml.getInt(key + ".totalHits");
+        s.rewardsClaimed = yaml.getInt(key + ".rewardsClaimed");
+        s.kills = yaml.getInt(key + ".kills");
+        s.xp = yaml.getLong(key + ".xp");
+        stats.put(UUID.fromString(key), s);
+      } catch (IllegalArgumentException e) {
+        plugin.getSLF4JLogger().warn("Ignoring invalid UUID '{}' in {}", key, file.getName());
       }
     }
-
-    /**
-     * Adds damage to the player's total damage dealt and increments the total hits.
-     *
-     * @param damage the damage to add
-     */
-    public void addDamage(double damage) {
-      totalDamageDealt += damage;
-      totalHits++;
-    }
   }
 
-  /**
-   * Loads all player statistics from the stats file.
-   *
-   * @throws Errors.DatabaseException if there's an error parsing the stats file
-   */
-  private void loadAllStats() throws DatabaseException {
-    if (!statsFile.exists()) return;
-
-    try {
-      for (String uuidStr : statsConfig.getKeys(false)) {
-        UUID uuid = UUID.fromString(uuidStr);
-        PlayerStatistics stats = new PlayerStatistics();
-        stats.highestCombo = statsConfig.getInt(uuidStr + ".highestCombo", 0);
-        stats.totalDamageDealt = statsConfig.getDouble(uuidStr + ".totalDamageDealt", 0);
-        stats.totalHits = statsConfig.getInt(uuidStr + ".totalHits", 0);
-        playerStats.put(uuid, stats);
-      }
-    } catch (IllegalArgumentException e) {
-      throw new Errors.DatabaseException("Failed to parse UUID in stats file", e);
-    }
+  /** Stats for a player, or an all-zero placeholder if they have none. Never mutate the result. */
+  public Stats find(UUID id) {
+    return stats.getOrDefault(id, EMPTY);
   }
 
-  /**
-   * Saves all player statistics to the stats file.
-   *
-   * @throws DatabaseException If there is an error accessing or updating the database if there's an
-   *     error saving the stats file
-   */
-  public void saveAllStats() throws DatabaseException {
-    for (Map.Entry<UUID, PlayerStatistics> entry : playerStats.entrySet()) {
-      String uuidStr = entry.getKey().toString();
-      PlayerStatistics stats = entry.getValue();
-      statsConfig.set(uuidStr + ".highestCombo", stats.highestCombo);
-      statsConfig.set(uuidStr + ".totalDamageDealt", stats.totalDamageDealt);
-      statsConfig.set(uuidStr + ".totalHits", stats.totalHits);
-    }
-
-    try {
-      statsConfig.save(statsFile);
-    } catch (IOException e) {
-      logger.severe(
-          "Failed to save player statistics to "
-              + statsFile.getAbsolutePath()
-              + ": "
-              + e.getMessage());
-      e.printStackTrace();
-      throw new Errors.DatabaseException(
-          "Failed to save player statistics to file: " + statsFile.getName(), e);
-    }
+  public Stats of(Player player) {
+    Stats s = stats.computeIfAbsent(player.getUniqueId(), id -> new Stats());
+    s.name = player.getName();
+    dirty = true;
+    return s;
   }
 
-  /**
-   * Resets statistics for a specific player.
-   *
-   * @param uuid the UUID of the player to reset
-   */
-  public void resetPlayerStats(UUID uuid) {
-    playerStats.put(uuid, new PlayerStatistics());
+  public Stats recordDamage(Player player, double damage) {
+    Stats s = of(player);
+    s.totalDamage += damage;
+    s.hits++;
+    return s;
   }
 
-  /**
-   * Resets statistics for all players. This will clear all statistics from memory and remove them
-   * from the configuration. Note: Changes are not saved to disk until saveAllStats() is called.
-   */
-  public void resetAllStats() {
-    playerStats.clear();
-    for (String uuidStr : statsConfig.getKeys(false)) {
-      statsConfig.set(uuidStr, null);
-    }
+  public Stats recordKill(Player player, long xp) {
+    Stats s = of(player);
+    s.kills++;
+    s.xp += xp;
+    return s;
   }
 
-  /**
-   * Gets the player statistics for the specified player.
-   *
-   * @param uuid the player's UUID
-   * @return the player statistics
-   */
-  public PlayerStatistics getPlayerStats(UUID uuid) {
-    return playerStats.computeIfAbsent(uuid, k -> new PlayerStatistics());
+  public void recordCombo(Player player, int combo) {
+    Stats s = of(player);
+    s.highestCombo = Math.max(s.highestCombo, combo);
   }
 
-  /**
-   * Updates the player's statistics with the provided damage and combo. Note: Changes are not saved
-   * to disk until saveAllStats() is called.
-   *
-   * @param player the player to update
-   * @param damage the damage dealt
-   * @param combo the combo achieved
-   */
-  public void updateStats(Player player, double damage, int combo) {
-    PlayerStatistics stats = getPlayerStats(player.getUniqueId());
-    stats.updateCombo(combo);
-    stats.addDamage(damage);
-  }
-
-  /**
-   * Gets the top players based on the provided value extractor.
-   *
-   * @param limit the maximum number of players to return
-   * @param valueExtractor the function to extract the sorting value from PlayerStatistics (e.g.,
-   *     PlayerStatistics::getTotalDamageDealt)
-   * @return a list of player entries sorted by the extracted value in descending order, limited to
-   *     the specified number of entries
-   */
-  public List<Map.Entry<UUID, PlayerStatistics>> getTopPlayers(
-      int limit, ToDoubleFunction<PlayerStatistics> valueExtractor) {
-    return playerStats.entrySet().stream()
+  public List<Map.Entry<UUID, Stats>> top(int limit, ToDoubleFunction<Stats> value) {
+    return stats.entrySet().stream()
+        .filter(e -> e.getValue().hits > 0)
         .sorted(
             (a, b) ->
                 Double.compare(
-                    valueExtractor.applyAsDouble(b.getValue()),
-                    valueExtractor.applyAsDouble(a.getValue())))
+                    value.applyAsDouble(b.getValue()), value.applyAsDouble(a.getValue())))
         .limit(limit)
         .toList();
   }
 
-  /**
-   * Checks if statistics exist for a player.
-   *
-   * @param uuid the player's UUID
-   * @return true if the player has statistics
-   */
-  public boolean hasStats(UUID uuid) {
-    return playerStats.containsKey(uuid);
+  public void save() {
+    if (!dirty) {
+      return;
+    }
+    YamlConfiguration yaml = new YamlConfiguration();
+    stats.forEach(
+        (id, s) -> {
+          String key = id.toString();
+          yaml.set(key + ".name", s.name);
+          yaml.set(key + ".highestCombo", s.highestCombo);
+          yaml.set(key + ".totalDamageDealt", s.totalDamage);
+          yaml.set(key + ".totalHits", s.hits);
+          yaml.set(key + ".rewardsClaimed", s.rewardsClaimed);
+          yaml.set(key + ".kills", s.kills);
+          yaml.set(key + ".xp", s.xp);
+        });
+    try {
+      yaml.save(file);
+      dirty = false;
+    } catch (IOException e) {
+      plugin.getSLF4JLogger().error("Could not save {}", file.getName(), e);
+    }
   }
 }

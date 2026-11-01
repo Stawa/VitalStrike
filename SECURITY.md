@@ -12,7 +12,7 @@ Please include:
 
 - A detailed description of the vulnerability
 - Steps to reproduce the issue
-- Your server version (e.g., Paper 1.21.4)
+- Your server version (e.g., Paper 26.3)
 - VitalStrike version you're using
 - Any relevant configuration settings
 - Proof of concept (if possible)

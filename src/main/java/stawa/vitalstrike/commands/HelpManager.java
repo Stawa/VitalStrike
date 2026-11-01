@@ -1,125 +1,76 @@
 package stawa.vitalstrike.commands;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.Set;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import stawa.vitalstrike.Text;
 import stawa.vitalstrike.VitalStrike;
 
-/** Manages help menu functionality for VitalStrike plugin. */
-public class HelpManager {
-  private FileConfiguration config;
-  private File helpFile;
-  private final VitalStrike plugin;
+/** Renders the help menu and help sections defined in {@code help.yml}. */
+public final class HelpManager {
+  private static final String RULE =
+      "<dark_gray><strikethrough>                    </strikethrough>";
 
-  /**
-   * Constructs a new HelpManager.
-   *
-   * @param plugin the VitalStrike plugin instance
-   */
+  private final VitalStrike plugin;
+  private YamlConfiguration help;
+
   public HelpManager(VitalStrike plugin) {
     this.plugin = plugin;
-    loadConfig();
+    reload();
   }
 
-  /** Reloads the help configuration from the file. */
-  public void reloadConfig() {
-    loadConfig();
-  }
-
-  private void loadConfig() {
-    helpFile = new File(plugin.getDataFolder(), "help.yml");
-    if (!helpFile.exists()) {
+  public void reload() {
+    File file = new File(plugin.getDataFolder(), "help.yml");
+    if (!file.exists()) {
       plugin.saveResource("help.yml", false);
     }
-    config = YamlConfiguration.loadConfiguration(helpFile);
+    help = YamlConfiguration.loadConfiguration(file);
   }
 
-  /**
-   * Gets the available help sections.
-   *
-   * @return set of section names
-   */
-  public Set<String> getHelpSections() {
-    ConfigurationSection sections = config.getConfigurationSection("help-menu.sections");
-    if (sections != null) {
-      return sections.getKeys(false);
-    }
-    return Collections.emptySet();
+  public Set<String> sections() {
+    ConfigurationSection sections = help.getConfigurationSection("help-menu.sections");
+    return sections == null ? Set.of() : sections.getKeys(false);
   }
 
-  /**
-   * Sends the help menu to the sender.
-   *
-   * @param sender the command sender
-   */
-  public void sendHelpMenu(CommandSender sender) {
-    String header =
-        config.getString(
-            "help-menu.header", "<dark_gray><strikethrough>                    </strikethrough>");
-    String title =
-        config.getString("help-menu.title", "<gold><bold>VitalStrike Commands</bold></gold>");
-    String footer =
-        config.getString(
-            "help-menu.footer", "<dark_gray><strikethrough>                    </strikethrough>");
-
-    sender.sendMessage(MiniMessage.miniMessage().deserialize(header));
-    sender.sendMessage(MiniMessage.miniMessage().deserialize(title));
-
-    ConfigurationSection commandsSection = config.getConfigurationSection("help-menu.commands");
-    if (commandsSection != null) {
-      for (String key : commandsSection.getKeys(false)) {
-        if (key.equals("help")
-            || sender.hasPermission("vitalstrike." + key)
-            || sender.hasPermission("vitalstrike.admin")) {
-          String command = commandsSection.getString(key + ".command");
-          String description = commandsSection.getString(key + ".description");
-
-          if (command != null && description != null) {
-            sender.sendMessage(
-                MiniMessage.miniMessage()
-                    .deserialize("<yellow>" + command + " <gray>- " + description));
-          }
+  public void sendMenu(CommandSender sender) {
+    sender.sendMessage(Text.parse(help.getString("help-menu.header", RULE)));
+    sender.sendMessage(
+        Text.parse(
+            help.getString("help-menu.title", "<gold><bold>VitalStrike Commands</bold></gold>")));
+    ConfigurationSection commands = help.getConfigurationSection("help-menu.commands");
+    if (commands != null) {
+      for (String key : commands.getKeys(false)) {
+        String permission = commands.getString(key + ".permission");
+        String usage = commands.getString(key + ".command");
+        String description = commands.getString(key + ".description");
+        if (usage != null
+            && description != null
+            && (permission == null || sender.hasPermission(permission))) {
+          sender.sendMessage(Text.parse("<yellow>" + usage + " <gray>- " + description));
         }
       }
     }
-
-    sender.sendMessage(MiniMessage.miniMessage().deserialize(footer));
+    sender.sendMessage(Text.parse(help.getString("help-menu.footer", RULE)));
   }
 
-  /**
-   * Sends a specific help section to the sender.
-   *
-   * @param sender the command sender
-   * @param section the help section to display
-   */
-  public void sendHelpSection(CommandSender sender, String section) {
-    String sectionPath = "help-menu.sections." + section.toLowerCase();
-
-    if (!config.contains(sectionPath)) {
-      sender.sendMessage(
-          MiniMessage.miniMessage().deserialize("<red>Help section not found: " + section));
+  public void sendSection(CommandSender sender, String section) {
+    String path = "help-menu.sections." + section.toLowerCase();
+    ConfigurationSection content = help.getConfigurationSection(path + ".content");
+    if (!help.contains(path)) {
+      sender.sendMessage(Text.parse("<red>Help section not found: " + section));
       return;
     }
-
-    sender.sendMessage(MiniMessage.miniMessage().deserialize(config.getString("help-menu.header")));
-
-    String title =
-        config.getString(sectionPath + ".title", "<gold><bold>" + section + " Help</bold></gold>");
-    sender.sendMessage(MiniMessage.miniMessage().deserialize(title));
-
-    ConfigurationSection contentSection = config.getConfigurationSection(sectionPath + ".content");
-    if (contentSection != null) {
-      for (String key : contentSection.getKeys(false)) {
-        String content = contentSection.getString(key, "");
-        sender.sendMessage(MiniMessage.miniMessage().deserialize(content));
+    sender.sendMessage(Text.parse(help.getString("help-menu.header", RULE)));
+    sender.sendMessage(
+        Text.parse(
+            help.getString(path + ".title", "<gold><bold>" + section + " Help</bold></gold>")));
+    if (content != null) {
+      for (String key : content.getKeys(false)) {
+        sender.sendMessage(Text.parse(content.getString(key, "")));
       }
     }
-
-    sender.sendMessage(MiniMessage.miniMessage().deserialize(config.getString("help-menu.footer")));
+    sender.sendMessage(Text.parse(help.getString("help-menu.footer", RULE)));
   }
 }
