@@ -1,10 +1,7 @@
 stawa.vitalstrike
 stawa.vitalstrike.commands
-stawa.vitalstrike.commands.handlers
-stawa.vitalstrike.config
 stawa.vitalstrike.items
 stawa.vitalstrike.listeners
-stawa.vitalstrike.logger
 stawa.vitalstrike.resources
 stawa.vitalstrike.systems
 stawa.vitalstrike.utils
