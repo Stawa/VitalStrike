@@ -8,7 +8,7 @@ import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
-/** Per-world and per-dimension switches and damage multipliers from {@code world-settings}. */
+/** Per-world, per-dimension switches and damage multipliers from {@code world-settings}. */
 public final class WorldRules {
   private record Dimension(boolean enabled, double multiplier) {}
 
@@ -17,21 +17,27 @@ public final class WorldRules {
   private boolean perWorld;
   private final Set<String> disabledWorlds = new HashSet<>();
   private final Map<String, Dimension> dimensions = new HashMap<>();
+  private final Map<String, Dimension> worlds = new HashMap<>();
 
   public void reload(FileConfiguration config) {
     perWorld = config.getBoolean("world-settings.enabled");
     disabledWorlds.clear();
     disabledWorlds.addAll(config.getStringList("world-settings.disabled-worlds"));
-    dimensions.clear();
-    ConfigurationSection section = config.getConfigurationSection("world-settings.dimensions");
-    if (section != null) {
-      for (String name : section.getKeys(false)) {
-        dimensions.put(
-            name,
-            new Dimension(
-                section.getBoolean(name + ".enabled", true),
-                section.getDouble(name + ".damage-multiplier", 1.0)));
-      }
+    read(config.getConfigurationSection("world-settings.dimensions"), dimensions);
+    read(config.getConfigurationSection("world-settings.worlds"), worlds);
+  }
+
+  private static void read(ConfigurationSection section, Map<String, Dimension> into) {
+    into.clear();
+    if (section == null) {
+      return;
+    }
+    for (String name : section.getKeys(false)) {
+      into.put(
+          name,
+          new Dimension(
+              section.getBoolean(name + ".enabled", true),
+              section.getDouble(name + ".damage-multiplier", 1.0)));
     }
   }
 
@@ -44,7 +50,12 @@ public final class WorldRules {
     return perWorld ? dimension(world).multiplier() : 1.0;
   }
 
+  /** A world listed under {@code worlds} by its name wins over its dimension's settings. */
   private Dimension dimension(World world) {
+    Dimension named = worlds.get(world.getName());
+    if (named != null) {
+      return named;
+    }
     String name =
         switch (world.getEnvironment()) {
           case NETHER -> "nether";

@@ -19,7 +19,10 @@ import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Transformation;
+import org.bukkit.util.Vector;
 import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 import stawa.vitalstrike.Lookup;
@@ -33,6 +36,12 @@ public final class DamageIndicatorManager {
   private static final double VIEW_RADIUS = 48;
   private static final int PULSE_TICKS = 5;
 
+  // Mobs at least this wide or tall (dragon, ghast, ravager, wither, big slimes) get their text
+  // on the side the attacker is looking at, scaled up, instead of above their centre.
+  private static final double LARGE_WIDTH = 1.9;
+  private static final double LARGE_HEIGHT = 3.0;
+  private static final float MAX_SIZE_SCALE = 2.5f;
+
   private record Group(String permission, boolean useSimple, Map<String, String> formats) {}
 
   private record Slot(UUID victim, UUID source, boolean heal) {}
@@ -40,6 +49,7 @@ public final class DamageIndicatorManager {
   private static final class Indicator {
     final Slot slot;
     final LivingEntity victim;
+    final Player focus;
     final TextDisplay display;
     final double jitterX;
     final double jitterZ;
@@ -51,13 +61,16 @@ public final class DamageIndicatorManager {
     int tick;
     int pulse;
     float appliedScale = -1;
+    float sizeScale = 1f;
+    float appliedSize = 1f;
     double anchorX;
     double anchorY;
     double anchorZ;
 
-    Indicator(Slot slot, LivingEntity victim, TextDisplay display, double jitter) {
+    Indicator(Slot slot, LivingEntity victim, Player focus, TextDisplay display, double jitter) {
       this.slot = slot;
       this.victim = victim;
+      this.focus = focus;
       this.display = display;
       this.jitterX = (Math.random() - 0.5) * jitter;
       this.jitterZ = (Math.random() - 0.5) * jitter;
@@ -273,7 +286,7 @@ public final class DamageIndicatorManager {
       existing.display.remove();
     }
 
-    Indicator indicator = spawn(slot, victim, render(format, amount));
+    Indicator indicator = spawn(slot, victim, attacker, render(format, amount));
     indicator.total = amount;
     indicator.lastHit = now;
   }
@@ -282,14 +295,15 @@ public final class DamageIndicatorManager {
   public void showKill(LivingEntity victim, Component text) {
     if (isEligible(victim)) {
       Indicator indicator =
-          spawn(new Slot(victim.getUniqueId(), UUID.randomUUID(), false), victim, text);
+          spawn(new Slot(victim.getUniqueId(), UUID.randomUUID(), false), victim, null, text);
       indicator.lift = 0.6;
       indicator.pulse = PULSE_TICKS;
     }
   }
 
-  private Indicator spawn(Slot slot, LivingEntity victim, Component text) {
-    Indicator indicator = new Indicator(slot, victim, spawnDisplay(victim, text), randomOffset);
+  private Indicator spawn(Slot slot, LivingEntity victim, Player focus, Component text) {
+    Indicator indicator =
+        new Indicator(slot, victim, focus, spawnDisplay(victim, text), randomOffset);
     active.put(slot, indicator);
     place(indicator);
     if (ticker == null) {
@@ -364,6 +378,7 @@ public final class DamageIndicatorManager {
     }
     place(i);
 
+    float sizeScale = i.sizeScale;
     float scale = 1f;
     if (i.tick < fadeInTicks) {
       scale = (float) i.tick / fadeInTicks;
@@ -373,9 +388,10 @@ public final class DamageIndicatorManager {
     if (i.pulse > 0) {
       scale *= 1f + 0.3f * i.pulse-- / PULSE_TICKS;
     }
-    if (scale != i.appliedScale) {
-      i.display.setTransformation(scale(scale));
+    if (scale != i.appliedScale || sizeScale != i.appliedSize) {
+      i.display.setTransformation(scale(scale * sizeScale));
       i.appliedScale = scale;
+      i.appliedSize = sizeScale;
     }
     i.tick++;
     return false;
@@ -383,10 +399,18 @@ public final class DamageIndicatorManager {
 
   private void place(Indicator i) {
     if (i.victim.isValid()) {
-      var box = i.victim.getBoundingBox();
-      i.anchorX = box.getCenterX();
-      i.anchorY = box.getMaxY() + 0.5;
-      i.anchorZ = box.getCenterZ();
+      BoundingBox box = i.victim.getBoundingBox();
+      double width = Math.max(box.getWidthX(), box.getWidthZ());
+      if (width >= LARGE_WIDTH || box.getHeight() >= LARGE_HEIGHT) {
+        double size = Math.max(width, box.getHeight());
+        i.sizeScale = (float) Math.min(MAX_SIZE_SCALE, Math.max(1, Math.sqrt(size / 1.5)));
+        if (!anchorTowardViewer(i, box)) {
+          anchorOnTop(i, box);
+        }
+      } else {
+        i.sizeScale = 1f;
+        anchorOnTop(i, box);
+      }
     }
     double sway = Math.sin(i.tick / 20.0 * Math.PI) * floatCurve;
     double travel = floatSpeed * i.tick;
@@ -396,6 +420,66 @@ public final class DamageIndicatorManager {
         i.anchorY + offsetY + i.lift + dirY * travel,
         i.anchorZ + i.jitterZ + dirZ * travel + i.swayZ * sway);
     i.display.teleport(to);
+  }
+
+  private static void anchorOnTop(Indicator i, BoundingBox box) {
+    i.anchorX = box.getCenterX();
+    i.anchorY = box.getMaxY() + 0.5;
+    i.anchorZ = box.getCenterZ();
+  }
+
+  /**
+   * Puts the indicator on the surface of a large mob, on the line from the viewer's eyes to the
+   * mob, so it appears where they are looking. Returns false when there is no viewer to face.
+   */
+  private boolean anchorTowardViewer(Indicator i, BoundingBox box) {
+    Player viewer = viewerFor(i);
+    if (viewer == null) {
+      return false;
+    }
+    Location eye = viewer.getEyeLocation();
+    Vector from = eye.toVector();
+    Vector center = box.getCenter();
+    double distance = center.distance(from);
+    Vector at;
+    if (distance < 1e-3 || box.contains(from)) {
+      // Standing inside the hitbox (dragon): float the text a little ahead of the viewer.
+      at = from.clone().add(eye.getDirection().multiply(2.5));
+    } else {
+      Vector direction = center.clone().subtract(from).multiply(1 / distance);
+      RayTraceResult hit = box.rayTrace(from, direction, distance);
+      if (hit == null) {
+        return false;
+      }
+      at = hit.getHitPosition().subtract(direction.multiply(0.4));
+    }
+    i.anchorX = at.getX();
+    i.anchorY = at.getY() + 0.3;
+    i.anchorZ = at.getZ();
+    return true;
+  }
+
+  /** The attacker if still around, otherwise the nearest player who can see indicators. */
+  private Player viewerFor(Indicator i) {
+    Location at = i.victim.getLocation();
+    double max = VIEW_RADIUS * VIEW_RADIUS;
+    Player focus = i.focus;
+    if (focus != null
+        && focus.isOnline()
+        && focus.getWorld().equals(at.getWorld())
+        && focus.getLocation().distanceSquared(at) <= max) {
+      return focus;
+    }
+    Player nearest = null;
+    double best = max;
+    for (Player candidate : at.getWorld().getNearbyPlayers(at, VIEW_RADIUS)) {
+      double d = candidate.getLocation().distanceSquared(at);
+      if (d < best && players.isEnabled(candidate)) {
+        best = d;
+        nearest = candidate;
+      }
+    }
+    return nearest;
   }
 
   /** Removes every live indicator, e.g. on disable or reload. */

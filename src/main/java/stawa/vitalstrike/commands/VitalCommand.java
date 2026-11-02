@@ -23,20 +23,28 @@ public final class VitalCommand implements TabExecutor {
   private record Board(String key, ToDoubleFunction<PlayerStats.Stats> value, boolean whole) {}
 
   private static final Map<String, String> ALIASES =
-      Map.of("lb", "leaderboard", "va", "vitalawakening", "rp", "resourcepack");
+      Map.of(
+          "lb", "top",
+          "leaderboard", "top",
+          "va", "give",
+          "vitalawakening", "give",
+          "rp", "pack",
+          "resourcepack", "pack",
+          "hologram", "holo");
 
   private static final Map<String, String> PERMISSIONS =
-      Map.of(
-          "toggle", "vitalstrike.toggle",
-          "hologram", "vitalstrike.hologram",
-          "stats", "vitalstrike.stats",
-          "leaderboard", "vitalstrike.leaderboard",
-          "resourcepack", "vitalstrike.resourcepack",
-          "reload", "vitalstrike.reload",
-          "clear", "vitalstrike.clear",
-          "revive", "vitalstrike.revive",
-          "vitalawakening", "vitalstrike.give",
-          "perm", "vitalstrike.admin.permissions");
+      Map.ofEntries(
+          Map.entry("toggle", "vitalstrike.toggle"),
+          Map.entry("holo", "vitalstrike.hologram"),
+          Map.entry("stats", "vitalstrike.stats"),
+          Map.entry("top", "vitalstrike.leaderboard"),
+          Map.entry("pack", "vitalstrike.resourcepack"),
+          Map.entry("reload", "vitalstrike.reload"),
+          Map.entry("clear", "vitalstrike.clear"),
+          Map.entry("revive", "vitalstrike.revive"),
+          Map.entry("give", "vitalstrike.give"),
+          Map.entry("perm", "vitalstrike.admin.permissions"),
+          Map.entry("config", "vitalstrike.admin.config"));
 
   private static final Map<String, Board> BOARDS =
       Map.of(
@@ -77,10 +85,10 @@ public final class VitalCommand implements TabExecutor {
     } else {
       switch (sub) {
         case "toggle" -> toggle(sender, args, false);
-        case "hologram" -> toggle(sender, args, true);
+        case "holo" -> toggle(sender, args, true);
         case "stats" -> stats(sender, args);
-        case "leaderboard" -> leaderboard(sender, args);
-        case "resourcepack" -> withPlayer(sender, p -> plugin.getResourcePacks().send(p));
+        case "top" -> leaderboard(sender, args);
+        case "pack" -> withPlayer(sender, p -> plugin.getResourcePacks().send(p));
         case "reload" -> reload(sender);
         case "clear" -> {
           int strays = plugin.clearText();
@@ -90,7 +98,8 @@ public final class VitalCommand implements TabExecutor {
                       + (strays > 0 ? " <gray>(" + strays + " stray removed)" : "")));
         }
         case "revive" -> revive(sender, args);
-        case "vitalawakening" -> giveAwakening(sender, args);
+        case "give" -> giveAwakening(sender, args);
+        case "config" -> webConfig(sender, args);
         default -> permissions(sender, args);
       }
     }
@@ -240,6 +249,16 @@ public final class VitalCommand implements TabExecutor {
     }
   }
 
+  private void webConfig(CommandSender sender, String[] args) {
+    if (args.length == 1) {
+      plugin.getWebEditor().start(sender);
+    } else if (args[1].equalsIgnoreCase("apply") && args.length == 3) {
+      plugin.getWebEditor().apply(sender, args[2]);
+    } else {
+      sender.sendMessage(Text.parse("<red>Usage: /vs config [apply <code>]"));
+    }
+  }
+
   private void giveAwakening(CommandSender sender, String[] args) {
     int amount = 1;
     if (args.length > 1) {
@@ -331,18 +350,19 @@ public final class VitalCommand implements TabExecutor {
     } else if (args.length == 2) {
       switch (ALIASES.getOrDefault(
           args[0].toLowerCase(Locale.ROOT), args[0].toLowerCase(Locale.ROOT))) {
-        case "toggle", "hologram" -> options.addAll(List.of("on", "off"));
-        case "leaderboard" -> options.addAll(List.of("damage", "combo", "average"));
+        case "toggle", "holo" -> options.addAll(List.of("on", "off"));
+        case "top" -> options.addAll(List.of("damage", "combo", "average"));
         case "perm" -> options.addAll(List.of("add", "remove", "list"));
+        case "config" -> options.add("apply");
         case "help" -> options.addAll(help.sections());
-        case "vitalawakening" -> options.addAll(List.of("1", "8", "16", "64"));
+        case "give" -> options.addAll(List.of("1", "8", "16", "64"));
         case "stats", "revive" -> Bukkit.getOnlinePlayers().forEach(p -> options.add(p.getName()));
         default -> {}
       }
     } else if (args.length == 3 && args[0].equalsIgnoreCase("perm")) {
       Bukkit.getOnlinePlayers().forEach(p -> options.add(p.getName()));
     } else if (args.length == 3
-        && ALIASES.getOrDefault(args[0].toLowerCase(Locale.ROOT), "").equals("vitalawakening")) {
+        && ALIASES.getOrDefault(args[0].toLowerCase(Locale.ROOT), "").equals("give")) {
       Bukkit.getOnlinePlayers().forEach(p -> options.add(p.getName()));
     }
     String typed = args[args.length - 1].toLowerCase(Locale.ROOT);

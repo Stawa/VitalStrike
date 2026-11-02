@@ -11,7 +11,7 @@ VitalStrike makes combat on a Paper server easier to read and more rewarding. Hi
 Every feature can be turned off or restyled in `config.yml`.
 
 > [!IMPORTANT]
-> 1.5.0 needs **Paper 26.1+ and Java 25**. Servers still on 1.21.x should stay on VitalStrike 1.4.0.
+> 2.0.0 needs **Paper 26.1+ and Java 25**. Servers still on 1.21.x should stay on VitalStrike 1.4.0.
 >
 > Upgrading keeps your `config.yml`. Options you don't have yet use the bundled defaults, so new features are on
 > after the update. Delete the file only if you want the new defaults and comments back.
@@ -44,21 +44,22 @@ Everything is configurable and can be switched off in `config.yml`. Per-group da
 
 ## Commands
 
-The command is `/vitalstrike`, or `/vs` for short. Shortcuts: `lb` (leaderboard), `va` (vitalawakening), `rp` (resourcepack).
+The command is `/vitalstrike`, or `/vs` for short. Short names: `top`, `holo`, `give`, `pack`. The older names (`leaderboard`, `hologram`, `vitalawakening`, `resourcepack`, `lb`, `va`, `rp`) still work.
 
 | Command                      | Permission                      | What it does                                   |
 | :--------------------------- | :------------------------------ | :--------------------------------------------- |
 | `/vs help [section]`         | `vitalstrike.use`               | Shows the help menu.                           |
 | `/vs toggle [on/off]`        | `vitalstrike.toggle`            | Turns your own indicators on or off.           |
-| `/vs hologram [on/off]`      | `vitalstrike.hologram`          | Turns your combo hologram on or off.           |
+| `/vs holo [on/off]`          | `vitalstrike.hologram`          | Turns your combo hologram on or off.           |
 | `/vs stats [player]`         | `vitalstrike.stats`             | Shows level, kills and combat stats.           |
-| `/vs leaderboard [type]`     | `vitalstrike.leaderboard`       | Shows the `damage`, `combo` or `average` top.  |
-| `/vs resourcepack`           | `vitalstrike.resourcepack`      | Loads the optional resource pack.              |
+| `/vs top [type]`             | `vitalstrike.leaderboard`       | Shows the `damage`, `combo` or `average` top.  |
+| `/vs pack`                   | `vitalstrike.resourcepack`      | Loads the optional resource pack.              |
 | `/vs reload`                 | `vitalstrike.reload`            | Reloads the config and clears floating text.   |
 | `/vs clear`                  | `vitalstrike.clear`             | Removes all floating text, including strays.   |
 | `/vs revive <player>`        | `vitalstrike.revive`            | Revives a downed player.                       |
-| `/vs vitalawakening [n] [p]` | `vitalstrike.give`              | Gives Vital Awakening items.                   |
+| `/vs give [n] [p]`           | `vitalstrike.give`              | Gives Vital Awakening items.                   |
 | `/vs perm <action> <player>` | `vitalstrike.admin.permissions` | Manages stored group permissions.              |
+| `/vs config [apply <code>]`  | `vitalstrike.admin.config`      | Edits the config in your browser (web editor). |
 
 Admin permissions (`reload`, `clear`, `give`, `revive`, `admin.permissions`) default to operators. `vitalstrike.admin` grants all of them.
 

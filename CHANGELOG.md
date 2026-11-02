@@ -2,8 +2,16 @@
 
 All notable changes to VitalStrike will be documented in this file.
 
-## [1.5.0] - Unreleased
-Platform update and a broad bug-fix pass. Requires **Paper 26.1+ and Java 25**.
+## [2.0.0] - Unreleased
+Platform update, a web config editor and a broad bug-fix pass. Requires **Paper 26.1+ and Java 25**.
+
+### Breaking changes
+- Requires Paper 26.1+ and Java 25. Servers on 1.21.x should stay on 1.4.0.
+- The WorldGuard dependency and the `respect-worldguard-pvp` option are removed.
+- Rewards are one-time milestones instead of re-farmable (see Changed).
+- `knockdown-system.vital-awakening.item-model` is replaced by `custom-model-data`. Existing Vital Awakening items are migrated automatically.
+- Config paths that were silently ignored before now take effect (see Fixed): custom damage formats, merge settings, combo hologram settings and sound volume/pitch. Check them after upgrading.
+- Canonical command names are now `give`, `pack`, `top` and `holo`. The old names and shortcuts still work.
 
 ### Changed
 - Built against Paper API 26.3 with Java 25; Gradle 9.8; CI actions updated.
@@ -14,15 +22,23 @@ Platform update and a broad bug-fix pass. Requires **Paper 26.1+ and Java 25**.
 - All settings are re-read on `/vs reload` (knockdown and combo values used to need a restart).
 - Commands consolidated into one class; `/vs perm` now only manages stored group grants and works for offline players.
 - The resource pack is hashed off the main thread and its URL is configurable (`resource-pack.url`).
+- The resource pack hash is refreshed every 10 minutes and after a failed load, so a republished pack no longer fails with a stale SHA-1 until the next restart.
+- VitalAwakening pack now declares formats 46-97 (1.21.4 through 26.3), and its CI builds a reproducible, validated zip.
 
 ### Added
+- `/vs config` web editor: edit the config in your browser, then `/vs config apply <code>`. Runs through the relay on the VitalStrike website (`web-editor` config section).
+- Looping reward tiers: `rewards.loop.enabled` repeats the tiers after the last one, each lap needing `rewards.loop.cycle-damage` more damage (default: the last tier's damage).
+- Per-world settings: `world-settings.worlds` lets you give any world, by name, its own on/off switch and damage multiplier. They win over the dimension settings.
+- The web editor edits reward tiers (damage, XP and items per tier) and custom worlds directly.
+- Shorter commands: `/vs give`, `/vs pack`, `/vs top`, `/vs holo`. The old names still work.
 - Heal indicators (`display.show-heals`), using the existing `heal` format.
 - Real critical-hit detection (the `critical` format and sound were previously a 20% dice roll).
 - Bow/trident/other projectile hits are credited to the shooter for combos, stats and per-group formats.
 - `/vs revive <player>`, `/vs stats [player]`, and `/vs va [amount] [player]`.
-- Downed players crawl, cannot attack, place, drop, interact or walk, and mobs stop targeting them.
+- Downed players crawl, cannot attack, place, drop, interact or walk, and mobs stop targeting them. Mobs that were after the player, or hit them, are calmed down when they are revived (wolves, bees and zombified piglins lose their anger; others lose their target).
+- Damage numbers on large mobs (ender dragon, ghast, ravager, wither, big slimes) appear on the side the attacker is looking at and scale up with the mob, instead of above its centre.
 - Update notice for players with `vitalstrike.update-notify`.
-- `knockdown-system.vital-awakening.item-model` to disable the resource-pack item model.
+- `knockdown-system.vital-awakening.custom-model-data` (replaces `item-model`): the item is tagged with custom model data instead of a custom item model, so players without the resource pack see a normal totem rather than a missing-model cube. Totems from older versions (legacy model, or untagged) are migrated automatically when their holder joins, picks them up or opens a container.
 
 ### Fixed
 - Config paths that never matched: custom damage formats (`simple-damage-formats`), merge settings (`display.merge`), combo hologram settings (`combo.hologram`) and sound volume/pitch were silently ignored.

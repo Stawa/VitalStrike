@@ -48,6 +48,9 @@ permissions:
   vitalstrike.admin.permissions:
     description: Manage stored group permissions with /vs perm
     default: op
+  vitalstrike.admin.config:
+    description: Edit the config from the web with /vs config
+    default: op
   vitalstrike.update-notify:
     description: Get told about new releases when joining
     default: op
@@ -60,4 +63,5 @@ permissions:
       vitalstrike.give: true
       vitalstrike.revive: true
       vitalstrike.admin.permissions: true
+      vitalstrike.admin.config: true
       vitalstrike.update-notify: true

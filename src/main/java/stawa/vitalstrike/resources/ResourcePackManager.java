@@ -25,6 +25,9 @@ public final class ResourcePackManager implements Listener {
   private final Set<UUID> loaded = new HashSet<>();
   private String url = "";
   private CompletableFuture<ResourcePackInfo> pack;
+  private long packBuiltAt;
+
+  private static final long HASH_TTL_MS = 10 * 60 * 1000L;
 
   public ResourcePackManager(VitalStrike plugin) {
     this.plugin = plugin;
@@ -39,7 +42,12 @@ public final class ResourcePackManager implements Listener {
   }
 
   private CompletableFuture<ResourcePackInfo> pack() {
-    if (pack == null || pack.isCompletedExceptionally()) {
+    // The hash is only valid for the zip it was computed from; the pack is republished whenever
+    // it changes, so recompute it periodically instead of caching it until the next restart.
+    if (pack == null
+        || pack.isCompletedExceptionally()
+        || System.currentTimeMillis() - packBuiltAt > HASH_TTL_MS) {
+      packBuiltAt = System.currentTimeMillis();
       pack =
           ResourcePackInfo.resourcePackInfo()
               .id(UUID.nameUUIDFromBytes(url.getBytes()))
@@ -119,11 +127,14 @@ public final class ResourcePackManager implements Listener {
       case DECLINED ->
           player.sendMessage(
               Text.parse(
-                  "<yellow>You can load the resource pack later with <white>/vs resourcepack</white>"));
-      case FAILED_DOWNLOAD, INVALID_URL, FAILED_RELOAD, DISCARDED ->
-          player.sendMessage(
-              Text.parse(
-                  "<yellow>The resource pack could not be loaded; some items may look wrong."));
+                  "<yellow>You can load the resource pack later with <white>/vs pack</white>"));
+      case FAILED_DOWNLOAD, INVALID_URL, FAILED_RELOAD, DISCARDED -> {
+        // Most often a stale SHA-1 after the pack was republished: rehash for the next attempt.
+        pack = null;
+        player.sendMessage(
+            Text.parse(
+                "<yellow>The resource pack could not be loaded; try <white>/vs pack</white> again."));
+      }
       default -> {}
     }
   }

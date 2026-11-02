@@ -21,11 +21,11 @@ help-menu:
       permission: "vitalstrike.stats"
       description: "View your combat statistics"
     leaderboard:
-      command: "/vs lb [damage|combo|average]"
+      command: "/vs top [damage|combo|average]"
       permission: "vitalstrike.leaderboard"
       description: "View the damage leaderboards"
     hologram:
-      command: "/vs hologram [on|off]"
+      command: "/vs holo [on|off]"
       permission: "vitalstrike.hologram"
       description: "Toggle combo holograms on or off"
     permissions:
@@ -36,15 +36,19 @@ help-menu:
       command: "/vs help [section]"
       description: "Show this help menu or a specific section"
     vitalawakening:
-      command: "/vs vitalawakening [amount] [player]"
+      command: "/vs give [amount] [player]"
       permission: "vitalstrike.give"
       description: "Get Vital Awakening revival items"
     revive:
       command: "/vs revive <player>"
       permission: "vitalstrike.revive"
       description: "Force-revive a downed player"
+    config:
+      command: "/vs config [apply <code>]"
+      permission: "vitalstrike.admin.config"
+      description: "Edit the config in your browser"
     resourcepack:
-      command: "/vs resourcepack"
+      command: "/vs pack"
       permission: "vitalstrike.resourcepack"
       description: "Load the custom resource pack"
   sections:

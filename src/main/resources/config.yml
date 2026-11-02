@@ -197,6 +197,15 @@ world-settings:
       # 1.1 = 110% (10% more damage)
       damage-multiplier: 1.1
 
+  # Settings for individual worlds by their name (the world folder's name). These win over the
+  # dimension settings above, so a world named "arena" can have its own multiplier. Add or
+  # remove worlds here, or in the web editor with /vs config. Example:
+  #   worlds:
+  #     arena:
+  #       enabled: true
+  #       damage-multiplier: 2.0
+  worlds: {}
+
 # Settings for the combo tracking and display system.
 combo:
   # Enable the combo system.
@@ -360,9 +369,10 @@ knockdown-system:
     # Time (in seconds) to use the item.
     use-duration: 4.0
 
-    # Item model of the Vital Awakening totem. "template:vs" comes from the optional resource
-    # pack; leave empty ("") to keep the plain totem look if you do not use the pack.
-    item-model: "template:vs"
+    # Custom model data string on the Vital Awakening totem. The optional resource pack swaps
+    # in the serum model for totems carrying "vital_awakening"; players without the pack just
+    # see a normal totem. Leave empty ("") to never tag the item.
+    custom-model-data: "vital_awakening"
 
   # Visual and Audio Effects for Knockdown/Revival.
   effects:
@@ -437,7 +447,8 @@ levels:
     subtitle: "<yellow>You reached level <white>%level%"
     sound: "ui.toast.challenge_complete"
 
-# One-time milestone rewards for lifetime damage dealt. Each tier is paid out once per player.
+# Milestone rewards for lifetime damage dealt. Each tier is paid out once per player
+# (or once per lap if looping is on, see "loop" below).
 # Keep tiers in the same order if you edit them later: progress is stored as "tiers claimed".
 rewards:
   # Enable the reward system.
@@ -462,6 +473,17 @@ rewards:
       items:
         - material: "NETHERITE_SCRAP"
           amount: 1
+
+  # Loop the tiers. After the last tier the list starts over, and each lap needs more damage.
+  # Example with tiers at 50, 100 and 150 damage: tier 1 again at 200, tier 2 at 250,
+  # tier 3 at 300, then tier 1 at 350, and so on. Players who already claimed every tier
+  # carry on from the next lap.
+  loop:
+    # Repeat the tiers instead of stopping after the last one?
+    enabled: false
+
+    # Extra damage each lap needs. 0 uses the last tier's damage (150 in the example above).
+    cycle-damage: 0.0
 
 # Leaderboard Display Settings.
 leaderboard:
@@ -490,7 +512,7 @@ leaderboard:
 # Resource Pack Settings (Optional)
 resource-pack:
   # Where the pack is downloaded from. Its SHA-1 is computed automatically.
-  url: "https://github.com/Stawa/VitalAwakening/raw/refs/heads/main/output/VitalAwakening_1.5.0-SNAPSHOT.zip"
+  url: "https://github.com/Stawa/VitalAwakening/raw/refs/heads/main/output/VitalAwakening_2.0.0-SNAPSHOT.zip"
 
   # Automatically send the resource pack on join?
   auto-send: false
@@ -498,7 +520,17 @@ resource-pack:
   # Hint message settings.
   hint:
     enabled: true
-    message: "<yellow>You can use <click:suggest_command:/vs resourcepack>/vs resourcepack</click> or <click:suggest_command:/vs rp>/vs rp</click> to load the resource pack!"
+    message: "<yellow>You can use <click:suggest_command:/vs pack>/vs pack</click> or <click:suggest_command:/vs rp>/vs rp</click> to load the resource pack!"
+
+# Web Editor (/vs config)
+web-editor:
+  # Relay that carries your edits between the web page and the server (it runs on the
+  # VitalStrike website). Only the setting names, values and comments in this file are sent.
+  # Leave empty to disable /vs config.
+  api: "https://vitalstrike.vercel.app/api"
+
+  # The editor page that /vs config links to.
+  url: "https://vitalstrike.vercel.app/config-editor"
 
 # General Plugin Messages
 messages:

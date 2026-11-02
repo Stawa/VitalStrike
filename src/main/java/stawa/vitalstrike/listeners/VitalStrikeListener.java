@@ -56,6 +56,17 @@ public final class VitalStrikeListener implements Listener {
 
   // --- Damage ----------------------------------------------------------------------------------
 
+  /** The entity behind a hit: the damager itself, or the shooter if it was a projectile. */
+  private static Entity damagerOf(EntityDamageEvent event) {
+    if (!(event instanceof EntityDamageByEntityEvent byEntity)) {
+      return null;
+    }
+    return byEntity.getDamager() instanceof Projectile projectile
+            && projectile.getShooter() instanceof Entity shooter
+        ? shooter
+        : byEntity.getDamager();
+  }
+
   /** Decides the outcome: blocks downed combatants, applies multipliers, and downs lethal hits. */
   @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
   public void onDamage(EntityDamageEvent event) {
@@ -70,6 +81,7 @@ public final class VitalStrikeListener implements Listener {
     boolean saveable = !UNSAVEABLE.contains(event.getCause().name());
     if (event.getEntity() instanceof Player downedCandidate
         && plugin.getKnockdown().isDowned(downedCandidate)) {
+      plugin.getKnockdown().noteAggressor(downedCandidate, damagerOf(event));
       event.setCancelled(saveable);
       return;
     }
@@ -93,7 +105,9 @@ public final class VitalStrikeListener implements Listener {
         && !holdsPlainTotem(player)
         && plugin.getKnockdown().canDown(player)) {
       registerHit(event, victim, attacker);
-      plugin.getKnockdown().down(player);
+      if (plugin.getKnockdown().down(player)) {
+        plugin.getKnockdown().noteAggressor(player, damagerOf(event));
+      }
       event.setCancelled(true);
     }
   }

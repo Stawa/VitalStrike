@@ -1,9 +1,11 @@
 package stawa.vitalstrike.systems;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
@@ -13,8 +15,13 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Bee;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Mob;
+import org.bukkit.entity.PigZombie;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Pose;
+import org.bukkit.entity.Wolf;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -32,11 +39,14 @@ import stawa.vitalstrike.items.CustomItems;
 public final class KnockdownManager {
   private static final String MESSAGES = "knockdown-system.effects.messages.";
   private static final String BARS = "knockdown-system.effects.boss-bar.";
+  private static final double CALM_RADIUS = 32;
 
   private static final class Downed {
     long deadline;
     long lastTick;
     BossBar bar;
+    // Mobs that targeted or hit the player while downed; calmed again when the state ends.
+    final Set<UUID> aggressors = new HashSet<>();
   }
 
   /**
@@ -153,6 +163,7 @@ public final class KnockdownManager {
     player.setPose(Pose.SWIMMING, true);
     applyEffects(player);
     player.showBossBar(d.bar);
+    calmNearby(player, d);
     player.sendMessage(
         Text.parse(message("downed").replace("%time%", String.valueOf(downSeconds))));
 
@@ -197,6 +208,7 @@ public final class KnockdownManager {
         continue;
       }
       applyEffects(player);
+      calmNearby(player, d);
       d.bar.progress(Math.min(1f, (float) left / (downSeconds * 1000f)));
       d.bar.name(downedTitle((left + 999) / 1000));
     }
@@ -209,10 +221,64 @@ public final class KnockdownManager {
   /** Undoes everything the downed state applied to the player. */
   private void release(Player player, Downed d) {
     cancelRevivals(player.getUniqueId());
+    forgive(player, d);
     player.hideBossBar(d.bar);
     player.removePotionEffect(PotionEffectType.SLOWNESS);
     player.removePotionEffect(PotionEffectType.BLINDNESS);
     player.setPose(Pose.STANDING, false);
+  }
+
+  // --- Mobs ------------------------------------------------------------------------------------
+
+  /** Remembers a mob that hit the downed player, so it can be calmed down when they get up. */
+  public void noteAggressor(Player player, Entity source) {
+    Downed d = downed.get(player.getUniqueId());
+    if (d != null && source instanceof Mob mob) {
+      d.aggressors.add(mob.getUniqueId());
+      calm(mob, player);
+    }
+  }
+
+  /** Makes every mob that is chasing the downed player stop, and remembers it. */
+  private void calmNearby(Player player, Downed d) {
+    for (Entity nearby : player.getNearbyEntities(CALM_RADIUS, CALM_RADIUS, CALM_RADIUS)) {
+      if (nearby instanceof Mob mob && player.equals(mob.getTarget())) {
+        d.aggressors.add(mob.getUniqueId());
+      }
+    }
+    for (UUID id : d.aggressors) {
+      if (plugin.getServer().getEntity(id) instanceof Mob mob) {
+        calm(mob, player);
+      }
+    }
+  }
+
+  /** When the downed state ends the mobs that were after the player go back to normal. */
+  private void forgive(Player player, Downed d) {
+    for (UUID id : d.aggressors) {
+      if (plugin.getServer().getEntity(id) instanceof Mob mob) {
+        calm(mob, player);
+      }
+    }
+    d.aggressors.clear();
+  }
+
+  /**
+   * Drops the mob's target if it is the player, and clears its anger where the API allows. Mobs
+   * that only expose a target (iron golem, piglin, enderman) lose their own rage timer by
+   * themselves, since it only runs down while they have no target.
+   */
+  private static void calm(Mob mob, Player player) {
+    if (player.equals(mob.getTarget())) {
+      mob.setTarget(null);
+      mob.getPathfinder().stopPathfinding();
+    }
+    switch (mob) {
+      case Wolf wolf -> wolf.setAngry(false);
+      case Bee bee -> bee.setAnger(0);
+      case PigZombie pigZombie -> pigZombie.setAnger(0);
+      default -> {}
+    }
   }
 
   // --- Reviving --------------------------------------------------------------------------------

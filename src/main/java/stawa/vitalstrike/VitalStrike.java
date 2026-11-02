@@ -15,6 +15,7 @@ import stawa.vitalstrike.systems.DamageIndicatorManager;
 import stawa.vitalstrike.systems.HealthBarManager;
 import stawa.vitalstrike.systems.KnockdownManager;
 import stawa.vitalstrike.utils.UpdateChecker;
+import stawa.vitalstrike.web.WebEditor;
 import stawa.vitalstrike.world.WorldRules;
 
 /**
@@ -38,6 +39,7 @@ public final class VitalStrike extends JavaPlugin {
   private ComboManager combos;
   private KnockdownManager knockdown;
   private ResourcePackManager resourcePacks;
+  private WebEditor webEditor;
   private HelpManager help;
   private boolean enabled;
 
@@ -56,6 +58,7 @@ public final class VitalStrike extends JavaPlugin {
     combos = new ComboManager(this, players, stats);
     knockdown = new KnockdownManager(this, items);
     resourcePacks = new ResourcePackManager(this);
+    webEditor = new WebEditor(this);
     help = new HelpManager(this);
     UpdateChecker updateChecker = new UpdateChecker(this);
     loadSettings();
@@ -63,6 +66,7 @@ public final class VitalStrike extends JavaPlugin {
     var events = getServer().getPluginManager();
     events.registerEvents(new VitalStrikeListener(this), this);
     events.registerEvents(resourcePacks, this);
+    events.registerEvents(items, this);
     events.registerEvents(updateChecker, this);
 
     PluginCommand command = getCommand("vitalstrike");
@@ -180,6 +184,10 @@ public final class VitalStrike extends JavaPlugin {
 
   public KnockdownManager getKnockdown() {
     return knockdown;
+  }
+
+  public WebEditor getWebEditor() {
+    return webEditor;
   }
 
   public ResourcePackManager getResourcePacks() {
