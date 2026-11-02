@@ -1,6 +1,4 @@
 import { useEffect } from "react";
-import "prismjs/themes/prism.css";
-import "prismjs/themes/prism-tomorrow.css";
 
 const customStyles = `
   code[class*="language-"],

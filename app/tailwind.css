@@ -3,50 +3,212 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --navbar-height: 4.25rem;
+  --ground: 247 246 243;
+  --surface: 238 236 232;
+  --raised: 255 255 255;
+  --foreground: 23 26 31;
+  --muted-foreground: 83 91 105;
+  --border: 221 224 229;
+  --code-fg: 38 42 51;
+  --code-comment: 138 143 153;
+  --code-punct: 107 114 128;
+  --code-key: 52 92 150;
+  --code-string: 70 118 62;
+  --code-number: 150 88 56;
+  --code-keyword: 122 75 143;
+  color-scheme: light;
 }
 
 :root.dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --ground: 14 16 19;
+  --surface: 24 27 33;
+  --raised: 30 34 41;
+  --foreground: 236 238 242;
+  --muted-foreground: 154 161 173;
+  --border: 42 47 56;
+  --code-fg: 214 217 224;
+  --code-comment: 111 119 135;
+  --code-punct: 138 146 161;
+  --code-key: 157 180 222;
+  --code-string: 163 199 154;
+  --code-number: 214 160 131;
+  --code-keyword: 183 154 209;
+  color-scheme: dark;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
+@layer base {
+  html {
+    scroll-padding-top: calc(var(--navbar-height) + 1.5rem);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    overflow-wrap: break-word;
+  }
+
+  img,
+  svg,
+  video {
+    max-width: 100%;
+  }
+
+  :focus-visible {
+    outline: 2px solid theme("colors.primary.500");
+    outline-offset: 2px;
+    border-radius: 0.375rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto !important;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }
 
-@layer utilities {
-  .bg-grid-slate-900 {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(15 23 42 / 0.04)'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e");
+@layer components {
+  /* Inline code in prose and docs copy; excludes highlighted blocks. */
+  :not(pre) > code:not([class*="language-"]) {
+    overflow-wrap: anywhere;
   }
 
-  .dark .bg-grid-slate-400 {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(148 163 184 / 0.04)'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e");
-  }
-
-  .overflow-x-auto {
+  pre {
+    max-width: 100%;
+    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  .draggable-scroll {
-    cursor: grab;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+  .scrollbar-thin {
+    scrollbar-width: thin;
   }
+}
 
-  .draggable-scroll::-webkit-scrollbar {
-    display: none;
+@layer utilities {
+  .font-heading {
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.04;
+    text-wrap: balance;
   }
+}
 
-  .draggable-scroll.dragging {
-    cursor: grabbing;
-    user-select: none;
+/* Floating damage numbers in the live demo. Transform and opacity only. */
+@keyframes vs-float {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.8);
   }
+  15% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--vs-dx, 0), 56px, 0) scale(1);
+  }
+}
 
-  .snap-center {
-    scroll-snap-align: center;
+@keyframes vs-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes vs-shake {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  30% {
+    transform: translate3d(-6px, 0, 0);
+  }
+  65% {
+    transform: translate3d(4px, 0, 0);
+  }
+}
+
+.vs-rise {
+  animation: vs-rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* One quiet palette for every highlighted block. Colours come from the tokens above, so light and dark both work. */
+.page-x {
+  padding-inline: clamp(1rem, 3.5vw, 5rem);
+}
+
+pre[class*="language-"],
+code[class*="language-"] {
+  color: rgb(var(--code-fg));
+  background: none;
+  text-shadow: none;
+  font-family: theme("fontFamily.mono");
+  tab-size: 2;
+}
+
+.token.comment,
+.token.prolog {
+  color: rgb(var(--code-comment));
+  font-style: italic;
+}
+.token.punctuation,
+.token.operator {
+  color: rgb(var(--code-punct));
+}
+.token.atrule,
+.token.property,
+.token.key,
+.token.attr-name,
+.token.tag {
+  color: rgb(var(--code-key));
+}
+.token.string,
+.token.attr-value,
+.token.char {
+  color: rgb(var(--code-string));
+}
+.token.number,
+.token.boolean,
+.token.constant {
+  color: rgb(var(--code-number));
+}
+.token.keyword,
+.token.important,
+.token.function {
+  color: rgb(var(--code-keyword));
+}
+
+@keyframes vs-eq {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes vs-hp {
+  0% {
+    transform: scaleX(1);
+  }
+  88% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
   }
 }

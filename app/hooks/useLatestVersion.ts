@@ -15,10 +15,10 @@ export function useLatestVersion() {
           "https://api.github.com/repos/Stawa/VitalStrike/releases/latest"
         );
         const data: GitHubRelease = await response.json();
-        setVersion(data.tag_name.replace("v", ""));
+        setVersion(data.tag_name.replace(/^v/, ""));
       } catch (error) {
         console.error("Failed to fetch latest version:", error);
-        setVersion("1.4.0");
+        setVersion("1.5.0");
       } finally {
         setLoading(false);
       }

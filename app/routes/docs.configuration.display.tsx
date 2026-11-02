@@ -5,7 +5,7 @@ import { ConfigSection, ConfigBlock } from "~/components/ConfigSection";
 import { TableOfContents } from "~/components/TableOfContents";
 import { FaInfoCircle, FaCog, FaMapMarkerAlt, FaTrophy, FaQuestionCircle } from "react-icons/fa";
 import { IoSparklesSharp } from "react-icons/io5";
-import BackToTop from "~/components/BackToTop";
+import { PageHeader } from "~/components/PageHeader";
 
 export const meta: MetaFunction = () => {
   const title = "VitalStrike Documentation - Display Settings";
@@ -48,20 +48,10 @@ export default function DisplayConfiguration() {
 
   return (
     <div className="text-foreground antialiased">
-      <div className="mx-auto max-w-5xl">
-        <header className="py-12 md:py-16 text-center">
-          <div className="inline-flex items-center rounded-full border border-gray-200/70 bg-white/70 px-3 py-1 text-sm font-medium text-gray-700 shadow-sm backdrop-blur-sm dark:border-gray-800/70 dark:bg-gray-900/50 dark:text-gray-200">
-            Configuration
-          </div>
-
-          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
-            Display <span className="text-primary-600 dark:text-primary-400">Settings</span>
-          </h1>
-
-          <p className="mt-4 max-w-2xl mx-auto text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:text-lg">
-            Configure how damage indicators, leaderboards, and menus are displayed in VitalStrike.
-          </p>
-        </header>
+      <div>
+        <PageHeader title={<>Display Settings</>}>
+          Configure how damage indicators, leaderboards, and menus are displayed in VitalStrike.
+        </PageHeader>
 
         <TableOfContents items={tableItems} />
 
@@ -73,7 +63,7 @@ export default function DisplayConfiguration() {
             description="Configure basic display settings"
             className="scroll-mt-24"
           >
-            <div className="mb-6 text-gray-600 dark:text-gray-400">
+            <div className="mb-6 text-muted-foreground">
               <p>
                 Basic display settings control the fundamental aspects of how damage indicators
                 appear in-game. These settings affect all damage indicators regardless of type.
@@ -87,15 +77,14 @@ export default function DisplayConfiguration() {
 display:
   duration: 1.5 # How long damage/heal numbers stay visible (in seconds)`}
               tip="The duration setting controls how long damage numbers remain visible before fading away."
-              className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-blue-200 dark:border-blue-800/40 shadow-md"
             />
 
-            <div className="mt-6 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40">
-              <h4 className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2 flex items-center">
+            <div className="mt-6 rounded-2xl bg-surface p-5">
+              <h4 className="text-sm font-medium text-ink mb-2 flex items-center">
                 <FaInfoCircle className="w-5 h-5 mr-2" />
                 Duration Impact
               </h4>
-              <p className="text-sm text-blue-700 dark:text-blue-400">
+              <p className="text-[15px] leading-relaxed text-muted-foreground">
                 Setting a longer duration makes damage numbers stay visible longer, which can be
                 helpful for tracking damage over time. However, too long a duration might cause
                 visual clutter during intense combat. A value between 1.0 and 2.0 seconds typically
@@ -111,7 +100,7 @@ display:
             description="Configure where damage indicators appear"
             className="scroll-mt-24"
           >
-            <div className="mb-6 text-gray-600 dark:text-gray-400">
+            <div className="mb-6 text-muted-foreground">
               <p>
                 Position settings control where damage numbers appear relative to the entity and how
                 they move. These settings allow you to customize the exact placement of indicators
@@ -129,19 +118,16 @@ display:
     random-offset: -1 # Random variation (-1 = disabled, 0 or higher = amount of randomness)
     direction: "down" # Direction for indicators to move (down, up, left, right)`}
               tip="Position settings control where damage numbers appear relative to the entity and how they move."
-              className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-green-200 dark:border-green-800/40 shadow-md"
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-              <div className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm rounded-lg p-4 border border-green-200 dark:border-green-800/40 shadow-sm">
-                <h4 className="font-medium text-green-800 dark:text-green-300 mb-2">
-                  Offset Positioning
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="bg-surface rounded-2xl p-4">
+                <h4 className="font-medium text-ink mb-2">Offset Positioning</h4>
+                <p className="text-sm text-muted-foreground">
                   The <code>x</code> and <code>y</code> values determine where damage numbers appear
                   relative to the entity:
                 </p>
-                <ul className="mt-2 text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                <ul className="mt-2 text-sm text-muted-foreground space-y-1">
                   <li>
                     <code>y: -0.2</code> - Slightly below the entity
                   </li>
@@ -156,14 +142,12 @@ display:
                   </li>
                 </ul>
               </div>
-              <div className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm rounded-lg p-4 border border-green-200 dark:border-green-800/40 shadow-sm">
-                <h4 className="font-medium text-green-800 dark:text-green-300 mb-2">
-                  Random Offset & Direction
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="bg-surface rounded-2xl p-4">
+                <h4 className="font-medium text-ink mb-2">Random Offset & Direction</h4>
+                <p className="text-sm text-muted-foreground">
                   <code>random-offset</code> adds variation to prevent indicators from stacking:
                 </p>
-                <ul className="mt-2 text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                <ul className="mt-2 text-sm text-muted-foreground space-y-1">
                   <li>
                     <code>random-offset: -1</code> - Disabled (fixed position)
                   </li>
@@ -174,7 +158,7 @@ display:
                     <code>random-offset: 0.5</code> - Larger random variation
                   </li>
                 </ul>
-                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                <p className="mt-2 text-sm text-muted-foreground">
                   The <code>direction</code> setting controls which way indicators float.
                 </p>
               </div>
@@ -188,7 +172,7 @@ display:
             description="Configure how damage indicators animate"
             className="scroll-mt-24"
           >
-            <div className="mb-6 text-gray-600 dark:text-gray-400">
+            <div className="mb-6 text-muted-foreground">
               <p>
                 Animation settings control how damage numbers fade in/out and move through the air.
                 These settings allow you to create smooth, visually appealing damage indicators that
@@ -206,15 +190,14 @@ display:
     float-speed: 0.03 # Floating speed (blocks per tick)
     float-curve: 0.02 # Curve intensity for floating motion`}
               tip="Animation settings control how damage numbers fade in/out and move through the air."
-              className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-purple-200 dark:border-purple-800/40 shadow-md"
             />
 
-            <div className="mt-6 p-4 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800/40">
-              <h4 className="text-sm font-medium text-purple-800 dark:text-purple-300 mb-2 flex items-center">
+            <div className="mt-6 p-4 rounded-2xl bg-raised">
+              <h4 className="text-sm font-medium text-ink mb-2 flex items-center">
                 <FaInfoCircle className="w-5 h-5 mr-2" />
                 Animation Tips
               </h4>
-              <p className="text-sm text-purple-700 dark:text-purple-400">
+              <p className="text-sm text-ink">
                 For smoother animations, keep fade-in and fade-out times between 0.1 and 0.3
                 seconds. The float-speed controls how quickly indicators move (higher values =
                 faster movement). The float-curve adds a curved path to the movement, creating a
@@ -223,14 +206,12 @@ display:
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-              <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800/40">
-                <h4 className="font-medium text-purple-800 dark:text-purple-300 mb-2">
-                  Fade Effects
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="bg-surface rounded-2xl p-4">
+                <h4 className="font-medium text-ink mb-2">Fade Effects</h4>
+                <p className="text-sm text-muted-foreground">
                   Fade effects control the opacity transition of damage indicators:
                 </p>
-                <ul className="mt-2 text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                <ul className="mt-2 text-sm text-muted-foreground space-y-1">
                   <li>
                     <code>fade-in: 0.25</code> - How long it takes to appear
                   </li>
@@ -238,18 +219,16 @@ display:
                     <code>fade-out: 0.25</code> - How long it takes to disappear
                   </li>
                 </ul>
-                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                <p className="mt-2 text-sm text-muted-foreground">
                   Setting these to 0 will make indicators appear/disappear instantly.
                 </p>
               </div>
-              <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800/40">
-                <h4 className="font-medium text-purple-800 dark:text-purple-300 mb-2">
-                  Movement Effects
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="bg-surface rounded-2xl p-4">
+                <h4 className="font-medium text-ink mb-2">Movement Effects</h4>
+                <p className="text-sm text-muted-foreground">
                   Movement effects control how indicators float through the air:
                 </p>
-                <ul className="mt-2 text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                <ul className="mt-2 text-sm text-muted-foreground space-y-1">
                   <li>
                     <code>float-speed: 0.03</code> - Speed of movement
                   </li>
@@ -257,7 +236,7 @@ display:
                     <code>float-curve: 0.02</code> - Curve intensity
                   </li>
                 </ul>
-                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                <p className="mt-2 text-sm text-muted-foreground">
                   Higher float-curve values create more pronounced curved paths.
                 </p>
               </div>
@@ -271,7 +250,7 @@ display:
             description="Configure leaderboard appearance"
             className="scroll-mt-24"
           >
-            <div className="mb-6 text-gray-600 dark:text-gray-400">
+            <div className="mb-6 text-muted-foreground">
               <p>
                 Leaderboard display settings control how the in-game leaderboards appear to players.
                 These settings allow you to customize titles, entry formats, and number formatting
@@ -298,34 +277,29 @@ display:
     average: "%.1f"
     combo: "%d"`}
               tip="Customize how leaderboards look, including titles, entries, and number formatting."
-              className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-yellow-200 dark:border-yellow-800/40 shadow-md"
             />
 
             <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800/40">
-                <h4 className="font-medium text-yellow-800 dark:text-yellow-300 mb-2">
-                  Title Formats
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="bg-surface rounded-2xl p-4">
+                <h4 className="font-medium text-ink mb-2">Title Formats</h4>
+                <p className="text-sm text-muted-foreground">
                   Customize the title for each leaderboard type:
                 </p>
-                <ul className="mt-2 text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                <ul className="mt-2 text-sm text-muted-foreground space-y-1">
                   <li>Damage leaderboard</li>
                   <li>Combo leaderboard</li>
                   <li>Average damage leaderboard</li>
                 </ul>
-                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                <p className="mt-2 text-sm text-muted-foreground">
                   The <code>%d</code> placeholder is replaced with the display limit.
                 </p>
               </div>
-              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800/40">
-                <h4 className="font-medium text-yellow-800 dark:text-yellow-300 mb-2">
-                  Entry Format
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="bg-surface rounded-2xl p-4">
+                <h4 className="font-medium text-ink mb-2">Entry Format</h4>
+                <p className="text-sm text-muted-foreground">
                   The <code>entry-format</code> controls how each leaderboard entry appears:
                 </p>
-                <ul className="mt-2 text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                <ul className="mt-2 text-sm text-muted-foreground space-y-1">
                   <li>
                     <code>%d</code> - Position number
                   </li>
@@ -337,14 +311,12 @@ display:
                   </li>
                 </ul>
               </div>
-              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800/40">
-                <h4 className="font-medium text-yellow-800 dark:text-yellow-300 mb-2">
-                  Number Format
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="bg-surface rounded-2xl p-4">
+                <h4 className="font-medium text-ink mb-2">Number Format</h4>
+                <p className="text-sm text-muted-foreground">
                   Control how numbers appear in each leaderboard type:
                 </p>
-                <ul className="mt-2 text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                <ul className="mt-2 text-sm text-muted-foreground space-y-1">
                   <li>
                     <code>%.1f</code> - One decimal place (12.5)
                   </li>
@@ -366,7 +338,7 @@ display:
             description="Configure help menu appearance"
             className="scroll-mt-24"
           >
-            <div className="mb-6 text-gray-600 dark:text-gray-400">
+            <div className="mb-6 text-muted-foreground">
               <p>
                 Help menu display settings control how the plugin&apos;s help menu appears to
                 players. These settings allow you to customize the header, title, footer, and
@@ -395,15 +367,14 @@ display:
       command: "/vs resourcepack"
       description: "Load the custom resource pack"`}
               tip="Customize the appearance of the help menu, including headers, titles, and command listings."
-              className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-teal-200 dark:border-teal-800/40 shadow-md"
             />
 
-            <div className="mt-6 p-4 rounded-lg bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800/40">
-              <h4 className="text-sm font-medium text-teal-800 dark:text-teal-300 mb-2 flex items-center">
+            <div className="mt-6 p-4 rounded-2xl bg-raised">
+              <h4 className="text-sm font-medium text-ink mb-2 flex items-center">
                 <FaInfoCircle className="w-5 h-5 mr-2" />
                 Adding Custom Commands
               </h4>
-              <p className="text-sm text-teal-700 dark:text-teal-400">
+              <p className="text-sm text-ink">
                 You can add additional commands to the help menu by adding new entries under the{" "}
                 <code>commands</code> section. Each command needs a unique key, a command string,
                 and a description. These will automatically appear in the help menu.
@@ -411,28 +382,22 @@ display:
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-              <div className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm rounded-lg p-4 border border-teal-200 dark:border-teal-800/40 shadow-sm">
-                <h4 className="font-medium text-teal-800 dark:text-teal-300 mb-2">
-                  Menu Structure
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  The help menu is structured with:
-                </p>
-                <ul className="mt-2 text-sm text-gray-600 dark:text-gray-400 space-y-1">
+              <div className="bg-surface rounded-2xl p-4">
+                <h4 className="font-medium text-ink mb-2">Menu Structure</h4>
+                <p className="text-sm text-muted-foreground">The help menu is structured with:</p>
+                <ul className="mt-2 text-sm text-muted-foreground space-y-1">
                   <li>Header (decorative line)</li>
                   <li>Title (plugin name)</li>
                   <li>Command listings</li>
                   <li>Footer (decorative line)</li>
                 </ul>
               </div>
-              <div className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm rounded-lg p-4 border border-teal-200 dark:border-teal-800/40 shadow-sm">
-                <h4 className="font-medium text-teal-800 dark:text-teal-300 mb-2">
-                  Command Format
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="bg-surface rounded-2xl p-4">
+                <h4 className="font-medium text-ink mb-2">Command Format</h4>
+                <p className="text-sm text-muted-foreground">
                   Each command in the help menu includes:
                 </p>
-                <ul className="mt-2 text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                <ul className="mt-2 text-sm text-muted-foreground space-y-1">
                   <li>
                     <code>command</code> - The command syntax
                   </li>
@@ -440,7 +405,7 @@ display:
                     <code>description</code> - What the command does
                   </li>
                 </ul>
-                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                <p className="mt-2 text-sm text-muted-foreground">
                   Optional parameters are typically shown in [brackets].
                 </p>
               </div>
@@ -448,7 +413,7 @@ display:
           </ConfigSection>
         </div>
 
-        <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-800">
+        <div>
           <DocsNavigation
             previousPage={{
               title: "Combo System",
@@ -460,8 +425,6 @@ display:
             }}
           />
         </div>
-        {/* Back to top button */}
-        <BackToTop />
       </div>
     </div>
   );

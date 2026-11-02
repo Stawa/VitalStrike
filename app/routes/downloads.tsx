@@ -1,11 +1,12 @@
-import { useLatestVersion } from "~/hooks/useLatestVersion";
+import { Link } from "@remix-run/react";
 import type { MetaFunction } from "@remix-run/node";
-import { FaGithub, FaCube, FaFileAlt } from "react-icons/fa";
+import { FaCube, FaGithub, FaFileAlt } from "react-icons/fa";
+import { useLatestVersion } from "~/hooks/useLatestVersion";
 
 export const meta: MetaFunction = () => {
-  const title = "Downloads - VitalStrike";
+  const title = "Download VitalStrike";
   const description =
-    "Download VitalStrike plugin for your Minecraft server. Get the latest version from CurseForge, Modrinth, or GitHub. Includes resource pack for enhanced visual experience.";
+    "Download VitalStrike for Paper 26.1+ from Modrinth, CurseForge or GitHub. Requires Java 25. Includes an optional resource pack.";
 
   return [
     { rel: "icon", href: "/icon.png", type: "image/png" },
@@ -23,151 +24,139 @@ export const meta: MetaFunction = () => {
     {
       name: "keywords",
       content:
-        "vitalstrike download, minecraft plugin download, combat plugin, damage indicators, resource pack, minecraft server enhancement",
+        "vitalstrike download, paper plugin, minecraft combat plugin, damage indicators, resource pack",
     },
-    { name: "theme-color", content: "#4f46e5" },
+    { name: "theme-color", content: "#d6343c" },
     { name: "application-name", content: "VitalStrike" },
   ];
 };
 
+const sources = [
+  {
+    name: "Modrinth",
+    text: "Open-source platform with update checks in launchers and tools.",
+    href: "https://modrinth.com/plugin/vitalstrike/",
+    icon: FaCube,
+    primary: true,
+  },
+  {
+    name: "CurseForge",
+    text: "The largest Minecraft project host. Same JAR, same version.",
+    href: "https://www.curseforge.com/minecraft/bukkit-plugins/vitalstrike",
+    icon: FaCube,
+    primary: false,
+  },
+  {
+    name: "GitHub",
+    text: "Every release with notes, straight from the repository.",
+    href: "https://github.com/Stawa/VitalStrike/releases",
+    icon: FaGithub,
+    primary: false,
+  },
+];
+
+const requirements = [
+  ["VitalStrike 1.5.0 needs Paper 26.1+", "Or a Paper fork. Spigot and Bukkit are not supported."],
+  ["Java 25 or newer", "Paper 26.1 itself requires it."],
+  [
+    "Upgrading from 1.4.0?",
+    "Your config.yml is kept. New options use the bundled defaults, so new features are on after the update.",
+  ],
+  ["Server on 1.21.x?", "Stay on VitalStrike 1.4.0. Version 1.5.0 will not load there."],
+];
+
 export default function Downloads() {
   const { version, loading } = useLatestVersion();
-  const versionLabel = loading || !version ? "v…" : `v${version}`;
-
-  const pluginDownloadOptions = [
-    {
-      name: "CurseForge",
-      description: "Download from CurseForge, the largest Minecraft mods platform",
-      icon: <FaCube className="h-5 w-5" />,
-      href: "https://www.curseforge.com/minecraft/bukkit-plugins/vitalstrike",
-    },
-    {
-      name: "Modrinth",
-      description: "Get it from Modrinth, a modern and open-source platform",
-      icon: <FaCube className="h-5 w-5" />,
-      href: "https://modrinth.com/plugin/vitalstrike/",
-    },
-    {
-      name: "GitHub",
-      description: "Download directly from our GitHub releases",
-      icon: <FaGithub className="h-5 w-5" />,
-      href: "https://github.com/Stawa/VitalStrike/releases",
-    },
-  ];
-
-  const resourcePackOption = {
-    name: "VitalAwakening Resource Pack",
-    description:
-      "Optional add-on for enhanced visuals, including custom textures for damage indicators.",
-    icon: <FaFileAlt className="h-5 w-5" />,
-    href: "https://github.com/Stawa/VitalAwakening",
-  };
+  const versionLabel =
+    loading || !version
+      ? "the latest published release"
+      : `the latest published release, ${version}`;
 
   return (
-    <div className="relative">
-      {/* HERO */}
-      <section className="relative py-14 sm:py-18 lg:py-20 px-4 sm:px-6">
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,rgba(79,70,229,0.10),transparent_62%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(79,70,229,0.08),transparent_60%)]" />
-        <div className="mx-auto max-w-4xl text-center">
-          <div className="inline-flex items-center rounded-full border border-gray-200 bg-white/60 px-3 py-1 text-xs sm:text-sm font-medium text-gray-700 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-200">
-            Download VitalStrike
-          </div>
-
-          <h1 className="mt-6 text-3xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-4xl lg:text-5xl">
-            Get{" "}
-            <span className="text-primary-600 dark:text-primary-400 font-bold">VitalStrike</span>
-          </h1>
-
-          <p className="mt-4 text-sm leading-relaxed text-gray-600 dark:text-gray-300 sm:text-base lg:text-lg max-w-2xl mx-auto">
-            Download from trusted platforms. Choose the source that fits your workflow and keep your
-            server up to date.
-          </p>
-        </div>
+    <div className="page-x pb-16">
+      <section className="pb-12 pt-8 sm:pt-14">
+        <h1 className="font-heading text-[clamp(2.6rem,5.4vw,4.4rem)]">Download VitalStrike</h1>
+        <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+          You are getting {versionLabel}. It is the same JAR on every site below. Put it in{" "}
+          <code>plugins/</code> and start the server.
+        </p>
       </section>
 
-      {/* DOWNLOAD CARDS */}
-      <section className="py-10 sm:py-12 px-4 sm:px-6">
-        <div className="mx-auto max-w-6xl">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
-            {pluginDownloadOptions.map((option) => (
+      <section aria-label="Download sources">
+        <ul className="grid gap-4 md:grid-cols-3">
+          {sources.map((source) => (
+            <li key={source.name}>
               <a
-                key={option.name}
-                href={option.href}
+                href={source.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex h-full flex-col rounded-xl border border-gray-200 bg-white/70 p-6 shadow-sm backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:bg-gray-50 hover:shadow-md dark:border-gray-800 dark:bg-gray-900/40 dark:hover:border-gray-700 dark:hover:bg-gray-900"
+                className={`flex h-full flex-col rounded-3xl p-7 transition-colors ${
+                  source.primary
+                    ? "bg-primary-600 text-white hover:bg-primary-700"
+                    : "bg-surface hover:bg-gray-200 dark:hover:bg-dark-surface"
+                }`}
               >
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="flex items-start sm:items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-primary-600 shadow-sm dark:border-gray-800 dark:bg-gray-950 dark:text-primary-400">
-                      {option.icon}
-                    </div>
-                    <div>
-                      <h3 className="text-base font-semibold text-gray-900 dark:text-white">
-                        {option.name}
-                      </h3>
-                      <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                        {option.description}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="self-start sm:self-auto shrink-0 rounded-full bg-gray-100 px-3 py-1 text-xs font-mono text-primary-600 dark:bg-gray-800 dark:text-primary-400">
-                    {versionLabel}
-                  </div>
-                </div>
-
-                <div className="mt-6 flex items-center justify-between border-t border-gray-100 pt-4 text-sm dark:border-gray-800">
-                  <span className="font-medium text-gray-700 dark:text-gray-200">Download</span>
-                  <span className="font-medium text-primary-600 transition-transform duration-200 group-hover:translate-x-0.5 dark:text-primary-400">
-                    →
-                  </span>
-                </div>
+                <source.icon className="h-7 w-7" aria-hidden="true" />
+                <span className="mt-8 text-2xl font-extrabold tracking-tight">{source.name}</span>
+                <span
+                  className={`mt-2 flex-1 text-[15px] leading-relaxed ${source.primary ? "text-white/85" : "text-muted-foreground"}`}
+                >
+                  {source.text}
+                </span>
+                <span className="mt-6 text-[15px] font-semibold">Get the JAR →</span>
               </a>
-            ))}
-          </div>
-        </div>
+            </li>
+          ))}
+        </ul>
       </section>
 
-      {/* RESOURCE PACK */}
-      <section className="py-10 sm:py-12 px-4 sm:px-6">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-4">
-            <h2 className="text-sm font-semibold tracking-wide text-gray-900 dark:text-white">
-              Optional Resource Pack
-            </h2>
-          </div>
-
-          <div className="rounded-xl border border-gray-200 bg-white/70 p-6 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/40">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex items-start gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-primary-600 shadow-sm dark:border-gray-800 dark:bg-gray-950 dark:text-primary-400">
-                  {resourcePackOption.icon}
-                </div>
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-base font-semibold text-gray-900 dark:text-white">
-                      {resourcePackOption.name}
-                    </h3>
-                    <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-primary-600 dark:bg-gray-800 dark:text-primary-400">
-                      Resource Pack
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                    {resourcePackOption.description}
-                  </p>
-                </div>
-              </div>
-
-              <a
-                href={resourcePackOption.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex w-full lg:w-auto items-center justify-center rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600"
-              >
-                Download
-              </a>
+      <section aria-labelledby="req-h" className="pt-20">
+        <h2 id="req-h" className="font-heading text-[clamp(1.75rem,3.4vw,2.5rem)]">
+          Before you install
+        </h2>
+        <dl className="mt-8 grid gap-4 md:grid-cols-2">
+          {requirements.map(([title, text]) => (
+            <div key={title} className="rounded-3xl bg-surface p-6">
+              <dt className="text-lg font-bold">{title}</dt>
+              <dd className="mt-1.5 text-[15px] leading-relaxed text-muted-foreground">{text}</dd>
             </div>
+          ))}
+        </dl>
+        <Link
+          to="/docs/getting-started"
+          className="mt-8 inline-flex items-center rounded-full bg-ink px-6 py-3 text-base font-semibold text-ground transition-opacity hover:opacity-90"
+        >
+          Installation guide
+        </Link>
+      </section>
+
+      <section aria-labelledby="pack-h" className="pt-20">
+        <div className="grid gap-8 rounded-3xl bg-surface p-7 sm:p-10 lg:grid-cols-12">
+          <div className="lg:col-span-8">
+            <FaFileAlt
+              className="h-7 w-7 text-primary-600 dark:text-primary-400"
+              aria-hidden="true"
+            />
+            <h2 id="pack-h" className="font-heading mt-5 text-[clamp(1.75rem,3.4vw,2.5rem)]">
+              Optional resource pack
+            </h2>
+            <p className="mt-4 max-w-xl text-[17px] leading-relaxed text-muted-foreground">
+              The pack gives the Vital Awakening revive totem its own model and texture. Without it
+              the item shows as a plain totem and everything still works. Players load it with{" "}
+              <code>/vs resourcepack</code>, or you can send it on join with{" "}
+              <code>resource-pack.auto-send</code>. If you skip the pack, set{" "}
+              <code>knockdown-system.vital-awakening.item-model</code> to an empty string.
+            </p>
+          </div>
+          <div className="flex items-end lg:col-span-4 lg:justify-end">
+            <a
+              href="https://github.com/Stawa/VitalAwakening"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center rounded-full bg-primary-600 px-7 py-3.5 text-base font-semibold text-white transition-colors hover:bg-primary-700"
+            >
+              Get the resource pack
+            </a>
           </div>
         </div>
       </section>

@@ -1,28 +1,11 @@
-import {
-  FaBolt,
-  FaBoxOpen,
-  FaChartBar,
-  FaCrosshairs,
-  FaDownload,
-  FaFileDownload,
-  FaFolderOpen,
-  FaJava,
-  FaKey,
-  FaMagic,
-  FaMemory,
-  FaPalette,
-  FaPlay,
-  FaServer,
-} from "react-icons/fa";
 import type { MetaFunction } from "@remix-run/node";
-import { useHighlightCode } from "~/hooks/prism";
 import { DocsNavigation } from "~/components/DocsNavigation";
-import BackToTop from "~/components/BackToTop";
+import { PageHeader } from "~/components/PageHeader";
 
 export const meta: MetaFunction = () => {
-  const title = "VitalStrike Documentation - Installation Guide";
+  const title = "Getting Started - VitalStrike Documentation";
   const description =
-    "Step-by-step guide to installing and setting up VitalStrike on your Minecraft server. Learn about requirements, installation steps, and initial configuration.";
+    "Install VitalStrike on a Paper 26.1+ server: requirements, installation steps and your first configuration change.";
 
   return [
     { rel: "icon", href: "/icon.png", type: "image/png" },
@@ -39,306 +22,136 @@ export const meta: MetaFunction = () => {
     { name: "twitter:description", content: description },
     {
       name: "keywords",
-      content:
-        "vitalstrike installation, minecraft plugin setup, server requirements, plugin configuration, getting started guide",
+      content: "vitalstrike installation, paper plugin setup, server requirements, getting started",
     },
-    { name: "theme-color", content: "#4f46e5" },
+    { name: "theme-color", content: "#d6343c" },
     { name: "application-name", content: "VitalStrike" },
   ];
 };
 
+const requirements = [
+  ["Paper 26.1 or newer", "Or a Paper fork. Spigot and Bukkit are not supported."],
+  ["Java 25 or newer", "Paper 26.1 itself requires it."],
+  ["On 1.21.x?", "Stay on VitalStrike 1.4.0. Version 1.5.0 will not load there."],
+];
+
+const sources = [
+  ["Modrinth", "https://modrinth.com/plugin/vitalstrike/"],
+  ["CurseForge", "https://www.curseforge.com/minecraft/bukkit-plugins/vitalstrike"],
+  ["GitHub releases", "https://github.com/Stawa/VitalStrike/releases"],
+];
+
+const nextSteps = [
+  ["Turn features on or off", "Every system has an enabled option in config.yml."],
+  ["Restyle the damage numbers", "Change the text for each damage type, or per permission group."],
+  [
+    "Set up permissions",
+    "Admin commands default to operators. Grant vitalstrike.group.<name> for custom styles.",
+  ],
+];
+
+const codeClass = "rounded-md bg-surface px-1.5 py-0.5 font-mono text-[0.9em]";
+
 export default function GettingStarted() {
-  useHighlightCode();
-
   return (
-    <div className="text-foreground antialiased">
-      <div className="mx-auto max-w-5xl">
-        <header className="py-12 md:py-16 text-center">
-          <div className="inline-flex items-center rounded-full border border-gray-200/70 bg-white/70 px-3 py-1 text-sm font-medium text-gray-700 shadow-sm backdrop-blur-sm dark:border-gray-800/70 dark:bg-gray-900/50 dark:text-gray-200">
-            Installation Guide
-          </div>
+    <div>
+      <PageHeader title="Getting started">
+        Install VitalStrike, check the requirements, and change your first setting in a few minutes.
+      </PageHeader>
 
-          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
-            Getting Started with{" "}
-            <span className="text-primary-600 dark:text-primary-400">VitalStrike</span>
-          </h1>
-
-          <p className="mt-4 max-w-2xl mx-auto text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:text-lg">
-            Install the plugin, verify requirements, and apply the first configuration in minutes.
-          </p>
-        </header>
-
-        <div className="pb-12">
-          {/* Requirements Section - Enhanced with cards */}
-          <section id="requirements" data-section="requirements" className="mb-16">
-            <div className="relative flex items-center mb-8">
-              <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
-              <h2 className="flex-shrink-0 mx-4 text-2xl font-bold text-gray-900 dark:text-white">
-                Requirements
-              </h2>
-              <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
+      <section id="requirements" data-toc="Requirements" className="scroll-mt-24">
+        <h2 className="font-heading text-2xl sm:text-3xl">Requirements</h2>
+        <dl className="mt-5 grid gap-3 sm:grid-cols-3">
+          {requirements.map(([title, text]) => (
+            <div key={title} className="rounded-2xl bg-surface p-5">
+              <dt className="text-lg font-bold">{title}</dt>
+              <dd className="mt-1.5 text-[15px] leading-relaxed text-muted-foreground">{text}</dd>
             </div>
+          ))}
+        </dl>
+      </section>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              {[
-                {
-                  title: "Java 21+",
-                  icon: <FaJava className="text-2xl" />,
-                  description: "Latest Java version for optimal performance and security",
-                },
-                {
-                  title: "Paper 1.21.4+ or compatible forks",
-                  icon: <FaServer className="text-2xl" />,
-                  description: "Works best with Paper and its derivatives like Purpur",
-                },
-                {
-                  title: "512MB+ RAM",
-                  icon: <FaMemory className="text-2xl" />,
-                  description: "Minimal memory overhead for smooth operation",
-                },
-              ].map((item, index) => (
-                <div
-                  key={index}
-                  className="flex flex-col p-6 bg-white/70 dark:bg-gray-900/50 rounded-xl border border-gray-200/70 dark:border-gray-800/70 hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-md backdrop-blur-sm"
+      <section id="install" data-toc="Install" className="mt-14 scroll-mt-24">
+        <h2 className="font-heading text-2xl sm:text-3xl">Install</h2>
+        <ol className="mt-5 space-y-3">
+          <li className="rounded-2xl bg-surface p-5 sm:p-6">
+            <h3 className="text-lg font-bold">1. Download the JAR</h3>
+            <p className="mt-1.5 text-[15px] text-muted-foreground">
+              The file is identical on every site.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {sources.map(([name, href]) => (
+                <a
+                  key={name}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center rounded-full bg-primary-600 px-5 py-2.5 text-[15px] font-semibold text-white transition-colors hover:bg-primary-700"
                 >
-                  <div>
-                    <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl border border-primary/15 bg-primary/10 text-primary-700 dark:text-primary-300">
-                      {item.icon}
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                      {item.title}
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">{item.description}</p>
-                  </div>
-                </div>
+                  {name}
+                </a>
               ))}
             </div>
-          </section>
+          </li>
+          <li className="rounded-2xl bg-surface p-5 sm:p-6">
+            <h3 className="text-lg font-bold">2. Put it in plugins</h3>
+            <p className="mt-1.5 text-[15px] text-muted-foreground">
+              Copy the <code className={codeClass}>.jar</code> into your server&apos;s{" "}
+              <code className={codeClass}>plugins</code> folder.
+            </p>
+          </li>
+          <li className="rounded-2xl bg-surface p-5 sm:p-6">
+            <h3 className="text-lg font-bold">3. Start the server</h3>
+            <p className="mt-1.5 text-[15px] text-muted-foreground">
+              This creates <code className={codeClass}>plugins/VitalStrike/config.yml</code>.
+            </p>
+          </li>
+          <li className="rounded-2xl bg-surface p-5 sm:p-6">
+            <h3 className="text-lg font-bold">4. Edit and reload</h3>
+            <p className="mt-1.5 text-[15px] text-muted-foreground">
+              Change what you want, then run <code className={codeClass}>/vs reload</code>. No
+              restart is needed, and the file is fully commented.
+            </p>
+          </li>
+        </ol>
+      </section>
 
-          {/* Installation Steps - Timeline style */}
-          <section id="installation" data-section="installation" className="mb-20">
-            <div className="relative flex items-center mb-12">
-              <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
-              <h2 className="flex-shrink-0 mx-6 text-3xl font-bold text-gray-900 dark:text-white">
-                Installation Steps
-              </h2>
-              <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
-            </div>
+      <section id="resource-pack" data-toc="Resource pack" className="mt-14 scroll-mt-24">
+        <h2 className="font-heading text-2xl sm:text-3xl">Resource pack (optional)</h2>
+        <p className="mt-3 max-w-2xl text-[17px] leading-relaxed text-muted-foreground">
+          The pack gives the Vital Awakening revive totem its own model and texture. Players load it
+          with <code className={codeClass}>/vs resourcepack</code>, or you can send it on join with{" "}
+          <code className={codeClass}>resource-pack.auto-send</code>. If you do not use it, set{" "}
+          <code className={codeClass}>knockdown-system.vital-awakening.item-model</code> to an empty
+          string. Get it from the{" "}
+          <a
+            href="https://github.com/Stawa/VitalAwakening"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-primary-700 underline underline-offset-4 dark:text-primary-300"
+          >
+            VitalAwakening repository
+          </a>
+          .
+        </p>
+      </section>
 
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              {[
-                {
-                  step: 1,
-                  title: "Download VitalStrike",
-                  content: "Get the latest version from our official sources.",
-                  icon: <FaFileDownload className="text-xl" />,
-                  action: (
-                    <div className="flex flex-wrap gap-3">
-                      {[
-                        {
-                          name: "CurseForge",
-                          href: "https://www.curseforge.com/minecraft/bukkit-plugins/vitalstrike",
-                        },
-                        {
-                          name: "Modrinth",
-                          href: "https://modrinth.com/plugin/vitalstrike/",
-                        },
-                        {
-                          name: "GitHub",
-                          href: "https://github.com/Stawa/VitalStrike/releases",
-                        },
-                      ].map((option) => (
-                        <a
-                          key={option.name}
-                          href={option.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 shadow-sm transition-colors"
-                        >
-                          <FaDownload />
-                          {option.name}
-                        </a>
-                      ))}
-                    </div>
-                  ),
-                },
-                {
-                  step: 2,
-                  title: "Install the Plugin",
-                  content: (
-                    <>
-                      Place the{" "}
-                      <code className="font-mono px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded">
-                        .jar
-                      </code>{" "}
-                      file in your server&apos;s plugins directory.
-                    </>
-                  ),
-                  icon: <FaFolderOpen className="text-xl" />,
-                },
-                {
-                  step: 3,
-                  title: "Start Your Server",
-                  content: "Restart or reload your server to generate config files.",
-                  icon: <FaPlay className="text-xl" />,
-                },
-                {
-                  step: 4,
-                  title: "Download Resource Pack",
-                  content:
-                    "Accept the resource pack prompt when joining the server for the best visual experience. You can also trigger it with /vs resourcepack, or download manually from https://github.com/Stawa/VitalAwakening",
-                  icon: <FaBoxOpen className="text-xl" />,
-                },
-              ].map((item) => (
-                <div
-                  key={item.step}
-                  className="rounded-2xl border border-gray-200/70 bg-white/70 p-6 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:border-primary/30 dark:border-gray-800/70 dark:bg-gray-900/50"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-primary/15 bg-primary/10 text-primary-700 shadow-sm dark:text-primary-300">
-                        {item.icon}
-                      </div>
-                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                        {item.title}
-                      </h3>
-                    </div>
-                    <span className="inline-flex items-center rounded-full border border-gray-200/70 bg-white/60 px-2.5 py-1 text-xs font-semibold text-gray-700 dark:border-gray-800/70 dark:bg-gray-900/40 dark:text-gray-200">
-                      Step {item.step}
-                    </span>
-                  </div>
+      <section id="next" data-toc="What to change first" className="mt-14 scroll-mt-24">
+        <h2 className="font-heading text-2xl sm:text-3xl">What to change first</h2>
+        <ul className="mt-5 grid gap-3 sm:grid-cols-3">
+          {nextSteps.map(([title, text]) => (
+            <li key={title} className="rounded-2xl bg-surface p-5">
+              <h3 className="text-lg font-bold">{title}</h3>
+              <p className="mt-1.5 text-[15px] leading-relaxed text-muted-foreground">{text}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
 
-                  <div className="mt-4 text-gray-600 dark:text-gray-400 leading-relaxed">
-                    {typeof item.content === "string" && item.content.includes("http")
-                      ? item.content.split(/(https?:\/\/[^\s]+)/).map((part, index) =>
-                          part.match(/^https?:\/\//) ? (
-                            <a
-                              key={index}
-                              href={part}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 underline underline-offset-2"
-                            >
-                              {part}
-                            </a>
-                          ) : (
-                            <span key={index}>{part}</span>
-                          )
-                        )
-                      : item.content}
-                  </div>
-
-                  {item.action && <div className="mt-5">{item.action}</div>}
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Feature Overview - Grid with hover effects */}
-          <section id="overview" data-section="overview" className="mb-16">
-            <div className="relative flex items-center mb-8">
-              <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
-              <h2 className="flex-shrink-0 mx-4 text-2xl font-bold text-gray-900 dark:text-white">
-                Feature Overview
-              </h2>
-              <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                {
-                  title: "Dynamic Damage Indicators",
-                  description:
-                    "Customizable floating damage numbers with support for gradients, animations, and different damage types.",
-                  icon: <FaCrosshairs className="text-2xl" />,
-                },
-                {
-                  title: "Combo System",
-                  description:
-                    "Advanced combo tracking with multipliers, ranks, and visual effects.",
-                  icon: <FaMagic className="text-2xl" />,
-                },
-                {
-                  title: "Statistics Tracking",
-                  description:
-                    "Comprehensive player statistics including damage dealt, highest combos, and averages.",
-                  icon: <FaChartBar className="text-2xl" />,
-                },
-                {
-                  title: "Visual Effects",
-                  description:
-                    "Particles, sounds, and hologram effects for enhanced combat feedback.",
-                  icon: <FaBolt className="text-2xl" />,
-                },
-                {
-                  title: "Permission Groups",
-                  description: "Group-based customization for different damage indicator styles.",
-                  icon: <FaKey className="text-2xl" />,
-                },
-                {
-                  title: "MiniMessage Support",
-                  description: "Rich text formatting with gradients and custom colors.",
-                  icon: <FaPalette className="text-2xl" />,
-                },
-              ].map((feature, index) => (
-                <div
-                  key={index}
-                  className="group rounded-xl bg-white/70 dark:bg-gray-900/50 backdrop-blur-sm p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 border border-gray-200/70 dark:border-gray-800/70 hover:border-primary/30"
-                >
-                  <div>
-                    <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl border border-primary/15 bg-primary/10 text-primary-700 dark:text-primary-300">
-                      {feature.icon}
-                    </div>
-
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                      {feature.title}
-                    </h3>
-
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">
-                      {feature.description}
-                    </p>
-
-                    <div className="mt-4 pt-3 border-t border-gray-200/70 dark:border-gray-800/70">
-                      <a
-                        href={`/docs/features#${feature.title.toLowerCase().replace(/\s+/g, "-")}`}
-                        className="inline-flex items-center text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
-                      >
-                        Learn more
-                        <svg
-                          className="ml-1 w-4 h-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 5l7 7-7 7"
-                          />
-                        </svg>
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-          {/* Next Steps - Simplified */}
-          <DocsNavigation
-            previousPage={{
-              title: "Getting Started",
-              href: "/docs/getting-started",
-            }}
-            nextPage={{
-              title: "Configuration Guide",
-              href: "/docs/configuration",
-            }}
-          />
-          {/* Back to top button */}
-          <BackToTop />
-        </div>
-      </div>
+      <DocsNavigation
+        previousPage={{ title: "Introduction", href: "/docs" }}
+        nextPage={{ title: "Configuration overview", href: "/docs/configuration" }}
+      />
     </div>
   );
 }

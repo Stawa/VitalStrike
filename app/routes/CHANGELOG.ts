@@ -44,6 +44,7 @@ function parseChangelog(markdown: string): BlogPost[] {
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
+  if (Number.isNaN(date.getTime())) return dateStr?.trim() || "Unreleased";
   return date.toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",

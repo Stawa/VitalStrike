@@ -6,7 +6,7 @@ import { TableOfContents } from "~/components/TableOfContents";
 import { FaInfoCircle, FaCog, FaMedal, FaClock, FaBolt } from "react-icons/fa";
 import { GiHolosphere } from "react-icons/gi";
 import { IoSparklesSharp } from "react-icons/io5";
-import BackToTop from "~/components/BackToTop";
+import { PageHeader } from "~/components/PageHeader";
 
 export const meta: MetaFunction = () => {
   const title = "VitalStrike Documentation - Combo System Configuration";
@@ -50,20 +50,10 @@ export default function ComboConfiguration() {
 
   return (
     <div className="text-foreground antialiased">
-      <div className="mx-auto max-w-5xl">
-        <header className="py-12 md:py-16 text-center">
-          <div className="inline-flex items-center rounded-full border border-gray-200/70 bg-white/70 px-3 py-1 text-sm font-medium text-gray-700 shadow-sm backdrop-blur-sm dark:border-gray-800/70 dark:bg-gray-900/50 dark:text-gray-200">
-            Configuration
-          </div>
-
-          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
-            Combo <span className="text-primary-600 dark:text-primary-400">System</span>
-          </h1>
-
-          <p className="mt-4 max-w-2xl mx-auto text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:text-lg">
-            Configure ranks, multipliers, decay behavior, and visual effects.
-          </p>
-        </header>
+      <div>
+        <PageHeader title={<>Combo System</>}>
+          Configure ranks, multipliers, decay behavior, and visual effects.
+        </PageHeader>
 
         <TableOfContents items={tableItems} />
 
@@ -75,7 +65,7 @@ export default function ComboConfiguration() {
             description="Basic combo system configuration"
             className="scroll-mt-24"
           >
-            <div className="mb-6 text-gray-600 dark:text-gray-400">
+            <div className="mb-6 text-muted-foreground">
               <p>
                 The core settings control the basic functionality of the combo system. You can
                 enable or disable the system and configure how long a player&apos;s combo will
@@ -91,15 +81,14 @@ combo:
   enabled: true
   reset-time: 3 # Time in seconds before combo resets when no hits are made`}
               tip="The combo system tracks consecutive hits on entities. The reset-time determines how long (in seconds) a player can go without landing a hit before their combo resets to zero."
-              className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-blue-200 dark:border-blue-800/40 shadow-md"
             />
 
-            <div className="mt-6 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40">
-              <h4 className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2 flex items-center">
+            <div className="mt-6 rounded-2xl bg-surface p-5">
+              <h4 className="text-sm font-medium text-ink mb-2 flex items-center">
                 <FaInfoCircle className="w-5 h-5 mr-2" />
                 How Combos Work
               </h4>
-              <p className="text-sm text-blue-700 dark:text-blue-400">
+              <p className="text-[15px] leading-relaxed text-muted-foreground">
                 When a player hits an entity, their combo count increases by one. If they don&apos;t
                 land another hit within the reset-time, their combo resets to zero. Higher combos
                 can unlock better ranks, increased damage, and special visual effects.
@@ -114,7 +103,7 @@ combo:
             description="Configure combo rank thresholds and appearance"
             className="scroll-mt-24"
           >
-            <div className="mb-6 text-gray-600 dark:text-gray-400">
+            <div className="mb-6 text-muted-foreground">
               <p>
                 Combo ranks provide visual feedback to players as they build higher combos. Each
                 rank has a minimum combo threshold and custom gradient colors, creating a
@@ -152,49 +141,42 @@ combo:
         SS: "<gradient:#9400D3:#8A2BE2>" # Purple gradient
         SSS: "<gradient:#FF0000:#FF4500>" # Red-orange gradient`}
               tip="Ranks provide visual feedback to players as they build higher combos. Each rank has a minimum combo threshold and custom gradient colors."
-              className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-yellow-200 dark:border-yellow-800/40 shadow-md"
             />
 
             <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800/40">
-                <h4 className="font-medium text-yellow-800 dark:text-yellow-300 mb-2">
-                  Beginner Ranks
-                </h4>
-                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+              <div className="bg-surface rounded-2xl p-4">
+                <h4 className="font-medium text-ink mb-2">Beginner Ranks</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
                   <li>
                     <span className="text-gray-500">D Rank:</span> 0-4 hits
                   </li>
                   <li>
-                    <span className="text-green-500">C Rank:</span> 5-9 hits
+                    <span className="text-muted-foreground">C Rank:</span> 5-9 hits
                   </li>
                   <li>
-                    <span className="text-cyan-500">B Rank:</span> 10-14 hits
-                  </li>
-                </ul>
-              </div>
-              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800/40">
-                <h4 className="font-medium text-yellow-800 dark:text-yellow-300 mb-2">
-                  Advanced Ranks
-                </h4>
-                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                  <li>
-                    <span className="text-amber-500">A Rank:</span> 15-24 hits
-                  </li>
-                  <li>
-                    <span className="text-pink-500">S Rank:</span> 25-39 hits
+                    <span className="text-muted-foreground">B Rank:</span> 10-14 hits
                   </li>
                 </ul>
               </div>
-              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800/40">
-                <h4 className="font-medium text-yellow-800 dark:text-yellow-300 mb-2">
-                  Master Ranks
-                </h4>
-                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+              <div className="bg-surface rounded-2xl p-4">
+                <h4 className="font-medium text-ink mb-2">Advanced Ranks</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
                   <li>
-                    <span className="text-purple-500">SS Rank:</span> 40-59 hits
+                    <span className="text-muted-foreground">A Rank:</span> 15-24 hits
                   </li>
                   <li>
-                    <span className="text-red-500">SSS Rank:</span> 60+ hits
+                    <span className="text-muted-foreground">S Rank:</span> 25-39 hits
+                  </li>
+                </ul>
+              </div>
+              <div className="bg-surface rounded-2xl p-4">
+                <h4 className="font-medium text-ink mb-2">Master Ranks</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>
+                    <span className="text-muted-foreground">SS Rank:</span> 40-59 hits
+                  </li>
+                  <li>
+                    <span className="text-muted-foreground">SSS Rank:</span> 60+ hits
                   </li>
                 </ul>
               </div>
@@ -208,7 +190,7 @@ combo:
             description="Configure how combos decay over time"
             className="scroll-mt-24"
           >
-            <div className="mb-6 text-gray-600 dark:text-gray-400">
+            <div className="mb-6 text-muted-foreground">
               <p>
                 Combo decay gradually reduces a player&apos;s combo count when they haven&apos;t
                 attacked for a while. This prevents players from maintaining high combos
@@ -228,15 +210,14 @@ combo:
     interval: 1 # How often (in seconds) to decay combo
     minimum: 0 # Minimum combo value after decay`}
               tip="Combo decay gradually reduces a player's combo count when they haven't attacked for a while. This prevents players from maintaining high combos indefinitely without combat activity."
-              className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-red-200 dark:border-red-800/40 shadow-md"
             />
 
-            <div className="mt-6 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40">
-              <h4 className="text-sm font-medium text-red-800 dark:text-red-300 mb-2 flex items-center">
+            <div className="mt-6 rounded-2xl bg-surface p-5">
+              <h4 className="text-sm font-medium text-ink mb-2 flex items-center">
                 <FaInfoCircle className="w-5 h-5 mr-2" />
                 Decay vs Reset
               </h4>
-              <p className="text-sm text-red-700 dark:text-red-400">
+              <p className="text-sm text-ink">
                 While the reset-time immediately sets combo to zero after inactivity, decay
                 gradually reduces it over time. For example, with decay enabled, a 50-combo might
                 decrease to 45, then 40, etc., rather than instantly dropping to 0.
@@ -251,7 +232,7 @@ combo:
             description="Configure how combos affect damage output"
             className="scroll-mt-24"
           >
-            <div className="mb-6 text-gray-600 dark:text-gray-400">
+            <div className="mb-6 text-muted-foreground">
               <p>
                 Damage multipliers increase the damage dealt based on combo count. This rewards
                 players for maintaining high combos by making their attacks more powerful, creating
@@ -278,25 +259,20 @@ combo:
       SS: 2.6
       SSS: 3.0`}
               tip="Damage multipliers increase the damage dealt based on combo count. You can set a per-combo increment or define specific multipliers for each rank."
-              className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-purple-200 dark:border-purple-800/40 shadow-md"
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-              <div className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm rounded-lg p-4 border border-purple-200 dark:border-purple-800/40 shadow-sm">
-                <h4 className="font-medium text-purple-800 dark:text-purple-300 mb-2">
-                  Per-Combo Scaling
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="bg-surface rounded-2xl p-4">
+                <h4 className="font-medium text-ink mb-2">Per-Combo Scaling</h4>
+                <p className="text-sm text-muted-foreground">
                   With <code>per-combo: 0.1</code>, each combo point adds 10% damage. A 5-combo
                   would deal 1.5x damage (base 1.0 + 5 × 0.1), while a 10-combo would deal 2.0x
                   damage, up to the maximum multiplier.
                 </p>
               </div>
-              <div className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm rounded-lg p-4 border border-purple-200 dark:border-purple-800/40 shadow-sm">
-                <h4 className="font-medium text-purple-800 dark:text-purple-300 mb-2">
-                  Rank-Based Scaling
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="bg-surface rounded-2xl p-4">
+                <h4 className="font-medium text-ink mb-2">Rank-Based Scaling</h4>
+                <p className="text-sm text-muted-foreground">
                   Alternatively, you can set specific multipliers for each rank. This creates
                   distinct power tiers rather than a smooth progression, making rank-ups feel more
                   impactful and rewarding.
@@ -312,7 +288,7 @@ combo:
             description="Configure visual and audio effects for combos"
             className="scroll-mt-24"
           >
-            <div className="mb-6 text-gray-600 dark:text-gray-400">
+            <div className="mb-6 text-muted-foreground">
               <p>
                 Visual effects enhance the combo experience with sounds and particles. These trigger
                 when players increase their combo or reach new rank milestones, providing satisfying
@@ -338,16 +314,15 @@ combo:
       type: "CRIT" # Particle effect type
       count: 10 # Number of particles`}
               tip="Visual effects enhance the combo experience with sounds and particles. These trigger when players increase their combo or reach new rank milestones."
-              className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-pink-200 dark:border-pink-800/40 shadow-md"
             />
 
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-lg p-4 border border-pink-200 dark:border-pink-800/40">
-                <h4 className="font-medium text-pink-800 dark:text-pink-300 mb-2">Sound Effects</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+              <div className="bg-surface rounded-2xl p-4">
+                <h4 className="font-medium text-ink mb-2">Sound Effects</h4>
+                <p className="text-sm text-muted-foreground mb-3">
                   Sound effects provide audio feedback for combo actions:
                 </p>
-                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                <ul className="text-sm text-muted-foreground space-y-1">
                   <li>
                     <span className="font-medium">combo-up:</span> Plays when combo increases
                   </li>
@@ -357,14 +332,10 @@ combo:
                   </li>
                 </ul>
               </div>
-              <div className="bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-lg p-4 border border-pink-200 dark:border-pink-800/40">
-                <h4 className="font-medium text-pink-800 dark:text-pink-300 mb-2">
-                  Particle Effects
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                  Common particle types include:
-                </p>
-                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+              <div className="bg-surface rounded-2xl p-4">
+                <h4 className="font-medium text-ink mb-2">Particle Effects</h4>
+                <p className="text-sm text-muted-foreground mb-3">Common particle types include:</p>
+                <ul className="text-sm text-muted-foreground space-y-1">
                   <li>CRIT - Small critical hit particles</li>
                   <li>FLAME - Fire particles</li>
                   <li>HEART - Heart particles</li>
@@ -382,7 +353,7 @@ combo:
             description="Configure floating combo streak holograms"
             className="scroll-mt-24"
           >
-            <div className="mb-6 text-gray-600 dark:text-gray-400">
+            <div className="mb-6 text-muted-foreground">
               <p>
                 Combo holograms are floating text displays that appear above players when they
                 achieve impressive combo streaks. These make accomplishments visible to nearby
@@ -407,28 +378,26 @@ combo:
     format: "<gradient:red:gold><bold>COMBO STREAK!</bold></gradient>"
     height: 2.0`}
               tip="Combo holograms are floating text displays that appear above players when they achieve impressive combo streaks, making their accomplishment visible to nearby players."
-              className="bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm border border-teal-200 dark:border-teal-800/40 shadow-md"
             />
 
-            <div className="mt-6 p-4 rounded-lg bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800/40">
-              <h4 className="text-sm font-medium text-teal-800 dark:text-teal-300 mb-2 flex items-center">
+            <div className="mt-6 p-4 rounded-2xl bg-raised">
+              <h4 className="text-sm font-medium text-ink mb-2 flex items-center">
                 <FaInfoCircle className="w-5 h-5 mr-2" />
                 Format Variables
               </h4>
-              <p className="text-sm text-teal-700 dark:text-teal-400">
-                In the display format,{" "}
-                <code className="px-1 py-0.5 bg-teal-100 dark:bg-teal-900/50 rounded">%d</code> is
+              <p className="text-sm text-ink">
+                In the display format, <code className="px-1 py-0.5 bg-raised rounded">%d</code> is
                 replaced with the combo count,
-                <code className="px-1 py-0.5 bg-teal-100 dark:bg-teal-900/50 rounded">%.1f</code> is
-                replaced with the damage multiplier (with one decimal place), and{" "}
-                <code className="px-1 py-0.5 bg-teal-100 dark:bg-teal-900/50 rounded">%.1fs</code>{" "}
-                shows the time remaining before decay (in seconds).
+                <code className="px-1 py-0.5 bg-raised rounded">%.1f</code> is replaced with the
+                damage multiplier (with one decimal place), and{" "}
+                <code className="px-1 py-0.5 bg-raised rounded">%.1fs</code> shows the time
+                remaining before decay (in seconds).
               </p>
             </div>
           </ConfigSection>
         </div>
 
-        <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-800">
+        <div>
           <DocsNavigation
             previousPage={{
               title: "Damage Indicators",
@@ -440,8 +409,6 @@ combo:
             }}
           />
         </div>
-        {/* Back to top button */}
-        <BackToTop />
       </div>
     </div>
   );

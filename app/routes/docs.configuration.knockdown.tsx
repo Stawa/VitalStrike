@@ -4,7 +4,7 @@ import { DocsNavigation } from "~/components/DocsNavigation";
 import { ConfigSection, ConfigBlock } from "~/components/ConfigSection";
 import { TableOfContents } from "~/components/TableOfContents";
 import { FaHeartbeat, FaRunning, FaVial } from "react-icons/fa";
-import BackToTop from "~/components/BackToTop";
+import { PageHeader } from "~/components/PageHeader";
 
 export const meta: MetaFunction = () => {
   const title = "VitalStrike Documentation - Knockdown System";
@@ -44,20 +44,10 @@ export default function KnockdownConfiguration() {
 
   return (
     <div className="text-foreground antialiased">
-      <div className="mx-auto max-w-5xl">
-        <header className="py-12 md:py-16 text-center">
-          <div className="inline-flex items-center rounded-full border border-gray-200/70 bg-white/70 px-3 py-1 text-sm font-medium text-gray-700 shadow-sm backdrop-blur-sm dark:border-gray-800/70 dark:bg-gray-900/50 dark:text-gray-200">
-            Configuration
-          </div>
-
-          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
-            Knockdown <span className="text-primary-600 dark:text-primary-400">System</span>
-          </h1>
-
-          <p className="mt-4 max-w-2xl mx-auto text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:text-lg">
-            Configure the knockdown and revival mechanics for your server.
-          </p>
-        </header>
+      <div>
+        <PageHeader title={<>Knockdown System</>}>
+          Configure the knockdown and revival mechanics for your server.
+        </PageHeader>
 
         <TableOfContents items={tableItems} />
 
@@ -112,8 +102,9 @@ export default function KnockdownConfiguration() {
               code={`knockdown-system:
   vital-awakening:
     instant-use: false
-    use-duration: 4.0`}
-              tip="Configure how Vital Awakening items work"
+    use-duration: 4.0
+    item-model: "template:vs"`}
+              tip="item-model comes from the optional resource pack. Set it to an empty string to keep the plain totem look if you do not use the pack."
             />
           </ConfigSection>
 
@@ -159,20 +150,18 @@ export default function KnockdownConfiguration() {
         </div>
       </div>
 
-      <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-800">
+      <div>
         <DocsNavigation
           previousPage={{
             title: "Permissions",
             href: "/docs/configuration/permissions",
           }}
           nextPage={{
-            title: "Commands",
-            href: "/docs/commands",
+            title: "Health Bars & Levels",
+            href: "/docs/configuration/progression",
           }}
         />
       </div>
-      {/* Back to top button */}
-      <BackToTop />
     </div>
   );
 }

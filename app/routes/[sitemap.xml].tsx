@@ -6,7 +6,16 @@ import { BlogPost } from "~/types/blog";
 export const loader: LoaderFunction = async ({ request }) => {
   const baseUrl = getDomainUrl(request);
 
-  const staticPages = ["", "/blog", "/docs", "/docs/getting-started", "/docs/configuration"];
+  const staticPages = [
+    "",
+    "/blog",
+    "/docs",
+    "/docs/getting-started",
+    "/docs/configuration",
+    "/docs/configuration/progression",
+    "/docs/commands",
+    "/downloads",
+  ];
 
   const response = await changelogLoader();
   const { posts } = await response.json();

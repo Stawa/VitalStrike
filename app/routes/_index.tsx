@@ -1,30 +1,18 @@
 import type { MetaFunction } from "@remix-run/node";
-import { useLoaderData, Await, Link } from "@remix-run/react";
-import { Suspense } from "react";
+import { Link } from "@remix-run/react";
 import { useHighlightCode } from "~/hooks/prism";
+import { Arena } from "~/components/Arena";
+import { CodeBlock } from "~/components/CodeBlock";
+import { FeatureShowcase } from "~/components/FeatureShowcase";
+import { FinalCta } from "~/components/FinalCta";
+import { DamageTypes } from "~/components/DamageTypes";
+import { Reveal } from "~/components/Reveal";
 import { DeveloperCard } from "~/components/DeveloperCard";
-import { loader as changelogLoader } from "./CHANGELOG";
-import {
-  FaBolt,
-  FaChartLine,
-  FaSkull,
-  FaTrophy,
-  FaGithub,
-  FaArrowRight,
-  FaGlobe,
-  FaUserTag,
-  FaCode,
-  FaCheck,
-} from "react-icons/fa";
-
-export async function loader() {
-  return changelogLoader();
-}
 
 export const meta: MetaFunction = () => {
-  const title = "VitalStrike - Dynamic Combat Feedback for Minecraft";
+  const title = "VitalStrike - Combat feedback plugin for Paper servers";
   const description =
-    "Enhance your Minecraft PvP with dynamic damage indicators, combo multipliers, knockdowns, and leaderboards. Perfect for boosting your server's combat experience.";
+    "Floating damage numbers, health bars, combo ranks and a knockdown and revive system for Paper 26.1+ servers. Free and open source, configured in one file.";
 
   return [
     { rel: "icon", href: "/icon.png", type: "image/png" },
@@ -42,325 +30,292 @@ export const meta: MetaFunction = () => {
     {
       name: "keywords",
       content:
-        "minecraft, plugin, combat, damage indicators, pvp, combo multipliers, knockdowns, leaderboards, server plugin",
+        "minecraft, paper plugin, damage indicators, health bar, combo, pvp, knockdown, revive, leaderboard",
     },
-    { name: "theme-color", content: "#4f46e5" },
+    { name: "theme-color", content: "#d6343c" },
     { name: "application-name", content: "VitalStrike" },
   ];
 };
 
-const features = [
-  {
-    name: "Dynamic Damage Indicators",
-    description:
-      "Visualize damage with customizable formats, gradients, and animations. Support for all damage types with unique icons and colors.",
-    icon: <FaBolt />,
-    color: "text-yellow-500",
-    bg: "bg-yellow-500/10",
-  },
-  {
-    name: "Combo System",
-    description:
-      "Track consecutive hits with a ranking system from D to SSS. Apply increasing damage multipliers based on combo streaks.",
-    icon: <FaChartLine />,
-    color: "text-blue-500",
-    bg: "bg-blue-500/10",
-  },
-  {
-    name: "Knockdown Mechanics",
-    description:
-      "Players can be downed instead of killed, allowing teammates to revive them with Vital Awakening items or abilities.",
-    icon: <FaSkull />,
-    color: "text-red-500",
-    bg: "bg-red-500/10",
-  },
-  {
-    name: "Competitive Leaderboards",
-    description:
-      "Track and display top players by damage dealt, highest combos, and average damage with customizable formatting.",
-    icon: <FaTrophy />,
-    color: "text-amber-500",
-    bg: "bg-amber-500/10",
-  },
-  {
-    name: "World & Dimension Controls",
-    description:
-      "Configure different damage multipliers per dimension and disable features in specific worlds. WorldGuard integration for PvP regions.",
-    icon: <FaGlobe />,
-    color: "text-emerald-500",
-    bg: "bg-emerald-500/10",
-  },
-  {
-    name: "Permission-Based Formatting",
-    description:
-      "Assign unique damage indicator styles to different player groups with permission-based formatting system.",
-    icon: <FaUserTag />,
-    color: "text-purple-500",
-    bg: "bg-purple-500/10",
-  },
-];
+const configSnippet = `display:
+  duration: 1.5            # seconds an indicator stays
+  merge:
+    enabled: true
+    window: 2000           # ms; rapid hits add into one number
 
-const configHighlights = [
-  {
-    title: "Extensive Customization",
-    description:
-      "Configure every aspect from damage indicator styles to combo ranks with support for gradients, animations, and custom icons.",
-  },
-  {
-    title: "Revival System",
-    description:
-      "Set up knockdown mechanics with configurable revival durations, effects, and the Vital Awakening item system.",
-  },
-  {
-    title: "Performance Optimized",
-    description:
-      "Fine-tune display settings, animation speeds, and world-specific configurations for optimal server performance.",
-  },
-];
-
-const configSnippet = `# VitalStrike Configuration
-damage-indicator: "simple-damage-formats"
 simple-damage-formats:
-  default: "<gradient:#FF6B6B:#FF8787>-%.1f ❤</gradient>"
+  default:  "<gradient:#FF6B6B:#FF8787>-%.1f ❤</gradient>"
   critical: "<bold><gradient:#FF0000:#8B0000>-%.1f ⚡</gradient></bold>"
-  fire: "<gradient:#FFD700:#FF4500>-%.1f 🔥</gradient>"
+  heal:     "<green>+%.1f ❤"
 
 combo:
-  enabled: true
   reset-time: 3
   multiplier:
-    enabled: true
-    base: 1.0
+    enabled: false         # turn on for a damage bonus
     per-combo: 0.1
     max: 3.0
-  display:
-    format: "<bold><gradient:#FF0000:#FFD700>✦ %dx COMBO ✦</gradient></bold>"
-    rank:
-      enabled: true
-      thresholds:
-        D: 0
-        C: 5
-        B: 10
-        A: 15
-        S: 25
-        SS: 40
-        SSS: 60
+  rank:
+    thresholds: { D: 0, C: 5, B: 10, A: 15, S: 25, SS: 40, SSS: 60 }
+
+world-settings:
+  disabled-worlds: [ "minigames_world" ]
+  dimensions:
+    nether: { enabled: true, damage-multiplier: 1.2 }
 
 knockdown-system:
-  enabled: true
   down-duration: 30
-  revive-duration: 5.0
-  revive-range: 3.0
-  vital-awakening:
-    instant-use: false
-    use-duration: 4.0`;
+  external-revive: { range: 3.0, duration: 5.0 }`;
+
+const facts = [
+  ["28", "damage types, each with its own look and sound"],
+  ["7", "combo ranks, from D up to SSS"],
+  ["2 s", "window that merges rapid hits into one number"],
+  ["1", "commented config file for all of it"],
+];
+
+const steps = [
+  ["Download", "Grab the JAR from Modrinth, CurseForge or GitHub."],
+  ["Drop it in", "Put it in your server's plugins folder."],
+  ["Start once", "The server writes plugins/VitalStrike/config.yml."],
+  ["Tune and reload", "Edit the config, then run /vs reload. No restart."],
+];
+
+const requirements = [
+  "Paper 26.1 or newer, or a Paper fork",
+  "Java 25",
+  "Spigot and Bukkit are not supported",
+  "On 1.21.x? Stay on VitalStrike 1.4.0",
+];
+
+const configPoints = [
+  "Restyle damage per type, or per permission group with vitalstrike.group.<name>.",
+  "Scale damage per dimension and switch whole worlds off.",
+  "Text uses MiniMessage, so gradients, bold and click events just work.",
+  "Upgrading keeps your file: new options fall back to the bundled defaults.",
+];
+
+const sectionTitle = "font-heading text-[clamp(2rem,3.8vw,4.25rem)]";
+const lead = "text-lg leading-relaxed text-muted-foreground 2xl:text-2xl";
 
 export default function Index() {
   useHighlightCode();
-  const { posts } = useLoaderData<typeof loader>();
-  const latestPost = posts[0];
 
   return (
-    <div className="relative overflow-x-hidden">
-      {/* Background Gradients */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-primary-500/20 rounded-full blur-[120px] -z-10 opacity-60 dark:opacity-20 pointer-events-none" />
-      <div className="absolute top-[600px] right-0 w-[600px] h-[600px] bg-accent-500/20 rounded-full blur-[120px] -z-10 opacity-40 dark:opacity-20 pointer-events-none" />
-
-      {/* Hero Section */}
-      <section className="relative pt-24 pb-16 lg:pt-36 lg:pb-32 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-4xl mx-auto">
-            {/* Announcement Badge */}
-            <Suspense
-              fallback={
-                <div className="flex justify-center mb-8">
-                  <div className="h-8 w-64 bg-gray-200 dark:bg-gray-800 rounded-full" />
-                </div>
-              }
+    <div className="page-x">
+      {/* Hero */}
+      <section className="grid items-center gap-10 py-10 lg:min-h-[calc(100svh-var(--navbar-height)-2rem)] lg:grid-cols-12 lg:gap-14 lg:py-16">
+        <div className="vs-rise lg:col-span-6">
+          <h1 className="font-heading text-[clamp(2.75rem,5.4vw,8rem)]">
+            Damage you can actually see.
+          </h1>
+          <p className={`mt-6 max-w-xl 2xl:max-w-3xl ${lead}`}>
+            VitalStrike is a free Paper plugin that floats a number off every hit, styled by damage
+            type, with a health bar on whatever you hit and combo ranks for chained hits. Every look
+            is configurable.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              to="/downloads"
+              className="inline-flex items-center rounded-full bg-primary-600 px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-primary-700"
             >
-              <Await resolve={latestPost}>
-                {(resolvedPost) => (
-                  <div className="flex justify-center mb-8">
-                    <Link
-                      to={`/blog/${resolvedPost.id}`}
-                      className="group inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 backdrop-blur-md text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-white/10 transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                    >
-                      <span className="flex h-2 w-2 rounded-full bg-green-500" />
-                      VitalStrike {resolvedPost.version} Released
-                      <FaArrowRight className="w-3 h-3 text-gray-400 group-hover:text-primary-500 transition-colors group-hover:translate-x-0.5" />
-                    </Link>
-                  </div>
-                )}
-              </Await>
-            </Suspense>
-
-            {/* Hero Content */}
-            <h1 className="text-5xl font-extrabold tracking-tight sm:text-6xl md:text-7xl mb-8">
-              <span className="text-gray-900 dark:text-white">Elevate Minecraft Combat</span>
-              <br />
-              <span className="text-primary-600 dark:text-primary-400">With Dynamic PvP</span>
-            </h1>
-
-            <p className="mt-6 max-w-2xl mx-auto text-xl text-gray-600 dark:text-gray-300 mb-10 leading-relaxed">
-              Enhance your server with damage indicators, combo multipliers, knockdown mechanics,
-              and competitive leaderboards. The ultimate combat experience.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              {/* Primary Button */}
-              <Link
-                to="/docs/getting-started"
-                className="w-full sm:w-auto px-8 py-4 text-base font-semibold text-white bg-primary-600 rounded-xl shadow-md hover:bg-primary-700 hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
-              >
-                Get Started
-                <FaArrowRight className="w-4 h-4" />
-              </Link>
-
-              {/* Secondary Button */}
-              <a
-                href="https://github.com/Stawa/vitalstrike"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto px-8 py-4 text-base font-semibold text-gray-800 dark:text-gray-200 bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl hover:bg-gray-50 dark:hover:bg-white/10 transition-all duration-200 flex items-center justify-center gap-2"
-              >
-                <FaGithub className="w-5 h-5" />
-                View on GitHub
-              </a>
-            </div>
+              Download VitalStrike
+            </Link>
+            <Link
+              to="/docs/getting-started"
+              className="inline-flex items-center rounded-full bg-surface px-8 py-4 text-base font-semibold transition-colors hover:bg-gray-200 dark:hover:bg-dark-surface"
+            >
+              Read the docs
+            </Link>
           </div>
+          <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-[15px] font-medium text-muted-foreground">
+            <li>Paper 26.1+</li>
+            <li>Java 25</li>
+            <li>Free, GPL-3.0</li>
+          </ul>
         </div>
-      </section>
 
-      {/* Features Section */}
-      <section className="py-16 sm:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
-              Everything You Need for Combat Enhancement
-            </h2>
-            <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
-              Powerful features designed to improve player experience and server management
-            </p>
-          </div>
-
-          <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => (
-              <div
-                key={feature.name}
-                className="relative p-6 bg-white/80 dark:bg-dark-bg/80 shadow-xl ring-1 ring-gray-900/10 dark:ring-gray-100/10 backdrop-blur rounded-xl shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className="text-primary-600 dark:text-primary-400 mb-4 transform transition-transform group-hover:scale-110">
-                  {feature.icon}
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {feature.name}
-                </h3>
-                <p className="mt-2 text-gray-600 dark:text-gray-300">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Project Lead Section */}
-      <section className="py-16 sm:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-500/10 text-primary-600 dark:text-primary-400 text-sm font-medium">
-            <FaUserTag className="w-4 h-4" />
-            <span>Maintained By</span>
-          </div>
-          <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
-            Who&apos;s In Charge
-          </h2>
-          <p className="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-2xl">
-            VitalStrike is actively maintained by the main developer. You can reach out on GitHub
-            for issues, suggestions, and contributions.
+        <div className="vs-rise lg:col-span-6 [animation-delay:120ms]">
+          <Arena />
+          <p className="mt-3 px-2 text-sm text-muted-foreground">
+            Try it: click the zombie or use the buttons. Values match the default config.
           </p>
         </div>
+      </section>
 
-        <div className="mt-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-6 lg:grid-cols-2">
-            <DeveloperCard
-              className="w-full"
-              name="Stawa"
-              avatarUrl="https://github.com/Stawa.png"
-              roles={[
-                { label: "Main Developer", tone: "primary" },
-                { label: "Maintainer", tone: "neutral" },
-              ]}
-              bio="Responsible for the plugin, releases, and keeping the docs aligned with the latest features."
-              githubUrl="https://github.com/Stawa/"
-            />
-            <DeveloperCard
-              className="w-full"
-              name="TeenYsDaMan"
-              avatarUrl="https://github.com/TeenYsDaMan.png"
-              roles={[{ label: "Resource Pack", tone: "primary" }]}
-              bio="Responsible for the resource pack, which includes models, and textures for the plugin to enhance the player experience."
-              githubUrl="https://github.com/TeenYsDaMan/"
-            />
+      {/* Facts */}
+      <section aria-label="At a glance" className="pb-24 lg:pb-32">
+        <Reveal>
+          <dl className="grid gap-x-8 gap-y-8 rounded-3xl bg-surface p-8 sm:grid-cols-2 lg:grid-cols-4 lg:p-12">
+            {facts.map(([value, label]) => (
+              <div key={label}>
+                <dt className="font-heading text-[clamp(3rem,5vw,6rem)] text-primary-600 dark:text-primary-400">
+                  {value}
+                </dt>
+                <dd className="mt-2 max-w-[22ch] text-[17px] leading-snug text-muted-foreground">
+                  {label}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </Reveal>
+      </section>
+
+      {/* Features */}
+      <section aria-labelledby="features-h" className="pb-24 lg:pb-32">
+        <Reveal>
+          <div className="grid gap-4 lg:grid-cols-12 lg:items-end">
+            <h2 id="features-h" className={`${sectionTitle} lg:col-span-7`}>
+              Every hit, made readable
+            </h2>
+            <p className={`${lead} lg:col-span-5 lg:max-w-xl`}>
+              Each piece has its own switch in <code>config.yml</code>. Turn on only what you want.
+            </p>
           </div>
+        </Reveal>
+        <Reveal delay={80} className="mt-10">
+          <FeatureShowcase />
+          <p className="mt-6 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
+            Also included: kills can earn XP and levels, damage milestones can pay rewards, and{" "}
+            <code>/vs stats</code> and <code>/vs leaderboard</code> track damage, hits and best
+            combo. All of it can be switched off.
+          </p>
+        </Reveal>
+      </section>
+
+      {/* Damage types */}
+      <section
+        aria-labelledby="types-h"
+        className="grid gap-10 pb-24 lg:grid-cols-12 lg:gap-16 lg:pb-32"
+      >
+        <Reveal className="lg:col-span-4">
+          <h2 id="types-h" className={sectionTitle}>
+            A look for every kind of damage
+          </h2>
+          <p className={`mt-5 max-w-md ${lead}`}>
+            Pick a damage type to see its default format and sound. Each one is a line in your
+            config that you can rewrite.
+          </p>
+        </Reveal>
+        <Reveal delay={100} className="lg:col-span-8">
+          <DamageTypes />
+        </Reveal>
+      </section>
+
+      {/* Config */}
+      <section aria-labelledby="config-h" className="pb-24 lg:pb-32">
+        <div className="grid gap-10 rounded-3xl bg-surface p-6 sm:p-10 lg:grid-cols-12 lg:gap-14 lg:p-14">
+          <Reveal className="lg:col-span-5">
+            <h2 id="config-h" className={sectionTitle}>
+              One commented file
+            </h2>
+            <ul className="mt-8 space-y-4 text-[17px] leading-relaxed 2xl:text-lg">
+              {configPoints.map((point) => (
+                <li key={point} className="flex gap-3">
+                  <span
+                    className="mt-2.5 h-2 w-2 shrink-0 rounded-full bg-primary-600"
+                    aria-hidden="true"
+                  />
+                  <span>{point}</span>
+                </li>
+              ))}
+            </ul>
+            <Link
+              to="/docs/configuration"
+              className="mt-8 inline-flex items-center rounded-full bg-ink px-7 py-3.5 text-base font-semibold text-ground transition-opacity hover:opacity-90"
+            >
+              Configuration reference
+            </Link>
+          </Reveal>
+
+          <Reveal delay={100} className="min-w-0 lg:col-span-7">
+            <CodeBlock
+              code={configSnippet}
+              filename="plugins/VitalStrike/config.yml (defaults, excerpt)"
+              className="!bg-ground"
+            />
+          </Reveal>
         </div>
       </section>
 
-      {/* Config Section */}
-      <section className="py-24 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="lg:grid lg:grid-cols-2 lg:gap-16 items-center">
-            {/* Left Content */}
-            <div className="mb-12 lg:mb-0 min-w-0">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-500/10 text-primary-600 dark:text-primary-400 text-sm font-medium mb-6">
-                <FaCode className="w-4 h-4" />
-                <span>Developer Friendly</span>
-              </div>
-              <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl mb-6">
-                Simple to Configure,
-                <br />
-                <span className="text-primary-600 dark:text-primary-400">Powerful to Use</span>
-              </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
-                Get started in minutes with our intuitive configuration. Customize every aspect of
-                combat feedback to match your server&apos;s needs.
-              </p>
-
-              <div className="space-y-6">
-                {configHighlights.map((item) => (
-                  <div key={item.title} className="flex gap-4">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center mt-1">
-                      <FaCheck className="w-3 h-3" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
-                        {item.title}
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                        {item.description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right Content - Code Block */}
-            <div className="relative min-w-0">
-              <div className="relative rounded-xl bg-[#0d1117] border border-gray-800 shadow-2xl overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-800 bg-[#161b22]">
-                  <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
-                  <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
-                  <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
-                  <span className="ml-2 text-xs text-gray-400 font-mono">config.yml</span>
-                </div>
-                <div className="p-4 overflow-x-auto max-h-[500px] scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
-                  <pre className="text-sm font-mono leading-relaxed">
-                    <code className="language-yaml">{configSnippet}</code>
-                  </pre>
-                </div>
-              </div>
-            </div>
+      {/* Install */}
+      <section
+        aria-labelledby="install-h"
+        className="grid gap-10 pb-24 lg:grid-cols-12 lg:gap-16 lg:pb-32"
+      >
+        <Reveal className="lg:col-span-5">
+          <h2 id="install-h" className={sectionTitle}>
+            Running in about a minute
+          </h2>
+          <div className="mt-8 rounded-3xl bg-surface p-6 sm:p-8">
+            <h3 className="text-lg font-bold">Before you install</h3>
+            <p className="mt-1 text-[15px] text-muted-foreground">VitalStrike 1.5.0 needs:</p>
+            <ul className="mt-4 space-y-2.5 text-[17px]">
+              {requirements.map((item) => (
+                <li key={item} className="flex gap-3">
+                  <span
+                    className="mt-2.5 h-2 w-2 shrink-0 rounded-full bg-primary-600"
+                    aria-hidden="true"
+                  />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-        </div>
+        </Reveal>
+
+        <Reveal delay={100} className="lg:col-span-7">
+          <ol className="space-y-3">
+            {steps.map(([title, text], i) => (
+              <li key={title} className="flex items-center gap-5 rounded-3xl bg-surface p-5 sm:p-7">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink text-base font-bold text-ground">
+                  {i + 1}
+                </span>
+                <div>
+                  <h3 className="text-xl font-bold">{title}</h3>
+                  <p className="mt-1 text-[15px] leading-relaxed text-muted-foreground 2xl:text-base">
+                    {text}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </Reveal>
+      </section>
+
+      {/* Call to action */}
+      <section aria-label="Get VitalStrike" className="pb-24 lg:pb-32">
+        <Reveal>
+          <FinalCta />
+        </Reveal>
+      </section>
+
+      {/* People */}
+      <section aria-labelledby="team-h" className="grid gap-8 pb-16 lg:grid-cols-12 lg:gap-16">
+        <Reveal className="lg:col-span-4">
+          <h2 id="team-h" className="font-heading text-[clamp(1.75rem,2.8vw,3rem)]">
+            Made by two people
+          </h2>
+          <p className="mt-4 max-w-sm text-[17px] text-muted-foreground">
+            Maintained by one person, so replies can take a while. Bug reports and ideas are always
+            welcome.
+          </p>
+        </Reveal>
+        <Reveal delay={80} className="grid gap-4 lg:col-span-8 xl:grid-cols-2">
+          <DeveloperCard
+            name="Stawa"
+            avatarUrl="https://github.com/Stawa.png"
+            roles={[{ label: "Plugin, releases and docs", tone: "primary" }]}
+            bio="Writes the plugin, ships the releases and keeps these docs in step with the code."
+            githubUrl="https://github.com/Stawa/"
+          />
+          <DeveloperCard
+            name="TeenYsDaMan"
+            avatarUrl="https://github.com/TeenYsDaMan.png"
+            roles={[{ label: "Resource pack", tone: "primary" }]}
+            bio="Makes the optional resource pack: the models and textures behind the Vital Awakening item."
+            githubUrl="https://github.com/TeenYsDaMan/"
+          />
+        </Reveal>
       </section>
     </div>
   );

@@ -1,284 +1,228 @@
 import type { MetaFunction } from "@remix-run/node";
-import { useHighlightCode } from "~/hooks/prism";
-import { DocsNavigation } from "~/components/DocsNavigation";
-import { TableOfContents } from "~/components/TableOfContents";
 import { useState } from "react";
-import {
-  FaTerminal,
-  FaToggleOn,
-  FaChartBar,
-  FaTools,
-  FaSearch,
-  FaCopy,
-  FaTimes,
-} from "react-icons/fa";
-import BackToTop from "~/components/BackToTop";
+import { DocsNavigation } from "~/components/DocsNavigation";
+import { PageHeader } from "~/components/PageHeader";
 
 export const meta: MetaFunction = () => {
-  const title = "VitalStrike Commands - Complete Command Reference";
+  const title = "Commands - VitalStrike Documentation";
   const description =
-    "Comprehensive guide to all VitalStrike commands, including basic usage, toggles, statistics, and administrative commands.";
+    "Every VitalStrike command with its usage and permission: /vs toggle, stats, leaderboard, reload, revive and more.";
 
   return [
+    { rel: "icon", href: "/icon.png", type: "image/png" },
+    { property: "og:image", content: "/og-preview.png" },
+    { name: "twitter:image", content: "/og-preview.png" },
     { title },
     { name: "description", content: description },
     { property: "og:title", content: title },
     { property: "og:description", content: description },
+    { property: "og:type", content: "website" },
+    { property: "og:site_name", content: "VitalStrike" },
+    { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: title },
     { name: "twitter:description", content: description },
+    { name: "theme-color", content: "#d6343c" },
+    { name: "application-name", content: "VitalStrike" },
   ];
 };
 
-export default function CommandsPage() {
-  useHighlightCode();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [copiedCommand, setCopiedCommand] = useState<string | null>(null);
+interface Command {
+  usage: string;
+  text: string;
+  permission: string;
+  op?: boolean;
+}
 
-  const tableItems = [
-    { id: "basic-commands", label: "Basic Commands", icon: <FaTerminal /> },
-    { id: "toggle-commands", label: "Toggle Commands", icon: <FaToggleOn /> },
-    { id: "stats-commands", label: "Statistics Commands", icon: <FaChartBar /> },
-    { id: "admin-commands", label: "Admin Commands", icon: <FaTools /> },
-  ];
+const groups: { id: string; title: string; commands: Command[] }[] = [
+  {
+    id: "player",
+    title: "Player commands",
+    commands: [
+      {
+        usage: "/vs help [section]",
+        text: "Show the help menu or one section of it.",
+        permission: "vitalstrike.use",
+      },
+      {
+        usage: "/vs toggle [on|off]",
+        text: "Turn your own damage indicators on or off.",
+        permission: "vitalstrike.toggle",
+      },
+      {
+        usage: "/vs holo [on|off]",
+        text: "Turn your combo hologram on or off.",
+        permission: "vitalstrike.hologram",
+      },
+      {
+        usage: "/vs stats [player]",
+        text: "Show level, kills and combat stats for yourself or another player.",
+        permission: "vitalstrike.stats",
+      },
+      {
+        usage: "/vs top [damage|combo|average]",
+        text: "Show the top players. Old names: /vs leaderboard, /vs lb.",
+        permission: "vitalstrike.leaderboard",
+      },
+      {
+        usage: "/vs pack",
+        text: "Load the optional resource pack. Old names: /vs resourcepack, /vs rp.",
+        permission: "vitalstrike.resourcepack",
+      },
+    ],
+  },
+  {
+    id: "admin",
+    title: "Admin commands",
+    commands: [
+      {
+        usage: "/vs reload",
+        text: "Reload config.yml and clear floating text. Combo and knockdown values apply without a restart.",
+        permission: "vitalstrike.reload",
+        op: true,
+      },
+      {
+        usage: "/vs clear",
+        text: "Remove all floating damage and combo text, including strays.",
+        permission: "vitalstrike.clear",
+        op: true,
+      },
+      {
+        usage: "/vs revive <player>",
+        text: "Force-revive a downed player.",
+        permission: "vitalstrike.revive",
+        op: true,
+      },
+      {
+        usage: "/vs give [amount] [player]",
+        text: "Give Vital Awakening revive items. Old names: /vs vitalawakening, /vs va.",
+        permission: "vitalstrike.give",
+        op: true,
+      },
+      {
+        usage: "/vs config [apply <code>]",
+        text: "Edit the config in your browser. /vs config gives a link and a code; after saving in the editor, run /vs config apply <code>. The old file is kept as config.yml.bak.",
+        permission: "vitalstrike.admin.config",
+        op: true,
+      },
+      {
+        usage: "/vs perm <add|remove|list> <player> [permission]",
+        text: "Manage stored group permissions. Works for offline players.",
+        permission: "vitalstrike.admin.permissions",
+        op: true,
+      },
+    ],
+  },
+];
 
-  const commandSections = [
-    {
-      id: "basic-commands",
-      title: "Basic Commands",
-      description: "Essential commands for using VitalStrike",
-      icon: <FaTerminal className="text-xl" />,
-      commands: [
-        {
-          command: "/vs help [section]",
-          description: "Show the help menu or a specific section",
-          permission: "vitalstrike.use",
-        },
-        {
-          command: "/vs resourcepack",
-          description: "Load the custom resource pack",
-          permission: "vitalstrike.resourcepack",
-        },
-      ],
-    },
-    {
-      id: "toggle-commands",
-      title: "Toggle Commands",
-      description: "Commands to toggle plugin features",
-      icon: <FaToggleOn className="text-xl" />,
-      commands: [
-        {
-          command: "/vs toggle [on|off]",
-          description: "Toggle damage indicators on/off",
-          permission: "vitalstrike.toggle",
-        },
-        {
-          command: "/vs hologram [on|off]",
-          description: "Toggle combo hologram display",
-          permission: "vitalstrike.hologram",
-        },
-      ],
-    },
-    {
-      id: "stats-commands",
-      title: "Statistics Commands",
-      description: "Commands to view statistics and leaderboards",
-      icon: <FaChartBar className="text-xl" />,
-      commands: [
-        {
-          command: "/vs stats",
-          description: "View your combat statistics",
-          permission: "vitalstrike.stats",
-        },
-        {
-          command: "/vs leaderboard [damage|combo|average]",
-          description: "View top players leaderboard",
-          permission: "vitalstrike.leaderboard",
-        },
-        {
-          command: "/vs lb [damage|combo|average]",
-          description: "Alias for /vs leaderboard",
-          permission: "vitalstrike.leaderboard",
-        },
-      ],
-    },
-    {
-      id: "admin-commands",
-      title: "Admin Commands",
-      description: "Administrative commands for managing the plugin",
-      icon: <FaTools className="text-xl" />,
-      commands: [
-        {
-          command: "/vs reload",
-          description: "Reload the plugin configuration",
-          permission: "vitalstrike.reload",
-        },
-        {
-          command: "/vs vitalawakening [amount]",
-          description: "Give Vital Awakening items",
-          permission: "vitalstrike.give",
-        },
-        {
-          command: "/vs perm <add|remove|list> <player> [permission]",
-          description: "Manage player permissions",
-          permission: "vitalstrike.admin.permissions",
-        },
-      ],
-    },
-  ];
+export default function Commands() {
+  const [query, setQuery] = useState("");
+  const [copied, setCopied] = useState("");
+  const q = query.trim().toLowerCase();
 
-  const filteredSections = searchTerm
-    ? commandSections
-        .map((section) => ({
-          ...section,
-          commands: section.commands.filter(
-            (cmd) =>
-              cmd.command.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              cmd.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              cmd.permission.toLowerCase().includes(searchTerm.toLowerCase())
-          ),
-        }))
-        .filter((section) => section.commands.length > 0)
-    : commandSections;
+  const visible = groups
+    .map((group) => ({
+      ...group,
+      commands: group.commands.filter(
+        (c) => !q || `${c.usage} ${c.text} ${c.permission}`.toLowerCase().includes(q)
+      ),
+    }))
+    .filter((group) => group.commands.length > 0);
 
-  const handleCopyCommand = (command: string) => {
-    navigator.clipboard.writeText(command);
-    setCopiedCommand(command);
-    setTimeout(() => setCopiedCommand(null), 2000);
+  const copy = async (usage: string) => {
+    try {
+      await navigator.clipboard.writeText(usage.split(" [")[0].split(" <")[0]);
+      setCopied(usage);
+      setTimeout(() => setCopied(""), 1500);
+    } catch {
+      setCopied("");
+    }
   };
 
   return (
-    <div className="text-foreground antialiased">
-      <div className="mx-auto max-w-5xl">
-        <header className="py-12 md:py-16 text-center">
-          <div className="inline-flex items-center rounded-full border border-gray-200/70 bg-white/70 px-3 py-1 text-sm font-medium text-gray-700 shadow-sm backdrop-blur-sm dark:border-gray-800/70 dark:bg-gray-900/50 dark:text-gray-200">
-            Command Reference
-          </div>
+    <div>
+      <PageHeader title="Commands">
+        The command is{" "}
+        <code className="rounded-md bg-surface px-1.5 py-0.5 font-mono text-[0.9em]">
+          /vitalstrike
+        </code>
+        , or <code className="rounded-md bg-surface px-1.5 py-0.5 font-mono text-[0.9em]">/vs</code>{" "}
+        for short.
+      </PageHeader>
 
-          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
-            VitalStrike <span className="text-primary-600 dark:text-primary-400">Commands</span>
-          </h1>
+      <label className="block">
+        <span className="sr-only">Filter commands</span>
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Filter commands or permissions"
+          className="h-12 w-full max-w-md rounded-full bg-surface px-5 text-[15px] text-ink placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+        />
+      </label>
 
-          <p className="mt-4 max-w-2xl mx-auto text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:text-lg">
-            Complete list of commands and their usage in VitalStrike.
-          </p>
-        </header>
-
-        {/* Search and Table of Contents */}
-        <div className="mb-12">
-          {/* Search Bar */}
-          <div className="mb-8 relative">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search commands..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full rounded-xl border border-gray-200/70 bg-white/70 px-4 py-3 pl-12 text-gray-900 shadow-sm backdrop-blur-sm transition-colors focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-800/70 dark:bg-gray-900/50 dark:text-white"
-              />
-              <FaSearch className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-                  aria-label="Clear search"
-                >
-                  <FaTimes className="text-sm" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          <TableOfContents items={tableItems} />
-        </div>
-
-        {/* Command Sections */}
-        <div className="space-y-16">
-          {filteredSections.map((section) => (
-            <section key={section.id} id={section.id} className="scroll-mt-24">
-              <div className="relative flex items-center mb-8">
-                <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
-                <div className="flex items-center flex-shrink-0 mx-4">
-                  <div className="mr-3 inline-flex h-10 w-10 items-center justify-center rounded-lg border border-primary/15 bg-primary/10 text-primary-700 shadow-sm dark:text-primary-300">
-                    {section.icon}
-                  </div>
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {section.title}
-                  </h2>
-                </div>
-                <div className="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
-              </div>
-
-              <p className="text-gray-600 dark:text-gray-400 mb-6">{section.description}</p>
-
-              <div className="grid gap-4">
-                {section.commands.map((cmd) => (
-                  <div
-                    key={cmd.command}
-                    className="group rounded-xl bg-white/70 dark:bg-gray-900/50 backdrop-blur-sm p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-200/70 dark:border-gray-800/70 hover:border-primary/30"
+      {visible.map((group) => (
+        <section key={group.id} id={group.id} data-toc={group.title} className="mt-10 scroll-mt-24">
+          <h2 className="font-heading text-2xl sm:text-3xl">{group.title}</h2>
+          <ul className="mt-5 space-y-3">
+            {group.commands.map((command) => (
+              <li key={command.usage} className="rounded-2xl bg-surface p-5">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <code className="break-all font-mono text-[15px] font-semibold">
+                    {command.usage}
+                  </code>
+                  <button
+                    type="button"
+                    onClick={() => copy(command.usage)}
+                    className="rounded-full bg-raised px-3.5 py-1.5 text-sm font-semibold transition-opacity hover:opacity-80"
+                    aria-label={`Copy ${command.usage}`}
                   >
-                    <div className="flex flex-col md:flex-row md:items-center justify-between">
-                      <div className="mb-3 md:mb-0">
-                        <div className="flex items-center">
-                          <div className="font-mono text-base font-medium text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-md">
-                            {cmd.command}
-                          </div>
-                          <button
-                            onClick={() => handleCopyCommand(cmd.command)}
-                            className="ml-2 p-2 text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
-                            title="Copy command"
-                          >
-                            {copiedCommand === cmd.command ? (
-                              <span className="text-green-500 text-sm">Copied!</span>
-                            ) : (
-                              <FaCopy size={14} />
-                            )}
-                          </button>
-                        </div>
-                        <p className="mt-2 text-gray-600 dark:text-gray-400">{cmd.description}</p>
-                      </div>
-                      <div className="md:text-right">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 dark:bg-primary-900/50 text-primary-800 dark:text-primary-300">
-                          {cmd.permission}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          ))}
+                    {copied === command.usage ? "Copied" : "Copy"}
+                  </button>
+                </div>
+                <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
+                  {command.text}
+                </p>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Permission <code className="font-mono text-ink">{command.permission}</code>
+                  {command.op ? " (operators by default)" : " (everyone by default)"}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
 
-          {filteredSections.length === 0 && (
-            <div className="text-center py-12">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
-                <FaSearch className="text-2xl text-gray-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                No commands found
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Try adjusting your search term to find what you&apos;re looking for.
-              </p>
-            </div>
-          )}
-        </div>
+      {visible.length === 0 && (
+        <p className="mt-10 text-[17px] text-muted-foreground">
+          No command matches &quot;{query}&quot;.
+        </p>
+      )}
 
-        {/* Navigation Footer */}
-        <div className="mt-16">
-          <DocsNavigation
-            previousPage={{
-              title: "Configuration",
-              href: "/docs/configuration",
-            }}
-            nextPage={{
-              title: "Downloads",
-              href: "/downloads",
-            }}
-          />
-        </div>
-        {/* Back to top button */}
-        <BackToTop />
-      </div>
+      <section
+        id="permissions"
+        data-toc="Permissions"
+        className="mt-14 scroll-mt-24 rounded-3xl bg-surface p-6 sm:p-8"
+      >
+        <h2 className="font-heading text-2xl sm:text-3xl">Permission notes</h2>
+        <ul className="mt-4 space-y-2 text-[17px] leading-relaxed">
+          <li>
+            <code className="font-mono">vitalstrike.admin</code> grants every admin permission
+            above, plus the update notice.
+          </li>
+          <li>
+            <code className="font-mono">vitalstrike.update-notify</code> tells a player about new
+            releases when they join.
+          </li>
+          <li>
+            <code className="font-mono">vitalstrike.group.&lt;name&gt;</code> gives a player a
+            damage style from <code className="font-mono">group-damage-formats</code>.
+          </li>
+        </ul>
+      </section>
+
+      <DocsNavigation
+        previousPage={{ title: "Health bars and levels", href: "/docs/configuration/progression" }}
+      />
     </div>
   );
 }

@@ -19,7 +19,7 @@ export function WIPBanner({
 
   const wrapperClassName =
     variant === "card"
-      ? "rounded-xl border border-gray-200/70 bg-white/70 shadow-sm backdrop-blur-sm dark:border-gray-800/70 dark:bg-gray-900/50"
+      ? "rounded-2xl bg-surface"
       : "w-full border-b border-gray-200/50 bg-white/70 backdrop-blur-md dark:border-white/10 dark:bg-dark-bg/70";
 
   const innerClassName =
@@ -27,16 +27,13 @@ export function WIPBanner({
       ? "flex items-start gap-3 px-4 py-3 sm:items-center sm:gap-4 sm:px-5"
       : "mx-auto flex max-w-7xl items-start gap-3 px-4 py-3 sm:items-center sm:gap-4 sm:px-6";
 
-  const pillClassName =
-    tone === "info"
-      ? "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-200"
-      : "border-primary-500/20 bg-primary-500/10 text-primary-700 dark:border-primary-400/20 dark:bg-primary-400/10 dark:text-primary-200";
+  const pillClassName = "bg-primary-600 text-white";
 
   return (
     <div className={wrapperClassName}>
       <div className={innerClassName}>
         <div
-          className={`inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${pillClassName}`}
+          className={`inline-flex shrink-0 items-center rounded-full px-3 py-1 text-sm font-semibold ${pillClassName}`}
         >
           {tone === "info" ? "Updated" : "WIP"}
         </div>
@@ -53,7 +50,7 @@ export function WIPBanner({
 
         <button
           type="button"
-          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
           onClick={() => setIsVisible(false)}
           aria-label="Dismiss"
         >
