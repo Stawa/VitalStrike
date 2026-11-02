@@ -211,10 +211,13 @@ export function ReleaseGroups({ changes }: Readonly<{ changes: string }>) {
         </button>
       </div>
 
-      <div className="mt-5 grid items-start gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+      <div className="mt-5 space-y-4">
         {groups.map((group, g) => (
-          <section key={group.title} className="rounded-2xl bg-surface">
-            <h3>
+          <section
+            key={group.title}
+            className="rounded-2xl bg-surface lg:grid lg:grid-cols-[15rem_1fr] xl:grid-cols-[18rem_1fr]"
+          >
+            <h3 className="lg:self-start">
               <button
                 type="button"
                 aria-expanded={open[g]}
@@ -238,9 +241,9 @@ export function ReleaseGroups({ changes }: Readonly<{ changes: string }>) {
               </button>
             </h3>
             {open[g] && (
-              <ul className="space-y-3 px-5 pb-5 text-[15px] leading-relaxed sm:px-6">
+              <ul className="space-y-3 px-5 pb-5 text-[15px] leading-relaxed sm:px-6 lg:pl-0 lg:pt-4 2xl:columns-2 2xl:gap-x-12 2xl:space-y-0 2xl:text-base">
                 {group.items.map((item, i) => (
-                  <li key={i}>
+                  <li key={i} className="break-inside-avoid 2xl:pb-3">
                     <span
                       className={prose}
                       dangerouslySetInnerHTML={{ __html: inline(item.text) }}
