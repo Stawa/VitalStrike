@@ -18,7 +18,7 @@ export function useLatestVersion() {
         setVersion(data.tag_name.replace(/^v/, ""));
       } catch (error) {
         console.error("Failed to fetch latest version:", error);
-        setVersion("1.5.0");
+        setVersion("2.0.0");
       } finally {
         setLoading(false);
       }

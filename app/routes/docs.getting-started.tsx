@@ -32,7 +32,7 @@ export const meta: MetaFunction = () => {
 const requirements = [
   ["Paper 26.1 or newer", "Or a Paper fork. Spigot and Bukkit are not supported."],
   ["Java 25 or newer", "Paper 26.1 itself requires it."],
-  ["On 1.21.x?", "Stay on VitalStrike 1.4.0. Version 1.5.0 will not load there."],
+  ["On 1.21.x?", "Stay on VitalStrike 1.4.0. Version 2.0.0 will not load there."],
 ];
 
 const sources = [

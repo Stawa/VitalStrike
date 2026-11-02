@@ -99,8 +99,8 @@ export default function DocsIndex() {
         </ul>
       </section>
 
-      <section data-toc="New in 1.5.0" id="new" className="mt-14">
-        <h2 className="font-heading text-2xl sm:text-3xl">New in 1.5.0</h2>
+      <section data-toc="New in 2.0.0" id="new" className="mt-14">
+        <h2 className="font-heading text-2xl sm:text-3xl">New in 2.0.0</h2>
         <ul className="mt-5 space-y-3 text-[17px] leading-relaxed">
           {whatsNew.map((item) => (
             <li key={item} className="flex gap-3">

@@ -56,13 +56,13 @@ const sources = [
 ];
 
 const requirements = [
-  ["VitalStrike 1.5.0 needs Paper 26.1+", "Or a Paper fork. Spigot and Bukkit are not supported."],
+  ["VitalStrike 2.0.0 needs Paper 26.1+", "Or a Paper fork. Spigot and Bukkit are not supported."],
   ["Java 25 or newer", "Paper 26.1 itself requires it."],
   [
     "Upgrading from 1.4.0?",
     "Your config.yml is kept. New options use the bundled defaults, so new features are on after the update.",
   ],
-  ["Server on 1.21.x?", "Stay on VitalStrike 1.4.0. Version 1.5.0 will not load there."],
+  ["Server on 1.21.x?", "Stay on VitalStrike 1.4.0. Version 2.0.0 will not load there."],
 ];
 
 export default function Downloads() {

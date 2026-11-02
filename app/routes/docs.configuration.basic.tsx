@@ -231,7 +231,7 @@ world-settings:
                 VitalStrike counts hits after other plugins have had their say. Damage cancelled by
                 WorldGuard PvP flags or spawn protection never creates indicators, combos, stats or
                 rewards, so no extra setting is needed. The old <code>respect-worldguard-pvp</code>{" "}
-                option was removed in 1.5.0.
+                option was removed in 2.0.0.
               </p>
             </div>
           </ConfigSection>

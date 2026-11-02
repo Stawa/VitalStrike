@@ -9,7 +9,7 @@ import { PageHeader } from "~/components/PageHeader";
 export const meta: MetaFunction = () => {
   const title = "VitalStrike Documentation - Health Bars, Kills and Levels";
   const description =
-    "Configure health bars, the kill indicator, RPG levels, lifetime-damage rewards, the resource pack and the update checker in VitalStrike 1.5.0.";
+    "Configure health bars, the kill indicator, RPG levels, lifetime-damage rewards, the resource pack and the update checker in VitalStrike 2.0.0.";
 
   return [
     { rel: "icon", href: "/icon.png", type: "image/png" },
@@ -44,7 +44,7 @@ export default function ProgressionConfiguration() {
     <div className="text-foreground antialiased">
       <div>
         <PageHeader title={<>Health bars, kills and levels</>}>
-          Added or reworked in 1.5.0. All values below are the shipped defaults, and each section
+          Added or reworked in 2.0.0. All values below are the shipped defaults, and each section
           can be switched off with its own <code>enabled</code> option.
         </PageHeader>
 
@@ -171,7 +171,7 @@ export default function ProgressionConfiguration() {
               title="Resource pack and update checker"
               filename="config.yml"
               code={`resource-pack:
-  url: "https://github.com/Stawa/VitalAwakening/raw/refs/heads/main/output/VitalAwakening_1.5.0-SNAPSHOT.zip"
+  url: "https://github.com/Stawa/VitalAwakening/raw/refs/heads/main/output/VitalAwakening_2.0.0-SNAPSHOT.zip"
   auto-send: false
   hint:
     enabled: true
