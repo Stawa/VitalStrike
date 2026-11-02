@@ -2,7 +2,7 @@
 
 All notable changes to VitalStrike will be documented in this file.
 
-## [2.0.0] - Unreleased
+## [2.0.0] - 2026-11-02
 Platform update, a web config editor and a broad bug-fix pass. Requires **Paper 26.1+ and Java 25**.
 
 ### Breaking changes
