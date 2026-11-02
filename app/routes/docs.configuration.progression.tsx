@@ -150,8 +150,13 @@ export default function ProgressionConfiguration() {
       xp: 100
       items:
         - material: "NETHERITE_SCRAP"
-          amount: 1`}
-              tip="Progress is stored as the number of tiers claimed, so keep the tiers in the same order if you edit them later."
+          amount: 1
+  # Start over after the last tier, each lap needing more damage.
+  # Tiers at 50/100/150: tier 1 again at 200, tier 2 at 250, tier 3 at 300, tier 1 at 350...
+  loop:
+    enabled: false
+    cycle-damage: 0.0 # 0 = use the last tier's damage`}
+              tip="Progress is stored as the number of tiers claimed, so keep the tiers in the same order if you edit them later. With loop on, players who already claimed every tier carry on from the next lap."
             />
           </ConfigSection>
 

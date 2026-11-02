@@ -192,7 +192,8 @@ update-checker:
             <div className="mb-6 text-muted-foreground">
               <p>
                 Control how VitalStrike behaves in different worlds and dimensions. You can disable
-                the plugin in specific worlds or adjust damage multipliers for different dimensions.
+                the plugin in specific worlds or adjust damage multipliers for different dimensions
+                or for individual worlds by name.
               </p>
             </div>
 
@@ -215,8 +216,13 @@ world-settings:
       damage-multiplier: 1.2 # 20% more damage in nether
     end:
       enabled: true
-      damage-multiplier: 1.1 # 10% more damage in end`}
-              tip="Fine-tune how VitalStrike behaves in different worlds and dimensions."
+      damage-multiplier: 1.1 # 10% more damage in end
+  # Individual worlds by name. These win over the dimension settings above.
+  worlds:
+    arena:
+      enabled: true
+      damage-multiplier: 2.0 # Double damage in the "arena" world`}
+              tip="A world listed under worlds wins over its dimension. Use the world's folder name. You can also add worlds in the web editor with /vs config."
             />
 
             <div className="mt-6 rounded-2xl bg-surface p-5">

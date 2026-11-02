@@ -1,3 +1,4 @@
+import { useLocation } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import { FaArrowUp } from "react-icons/fa";
 
@@ -5,6 +6,7 @@ const SHOW_AFTER_PX = 600;
 
 export default function BackToTop() {
   const [visible, setVisible] = useState(false);
+  const { pathname } = useLocation();
 
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > SHOW_AFTER_PX);
@@ -12,6 +14,11 @@ export default function BackToTop() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // The config editor has its own fixed save bar in the same corner.
+  if (pathname.startsWith("/config-editor")) {
+    return null;
+  }
 
   return (
     <button

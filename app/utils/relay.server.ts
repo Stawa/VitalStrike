@@ -10,7 +10,7 @@ const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const CODE = /^[A-Z2-9]{10}$/;
 
 interface Session {
-  entries: { path: string }[];
+  entries: { path: string; type?: string }[];
   changes: Record<string, unknown> | null;
 }
 
@@ -59,6 +59,20 @@ const isScalar = (v: unknown) => ["string", "number", "boolean"].includes(typeof
 const isValue = (v: unknown) =>
   isScalar(v) || (Array.isArray(v) && v.length <= 500 && v.every(isScalar));
 
+// Reward tiers and per-world settings are nested lists and maps. The plugin validates every
+// field; this only keeps the shape small and plain (no deep nesting, no odd values).
+const STRUCTURED = new Set(["tiers", "worlds"]);
+function isPlain(v: unknown, depth = 0): boolean {
+  if (depth > 5) return false;
+  if (isScalar(v) || v === null) return true;
+  if (Array.isArray(v)) return v.length <= 500 && v.every((x) => isPlain(x, depth + 1));
+  if (typeof v === "object") {
+    const values = Object.values(v as Record<string, unknown>);
+    return values.length <= 500 && values.every((x) => isPlain(x, depth + 1));
+  }
+  return false;
+}
+
 async function load(code: string): Promise<Session | null> {
   const stored = await redis(["GET", `vs:${code}`]);
   return typeof stored === "string" ? (JSON.parse(stored) as Session) : null;
@@ -99,13 +113,17 @@ export async function handleRelay(request: Request, path: string): Promise<Respo
     if (parts.length === 3 && parts[2] === "changes" && method === "PUT") {
       const body = await readJson(request);
       const changes = body?.changes;
-      const known = new Set(session.entries.map((e) => e.path));
+      const types = new Map(session.entries.map((e) => [e.path, e.type]));
       const valid =
         !!changes &&
         typeof changes === "object" &&
         !Array.isArray(changes) &&
         Object.keys(changes).length <= MAX_CHANGES &&
-        Object.entries(changes).every(([key, value]) => known.has(key) && isValue(value));
+        Object.entries(changes).every(([key, value]) =>
+          types.has(key) && STRUCTURED.has(types.get(key) ?? "")
+            ? isPlain(value)
+            : types.has(key) && isValue(value)
+        );
       if (!valid) return badRequest();
       session.changes = changes as Record<string, unknown>;
       await save(code, session);
